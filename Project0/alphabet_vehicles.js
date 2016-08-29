@@ -1,29 +1,35 @@
 // Create verticies relative to top left corner of the truck
-var topLeftX = 40;
-var topLeftY = 30;
-var h = 20; // height for top half of front of truck
+var truckVehicle = function(topLeftX, topLeftY) {
+    this.x = topLeftX;
+    this.y = topLeftY;
+    this.h = 20; // height for top half of front of truck
+};
 
-var drawTruck = function() {
+truckVehicle.prototype.move = function() {
+    if(this.y <= 20) {
+        this.y = 20;
+    }
+    this.y -= 3;
     stroke(0, 0, 0);
     // First quadrilateral draws the top half of front of truck
     // Quadrilateral takes verticies from top left corner, to top right, to bottom right, to bottom left
     fill(28, 62, 230);
-    quad(topLeftX, topLeftY, topLeftX+50, topLeftY, topLeftX+60, topLeftY+h, topLeftX-10, topLeftY+h);
+    quad(this.x, this.y, this.x+50, this.y, this.x+60, this.y+this.h, this.x-10, this.y+this.h);
     // Second quadrilateral draws the bottom half of front of truck
-    quad(topLeftX-15, topLeftY+h, topLeftX+50+15, topLeftY+h, topLeftX+50+15+10, topLeftY+h+h+10, topLeftX-15-10, topLeftY+h+h+10);
+    quad(this.x-15, this.y+this.h, this.x+65, this.y+this.h, this.x+75, this.y+this.h+this.h+10, this.x-25, this.y+this.h+this.h+10);
     // Draws the window of truck
     fill(201, 228, 240);
-    quad(topLeftX+5, topLeftY+10, topLeftX+45, topLeftY+10, topLeftX+55, topLeftY+h, topLeftX-5, topLeftY+h);
+    quad(this.x+5, this.y+10, this.x+45, this.y+10, this.x+55, this.y+this.h, this.x-5, this.y+this.h);
     // Draws the headlights of truck
     fill(245, 229, 128);
-    rect(topLeftX+3, topLeftY-4, 12, 4);
-    rect(topLeftX+33, topLeftY-4, 12, 4);
+    rect(this.x+3, this.y-4, 12, 4);
+    rect(this.x+33, this.y-4, 12, 4);
     // Draws the attachment to trailer of truck
     fill(73, 74, 107);
-    rect(topLeftX, topLeftY+h+h+10, 50, 20);
+    rect(this.x, this.y+this.h+this.h+10, 50, 20);
     // Draws the trailer of truck
     fill(224, 224, 224);
-    rect(topLeftX-15-10, topLeftY+h+h+10+20, 100, 260);
+    rect(this.x-15-10, this.y+this.h+this.h+10+20, 100, 260);
 };
 
 // Constructor
@@ -32,7 +38,7 @@ var letterI = function() {
     this.sign = -3; // this variable is used for flashing the letter "i"
 };
 
-letterI.prototype.flashI = function() {
+letterI.prototype.flash = function() {
     noStroke();
     // The below "if/else if" toggles opacity for flashing effect
     if(this.opacity >= 300) { // set a cap/threshold for opacity
@@ -44,8 +50,8 @@ letterI.prototype.flashI = function() {
     }
     this.opacity += this.sign;
     fill(0, 196, 255, this.opacity);
-    rect(topLeftX, topLeftY+5, 50, 40);
-    rect(topLeftX, topLeftY+80, 50, 230);
+    rect(40, 25, 50, 40);
+    rect(40, 105, 50, 230);
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -89,9 +95,11 @@ var drawA = function() {
 };
 
 var i = new letterI();
+var truck = new truckVehicle(40, 410); // Initialize truck off the canvas
 draw = function() {
-    drawTruck();
-    i.flashI();
+    background(255, 255, 255);
+    truck.move();
+    i.flash();
     drawSailboat();
     drawA();
 };

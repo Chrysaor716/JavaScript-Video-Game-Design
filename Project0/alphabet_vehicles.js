@@ -4,6 +4,7 @@ var topLeftY = 30;
 var h = 20; // height for top half of front of truck
 
 var drawTruck = function() {
+    stroke(0, 0, 0);
     // First quadrilateral draws the top half of front of truck
     // Quadrilateral takes verticies from top left corner, to top right, to bottom right, to bottom left
     fill(28, 62, 230);
@@ -32,6 +33,7 @@ var letterI = function() {
 };
 
 letterI.prototype.flashI = function() {
+    noStroke();
     // The below "if/else if" toggles opacity for flashing effect
     if(this.opacity >= 300) { // set a cap/threshold for opacity
         this.opacity = 300;

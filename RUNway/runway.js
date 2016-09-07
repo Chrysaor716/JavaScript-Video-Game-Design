@@ -1,24 +1,19 @@
 /*
- *  Based on a 500x500 pixel canvas.
+ *  Based on a 500x700 pixel canvas.
  *  Via link: https://www.khanacademy.org/computer-programming/runway/5355173884854272?width=500&height=500
  */
 
 frameRate(60);
 // Create verticies relative to top left corner of the truck
-var truckVehicle = function() {
-    var lane = Math.floor((Math.random() * 3) + 1); // Generate a random multiplyer: 1, 2, or 3. This is the starting xPos.
-    var yStartPos = Math.floor((Math.random() * 1000) + 90);
-    // Halfway into the canvas is 250 (subtract 15 b/c it is relative to the top leftmost edge of truck)
-    // Halfway between the 250th pixel and the left edge (0th pixel) is 125; right lane is at pixel 375.
-    // Multiply 125 by 1, 2, or 3, to determine which lane to generate the truck in.
-    this.x = (125*lane)-15;
+var truckVehicle = function(lane) {
+    var yStartPos = Math.floor((Math.random() * 1000) + 90); // Generate random starting y position
     this.y = yStartPos+height;
     this.speed = 5;
+    this.x = lane;
 };
 
 // Draws a single truck
 truckVehicle.prototype.draw = function() {
-
     stroke(0, 0, 0);
     // First quadrilateral draws the top half of front of truck
     // Quadrilateral takes verticies from top left corner, to top right, to bottom right, to bottom left
@@ -43,28 +38,41 @@ truckVehicle.prototype.draw = function() {
 
 truckVehicle.prototype.move = function() {
     this.y -= this.speed;
-    if(this.y < -1000) {
-        this.y = height;
-        var lane = Math.floor((Math.random() * 3) + 1); // Generate a random multiplyer: 1, 2, or 3. This is the starting xPos.
-        this.x = (125*lane)-15;
+    if(this.y < -450) {
+        this.y = height + Math.floor((Math.random() * 1000) + 90); // Generate random starting y position for next wave
     }
 };
 
 var truckArray = [];
-for(var i = 0; i < 3; i++) {
-    var truck = new truckVehicle();
+var secondWave = [];
+for(var i = 1; i < 4; i++) { // Generate trucks on each lane
+    // Halfway into the canvas is 250 (subtract 15 b/c it is relative to the top leftmost edge of truck)
+    // Halfway between the 250th pixel and the left edge (0th pixel) is 125; right lane is at pixel 375.
+    // Multiply 125 by 1, 2, or 3, to determine which lane to generate the truck in.
+    var truck = new truckVehicle(125*i-15);
     truckArray.push(truck);
+    var nextTruck = new truckVehicle(125*i-15);
+    secondWave.push(nextTruck);
 }
-var prevLane = 0;
 
 draw = function() {
-    background(255, 255, 255);
-
+    background(0, 0, 0);
+    // Draw the lines separating the lanes on the road
+    for(var i = 0; i < 4; i++) {
+        noStroke();
+        fill(242, 255, 0);
+        rect(125*i+55, 50, 13, 60);
+        rect(125*i+55, 50 + 130, 13, 60);
+        rect(125*i+55, 50 + (130*2), 13, 60);
+        rect(125*i+55, 50 + (130*3), 13, 60);
+        rect(125*i+55, 50 + (130*4), 13, 60);
+    }
     for(var i = 0; i < truckArray.length; i++) {
-        if(truckArray[i].x !== prevLane) {
             truckArray[i].draw();
             truckArray[i].move();
-        }
-        prevLane = truckArray[i].x; // Ensures the truck initialized on the same lane doesn't overlap each other
+            if(abs(truckArray[i].y-secondWave[i].y) > 550) {
+                secondWave[i].draw();
+                secondWave[i].move();
+            }
     }
 };

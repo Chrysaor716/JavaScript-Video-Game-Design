@@ -199,9 +199,18 @@ draw = function() {
             } if(timer >= 10) {
                 text("0:" + timer, width-50, 40);
             }
-            if(timer === 0) {
-                // TODO game over state
+            if(timer <= 0) {
+                state = "End";
             }
+        break;
+        
+        case "End":
+            fill(255, 0, 0);
+            textSize(50);
+            text("Game over!", width/2-130, height/2-50);
+            fill(255, 255, 255);
+            textSize(25);
+            text("Score: " + counter, width/2-100, height/2);
         break;
     }
 };

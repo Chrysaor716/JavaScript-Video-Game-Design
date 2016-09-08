@@ -43,6 +43,14 @@ truckVehicle.prototype.move = function() {
     }
 };
 
+var keys = []; // Detect key multiple presses
+var keyPressed = function() { 
+    keys[keyCode] = true;
+};
+var keyReleased = function() { 
+    keys[keyCode] = false; 
+};
+
 var truckArray = [];
 var secondWave = [];
 for(var i = 1; i < 4; i++) { // Generate trucks on each lane
@@ -63,14 +71,13 @@ draw = function() {
     rect(0, 0, width, 50);
     stroke(0, 0, 0);
     
-    // Draws the garage doors for trucks to pass through based on key presses
-    if(keyIsPressed && keyCode === LEFT) {
+    if(keyIsPressed && keys[LEFT]) {
         fill(0, 0, 0); // Variable transparency to mimic garage door open
         quad(125-61, 0, 125+61, 0, 125+47, 50, 125-47, 50);
-    } if(keyIsPressed && keyCode === UP) {
+    } if(keyIsPressed && keys[UP]) {
         fill(0, 0, 0);
         quad(250-61, 0, 250+61, 0, 250+47, 50, 250-47, 50);
-    } if(keyIsPressed && keyCode === RIGHT) {
+    } if(keyIsPressed && keys[RIGHT]) {
         fill(0, 0, 0);
         quad(375-61, 0, 375+61, 0, 375+47, 50, 375-47, 50);
     }

@@ -45,11 +45,11 @@ truckVehicle.prototype.move = function() {
 };
 
 var keys = []; // Detect key multiple presses
-var keyPressed = function() { 
+var keyPressed = function() {
     keys[keyCode] = true;
 };
-var keyReleased = function() { 
-    keys[keyCode] = false; 
+var keyReleased = function() {
+    keys[keyCode] = false;
 };
 
 var truckArray = [];
@@ -83,7 +83,7 @@ draw = function() {
         fill(0, 0, 0);
         quad(375-61, 0, 375+61, 0, 375+47, 50, 375-47, 50);
     }
-    
+
     // Draw the lines separating the lanes on the road
     for(var i = 0; i < 4; i++) {
         noStroke();

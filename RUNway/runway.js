@@ -2,8 +2,11 @@
  *  Based on a 500x700 pixel canvas.
  *  Via link: https://www.khanacademy.org/computer-programming/runway/5355173884854272?width=500&height=700
  */
-
 frameRate(60);
+
+// State machien variable for game
+var state = "Menu";
+
 // Create verticies relative to top left corner of the truck
 var truckVehicle = function(lane) {
     var yStartPos = Math.floor((Math.random() * 1000) + 90); // Generate random starting y position
@@ -52,6 +55,14 @@ var keyReleased = function() {
     keys[keyCode] = false; 
 };
 
+// Detect mouse click on Menu screen at the beginning
+mouseClicked = function() {
+    if(mouseX >= (width/2)-80 && mouseX <= (width/2)-80+160 &&
+       mouseY >= height-140 && mouseY <= height-140+70) {
+            state = "Game";
+    }
+};
+
 var truckArray = [];
 var secondWave = [];
 for(var i = 1; i < 4; i++) { // Generate trucks on each lane
@@ -65,86 +76,132 @@ for(var i = 1; i < 4; i++) { // Generate trucks on each lane
 }
 
 var counter = 0;
+var timer = 30; // 30 second timer
 draw = function() {
     background(0, 0, 0);
-    // Draws the garage background
-    noStroke();
-    fill(180, 180, 180);
-    rect(0, 0, width, 50);
-    stroke(0, 0, 0);
+    switch(state) {
+        case "Menu": // Explains the rules and a means of entry to the game
+            fill(213, 217, 7);
+            textSize(40);
+            text("Runway", 180, 50);
+            fill(255, 255, 255);
+            textSize(20);
+            text("There will be 3 lanes in which trucks will drive\n" +
+                 "up the screen. At the top are 3 garage doors\n" +
+                 "to open, using the LEFT, UP, and RIGHT arrow\n" +
+                 "keys.\n\nYour goal is to open these doors at the right time.\n" +
+                 "Any time a truck passes through the garage and\n" +
+                 "the door isn't open, points will be deducted. If\n" +
+                 "the door is open while there aren't any trucks\n" +
+                 "passing through, points are also deducted. So\n" +
+                 "don't just hold those doors open the whole game!\n\n" +
+                 "Points are earned when the garage door is open\n" +
+                 "while a truck is passing through it!\n\n" +
+                 "Score as high as possible before the time runs\n" +
+                 "out! Ready?", 40, 80);
+            textSize(17);
+            text("Click!", (width/2)-30, height-150);
+            stroke(213, 217, 7);
+            strokeWeight(5);
+            fill(240, 121, 29);
+            rect((width/2)-80, height-140, 160, 70);
+            fill(0, 0, 0);
+            textSize(40);
+            text("Yeah!", (width/2)-55, height-90);
+        break;
+        
+        case "Game":
+            // Draws the garage background
+            noStroke();
+            fill(180, 180, 180);
+            rect(0, 0, width, 50);
+            stroke(0, 0, 0);
+            strokeWeight(1);
     
-    if(keyIsPressed && keys[LEFT]) {
-        fill(0, 0, 0); // Variable transparency to mimic garage door open
-        quad(125-61, 0, 125+61, 0, 125+47, 50, 125-47, 50);
-    } if(keyIsPressed && keys[UP]) {
-        fill(0, 0, 0);
-        quad(250-61, 0, 250+61, 0, 250+47, 50, 250-47, 50);
-    } if(keyIsPressed && keys[RIGHT]) {
-        fill(0, 0, 0);
-        quad(375-61, 0, 375+61, 0, 375+47, 50, 375-47, 50);
-    }
-    
-    // Draw the lines separating the lanes on the road
-    for(var i = 0; i < 4; i++) {
-        noStroke();
-        fill(242, 255, 0);
-        rect(125*i+55, 50, 13, 60);
-        rect(125*i+55, 50 + 130, 13, 60);
-        rect(125*i+55, 50 + (130*2), 13, 60);
-        rect(125*i+55, 50 + (130*3), 13, 60);
-        rect(125*i+55, 50 + (130*4), 13, 60);
-    }
-    for(var i = 0; i < truckArray.length; i++) {
-        truckArray[i].draw();
-        truckArray[i].move();
-        if(abs(truckArray[i].y-secondWave[i].y) < 500) { // if truck tailgates or is within overlapping distance
-            secondWave[i].y = truckArray[i].y + 600; // increase the distance between the two trucks (in the same lane)
-            secondWave[i].draw();
-            secondWave[i].move();
-        }
-        // Conditions for points/counter
-        // If a truck passes through while garage door is opened, player earns points.
-        if((truckArray[i].y <= 50 && truckArray[i].y+300 >= 50) || 
-            (secondWave[i].y <= 50 && secondWave[i].y+300 >= 50)) { // If truck in either wave passes through garage
-            // Add to counter if garage door is opened during pass
-            if(keyIsPressed && ((keys[LEFT] && truckArray[i].x === 125-15) ||   // left key is pressed & truck is in left lane
-                                (keys[UP] && truckArray[i].x === 250-15) ||     // up key is pressed & truck is in middle lane
-                                (keys[RIGHT] && truckArray[i].x === 375-15))) { // right key is pressed & truck is in right lane
-                counter += 5;
+            if(keyIsPressed && keys[LEFT]) {
+                fill(0, 0, 0); // Variable transparency to mimic garage door open
+                quad(125-61, 0, 125+61, 0, 125+47, 50, 125-47, 50);
+            } if(keyIsPressed && keys[UP]) {
+                fill(0, 0, 0);
+                quad(250-61, 0, 250+61, 0, 250+47, 50, 250-47, 50);
+            } if(keyIsPressed && keys[RIGHT]) {
+                fill(0, 0, 0);
+                quad(375-61, 0, 375+61, 0, 375+47, 50, 375-47, 50);
             }
-            // Consequently, if a truck is passing through garage and door isn't opened, deduct points.
-            if((!keys[LEFT] && truckArray[i].x === 125-15) ||
-                (!keys[UP] && truckArray[i].x === 250-15) ||
-                (!keys[RIGHT] && truckArray[i].x === 375-15)) {
-                counter--;
+            
+            // Draw the lines separating the lanes on the road
+            for(var i = 0; i < 4; i++) {
+                noStroke();
+                fill(242, 255, 0);
+                rect(125*i+55, 50, 13, 60);
+                rect(125*i+55, 50 + 130, 13, 60);
+                rect(125*i+55, 50 + (130*2), 13, 60);
+                rect(125*i+55, 50 + (130*3), 13, 60);
+                rect(125*i+55, 50 + (130*4), 13, 60);
             }
-        }
-        // If a key is pressed down while no trucks are passing through, deduct points.
-        if(!(truckArray[i].y <= 50 && truckArray[i].y+300 >= 50) || 
-           !(secondWave[i].y <= 50 && secondWave[i].y+300 >= 50)) {
-               if(keyIsPressed && ((keys[LEFT] && truckArray[i].x === 125-15) ||
-                                  (keys[UP] && truckArray[i].x === 250-15) ||
-                                  (keys[RIGHT] && truckArray[i].x === 375-15))) {
-                    counter--;
+            for(var i = 0; i < truckArray.length; i++) {
+                truckArray[i].draw();
+                truckArray[i].move();
+                if(abs(truckArray[i].y-secondWave[i].y) < 500) { // if truck tailgates or is within overlapping distance
+                    secondWave[i].y = truckArray[i].y + 600; // increase the distance between the two trucks (in the same lane)
+                    secondWave[i].draw();
+                    secondWave[i].move();
                 }
-           }
+                // Conditions for points/counter
+                // If a truck passes through while garage door is opened, player earns points.
+                if((truckArray[i].y <= 50 && truckArray[i].y+300 >= 50) || 
+                    (secondWave[i].y <= 50 && secondWave[i].y+300 >= 50)) { // If truck in either wave passes through garage
+                    // Add to counter if garage door is opened during pass
+                    if(keyIsPressed && ((keys[LEFT] && truckArray[i].x === 125-15) ||   // left key is pressed & truck is in left lane
+                                        (keys[UP] && truckArray[i].x === 250-15) ||     // up key is pressed & truck is in middle lane
+                                        (keys[RIGHT] && truckArray[i].x === 375-15))) { // right key is pressed & truck is in right lane
+                        counter += 5;
+                    }
+                    // Consequently, if a truck is passing through garage and door isn't opened, deduct points.
+                    if((!keys[LEFT] && truckArray[i].x === 125-15) ||
+                        (!keys[UP] && truckArray[i].x === 250-15) ||
+                        (!keys[RIGHT] && truckArray[i].x === 375-15)) {
+                        counter--;
+                    }
+                }
+                // If a key is pressed down while no trucks are passing through, deduct points.
+                if(!(truckArray[i].y <= 50 && truckArray[i].y+300 >= 50) || 
+                   !(secondWave[i].y <= 50 && secondWave[i].y+300 >= 50)) {
+                       if(keyIsPressed && ((keys[LEFT] && truckArray[i].x === 125-15) ||
+                                          (keys[UP] && truckArray[i].x === 250-15) ||
+                                          (keys[RIGHT] && truckArray[i].x === 375-15))) {
+                            counter--;
+                        }
+                   }
+            }
+            // If no keys are pressed, redraw garage background to overlap the passing trucks
+            if(!keyIsPressed) {
+                // Draws the garage background
+                noStroke();
+                fill(180, 180, 180);
+                rect(0, 0, width, 50);
+                // Overlap garage color with which keys to press
+                fill(107, 107, 107);
+                rect(115, 25-7, 40, 14);
+                triangle(80, 25, 120, 10, 120, 40);
+                rect(250-7, 10, 14, 40);
+                triangle(250, 0, 250-20, 25, 250+20, 25);
+                rect(340, 25-7, 40, 14);
+                triangle(380, 10, 420, 25, 380, 40);
+            }
+            fill(0, 0, 0);
+            textSize(20);
+            text(counter, 5, 40);
+            if(frameCount%60 === 0) { // Decrement timer (in seconds) based on frame rate
+                timer--;
+            } if(timer < 10) { // If timer is in the single digits, append the second count with a leading zero
+                text("0:0" + timer, width-50, 40);
+            } if(timer >= 10) {
+                text("0:" + timer, width-50, 40);
+            }
+            if(timer === 0) {
+                // TODO game over state
+            }
+        break;
     }
-    // If no keys are pressed, redraw garage background to overlap the passing trucks
-    if(!keyIsPressed) {
-        // Draws the garage background
-        noStroke();
-        fill(180, 180, 180);
-        rect(0, 0, width, 50);
-        // Overlap garage color with which keys to press
-        fill(107, 107, 107);
-        rect(115, 25-7, 40, 14);
-        triangle(80, 25, 120, 10, 120, 40);
-        rect(250-7, 10, 14, 40);
-        triangle(250, 0, 250-20, 25, 250+20, 25);
-        rect(340, 25-7, 40, 14);
-        triangle(380, 10, 420, 25, 380, 40);
-    }
-    fill(0, 0, 0);
-    text(counter, 5, 40);
-    textSize(20);
 };

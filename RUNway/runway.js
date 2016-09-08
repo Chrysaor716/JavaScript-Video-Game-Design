@@ -1,6 +1,6 @@
 /*
  *  Based on a 500x700 pixel canvas.
- *  Via link: https://www.khanacademy.org/computer-programming/runway/5355173884854272?width=500&height=500
+ *  Via link: https://www.khanacademy.org/computer-programming/runway/5355173884854272?width=500&height=700
  */
 
 frameRate(60);
@@ -39,7 +39,7 @@ truckVehicle.prototype.draw = function() {
 truckVehicle.prototype.move = function() {
     this.y -= this.speed;
     if(this.y < -450) {
-        this.y = height + Math.floor((Math.random() * 1000) + 90); // Generate random starting y position for next wave
+        this.y = height + Math.floor((Math.random() * 1000) + 0); // Generate random starting y position for next wave
     }
 };
 
@@ -57,6 +57,24 @@ for(var i = 1; i < 4; i++) { // Generate trucks on each lane
 
 draw = function() {
     background(0, 0, 0);
+    // Draws the garage background
+    noStroke();
+    fill(180, 180, 180);
+    rect(0, 0, width, 50);
+    stroke(0, 0, 0);
+    
+    // Draws the garage doors for trucks to pass through based on key presses
+    if(keyIsPressed && keyCode === LEFT) {
+        fill(0, 0, 0); // Variable transparency to mimic garage door open
+        quad(125-61, 0, 125+61, 0, 125+47, 50, 125-47, 50);
+    } if(keyIsPressed && keyCode === UP) {
+        fill(0, 0, 0);
+        quad(250-61, 0, 250+61, 0, 250+47, 50, 250-47, 50);
+    } if(keyIsPressed && keyCode === RIGHT) {
+        fill(0, 0, 0);
+        quad(375-61, 0, 375+61, 0, 375+47, 50, 375-47, 50);
+    }
+    
     // Draw the lines separating the lanes on the road
     for(var i = 0; i < 4; i++) {
         noStroke();
@@ -70,9 +88,17 @@ draw = function() {
     for(var i = 0; i < truckArray.length; i++) {
             truckArray[i].draw();
             truckArray[i].move();
-            if(abs(truckArray[i].y-secondWave[i].y) > 550) {
+            if(abs(truckArray[i].y-secondWave[i].y) > 500) {
                 secondWave[i].draw();
                 secondWave[i].move();
             }
+    }
+    // If no keys are pressed, redraw garage background to overlap the passing trucks
+    if(!keyIsPressed) {
+        // Draws the garage background
+        noStroke();
+        fill(180, 180, 180);
+        rect(0, 0, width, 50);
+        stroke(0, 0, 0);
     }
 };

@@ -8,7 +8,7 @@ frameRate(60);
 var truckVehicle = function(lane) {
     var yStartPos = Math.floor((Math.random() * 1000) + 90); // Generate random starting y position
     this.y = yStartPos+height;
-    this.speed = 5;
+    this.speed = 3; // vary from 3 to 9
     this.x = lane;
 };
 
@@ -40,6 +40,7 @@ truckVehicle.prototype.move = function() {
     this.y -= this.speed;
     if(this.y < -450) {
         this.y = height + Math.floor((Math.random() * 1000) + 0); // Generate random starting y position for next wave
+        this.speed = Math.floor((Math.random() * 10) + 3); // Spawn at a random speed
     }
 };
 
@@ -63,6 +64,7 @@ for(var i = 1; i < 4; i++) { // Generate trucks on each lane
     secondWave.push(nextTruck);
 }
 
+var counter = 0;
 draw = function() {
     background(0, 0, 0);
     // Draws the garage background
@@ -93,12 +95,39 @@ draw = function() {
         rect(125*i+55, 50 + (130*4), 13, 60);
     }
     for(var i = 0; i < truckArray.length; i++) {
-            truckArray[i].draw();
-            truckArray[i].move();
-            if(abs(truckArray[i].y-secondWave[i].y) > 500) {
-                secondWave[i].draw();
-                secondWave[i].move();
+        truckArray[i].draw();
+        truckArray[i].move();
+        if(abs(truckArray[i].y-secondWave[i].y) < 500) { // if truck tailgates or is within overlapping distance
+            secondWave[i].y = truckArray[i].y + 600; // increase the distance between the two trucks (in the same lane)
+            secondWave[i].draw();
+            secondWave[i].move();
+        }
+        // Conditions for points/counter
+        // If a truck passes through while garage door is opened, player earns points.
+        if((truckArray[i].y <= 50 && truckArray[i].y+300 >= 50) || 
+            (secondWave[i].y <= 50 && secondWave[i].y+300 >= 50)) { // If truck in either wave passes through garage
+            // Add to counter if garage door is opened during pass
+            if(keyIsPressed && ((keys[LEFT] && truckArray[i].x === 125-15) ||   // left key is pressed & truck is in left lane
+                                (keys[UP] && truckArray[i].x === 250-15) ||     // up key is pressed & truck is in middle lane
+                                (keys[RIGHT] && truckArray[i].x === 375-15))) { // right key is pressed & truck is in right lane
+                counter += 5;
             }
+            // Consequently, if a truck is passing through garage and door isn't opened, deduct points.
+            if((!keys[LEFT] && truckArray[i].x === 125-15) ||
+                (!keys[UP] && truckArray[i].x === 250-15) ||
+                (!keys[RIGHT] && truckArray[i].x === 375-15)) {
+                counter--;
+            }
+        }
+        // If a key is pressed down while no trucks are passing through, deduct points.
+        if(!(truckArray[i].y <= 50 && truckArray[i].y+300 >= 50) || 
+           !(secondWave[i].y <= 50 && secondWave[i].y+300 >= 50)) {
+               if(keyIsPressed && ((keys[LEFT] && truckArray[i].x === 125-15) ||
+                                  (keys[UP] && truckArray[i].x === 250-15) ||
+                                  (keys[RIGHT] && truckArray[i].x === 375-15))) {
+                    counter--;
+                }
+           }
     }
     // If no keys are pressed, redraw garage background to overlap the passing trucks
     if(!keyIsPressed) {
@@ -106,6 +135,16 @@ draw = function() {
         noStroke();
         fill(180, 180, 180);
         rect(0, 0, width, 50);
-        stroke(0, 0, 0);
+        // Overlap garage color with which keys to press
+        fill(107, 107, 107);
+        rect(115, 25-7, 40, 14);
+        triangle(80, 25, 120, 10, 120, 40);
+        rect(250-7, 10, 14, 40);
+        triangle(250, 0, 250-20, 25, 250+20, 25);
+        rect(340, 25-7, 40, 14);
+        triangle(380, 10, 420, 25, 380, 40);
     }
+    fill(0, 0, 0);
+    text(counter, 5, 40);
+    textSize(20);
 };

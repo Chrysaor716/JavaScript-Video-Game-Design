@@ -56,11 +56,25 @@ var keyReleased = function() {
 };
 
 // Detect mouse click on Menu screen at the beginning
+// Determine selection based on click location on screen
+var timer = 60; // default
 mouseClicked = function() {
-    if(mouseX >= (width/2)-80 && mouseX <= (width/2)-80+160 &&
-       mouseY >= height-140 && mouseY <= height-140+70) {
-            state = "Game";
+    // Mouse click processing for choosing start time for game inside Menu
+    if(mouseX >= (width/2)-180 && mouseX <= (width/2)-180+130 &&
+       mouseY >= height-170 && mouseY <= height-170+60 && state === "Menu") {
+           timer = 30;
+           state = "Game";
     }
+    if(mouseX >= (width/2)+50 && mouseX <= (width/2)+50+130 &&
+       mouseY >= height-170 && mouseY <= height-170+60 && state === "Menu") {
+           timer = 60;
+           state = "Game";
+    }
+    // // Mouse click processing for choosing to restart on the Game Over screen
+    // if(mouseX >= width/2-100 && mouseX <= width/2-100+200 &&
+    //   mouseY >= height/2+50 && mouseY <= height/2-50+100 && state === "End") {
+    //       state = "Menu";
+    // }
 };
 
 var truckArray = [];
@@ -75,12 +89,12 @@ for(var i = 1; i < 4; i++) { // Generate trucks on each lane
     secondWave.push(nextTruck);
 }
 
-var counter = 0;
-var timer = 30; // 30 second timer
+var counter = 0; // score count
 draw = function() {
     background(0, 0, 0);
     switch(state) {
         case "Menu": // Explains the rules and a means of entry to the game
+            counter = 0; // reset score
             fill(213, 217, 7);
             textSize(40);
             text("Runway", 180, 50);
@@ -95,19 +109,39 @@ draw = function() {
                  "the door is open while there aren't any trucks\n" +
                  "passing through, points are also deducted. So\n" +
                  "don't just hold those doors open the whole game!\n\n" +
-                 "Points are earned when the garage door is open\n" +
-                 "while a truck is passing through it!\n\n" +
+                 "Points are earned only when the garage door is\n" +
+                 "open while a truck is passing through it!\n\n" +
                  "Score as high as possible before the time runs\n" +
-                 "out! Ready?", 40, 80);
+                 "out!", 40, 80);
+            fill(17, 0, 255);
+            textSize(30);
+            text("Choose time", width/2-85, height-210);
             textSize(17);
-            text("Click!", (width/2)-30, height-150);
-            stroke(213, 217, 7);
+            text("Click!", (width/2)-20, height-190);
+            // Add 30 second mode button
+            stroke(17, 142, 153);
             strokeWeight(5);
-            fill(240, 121, 29);
-            rect((width/2)-80, height-140, 160, 70);
+            fill(0, 13, 252);
+            rect((width/2)-180, height-170, 130, 60);
+            noStroke();
+            fill(255, 255, 255);
+            ellipse((width/2-82), (height-156), 40, 10);
+            ellipse((width/2-66), (height-151), 10, 15);
             fill(0, 0, 0);
-            textSize(40);
-            text("Yeah!", (width/2)-55, height-90);
+            textSize(20);
+            text("30 seconds", (width/2)-165, height-130);
+            // Add 1 minute mode button
+            stroke(17, 142, 153);
+            strokeWeight(5);
+            fill(0, 13, 252);
+            rect((width/2)+50, height-170, 130, 60);
+            noStroke();
+            fill(255, 255, 255);
+            ellipse((width/2+148), (height-156), 40, 10);
+            ellipse((width/2+164), (height-151), 10, 15);
+            fill(0, 0, 0);
+            textSize(20);
+            text("60 seconds", (width/2)+66, height-130);
         break;
         
         case "Game":
@@ -161,7 +195,7 @@ draw = function() {
                     if((!keys[LEFT] && truckArray[i].x === 125-15) ||
                         (!keys[UP] && truckArray[i].x === 250-15) ||
                         (!keys[RIGHT] && truckArray[i].x === 375-15)) {
-                        counter--;
+                        counter -= 3;
                     }
                 }
                 // If a key is pressed down while no trucks are passing through, deduct points.
@@ -207,10 +241,39 @@ draw = function() {
         case "End":
             fill(255, 0, 0);
             textSize(50);
-            text("Game over!", width/2-130, height/2-50);
+            text("Game over!", width/2-130, height/2-100);
             fill(255, 255, 255);
             textSize(25);
-            text("Score: " + counter, width/2-100, height/2);
+            text("Score: " + counter, width/2-70, height/2-50);
+            textSize(35);
+            text("Start over?", width/2-85, height/2+15);
+            textSize(20);
+            text("Press", width/2-30, height/2+40);
+            // Draw button
+            noStroke();
+            fill(43, 119, 201);
+            rect(width/2-100, height/2+50, 200, 100);
+            // Draws button shadow
+            stroke(0, 48, 120);
+            strokeWeight(8);
+            line(width/2-100+200, height/2+54, width/2-100+200, height/2+50+95);
+            line(width/2-96, height/2+50+97, width/2-100+197, height/2+50+97);
+            stroke(255, 255, 255);
+            // Draws button shine
+            strokeWeight(4);
+            line(width/2-90, height/2+60, width/2+80, height/2+60);
+            line(width/2-90, height/2+60, width/2-90, height/2+130);
+            // Draws text inside button
+            fill(0, 0, 0);
+            textSize(50);
+            text("Enter", width/2-60, height/2+115);
+            if(keyIsPressed && keys[ENTER]) {
+                state = "Menu";
+            }
+        break;
+        
+        default:
+            state = "Menu";
         break;
     }
 };

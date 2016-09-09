@@ -190,6 +190,16 @@ draw = function() {
                                         (keys[UP] && truckArray[i].x === 250-15) ||     // up key is pressed & truck is in middle lane
                                         (keys[RIGHT] && truckArray[i].x === 375-15))) { // right key is pressed & truck is in right lane
                         counter += 5;
+                        // Provide visual feedback
+                        noStroke();
+                        fill(0, 255, 0, 150);
+                        if(keys[LEFT]  && truckArray[i].x === 125-15) {
+                            quad(125-47, 50, 125+47, 50, 125+70, height, 125-70, height);
+                        } if(keys[UP] && truckArray[i].x === 250-15) {
+                            quad(250-47, 50, 250+47, 50, 250+70, height, 250-70, height);
+                        } if(keys[RIGHT] && truckArray[i].x === 375-15) {
+                            quad(375-47, 50, 375+47, 50, 375+70, height, 375-70, height);
+                        }
                     }
                     // Consequently, if a truck is passing through garage and door isn't opened, deduct points.
                     if((!keys[LEFT] && truckArray[i].x === 125-15) ||
@@ -205,6 +215,16 @@ draw = function() {
                                           (keys[UP] && truckArray[i].x === 250-15) ||
                                           (keys[RIGHT] && truckArray[i].x === 375-15))) {
                             counter--;
+                            // Provide visual feedback
+                            noStroke();
+                            fill(255, 0, 0, 80);
+                            if(keys[LEFT] && truckArray[i].x === 125-15) {
+                                quad(125-47, 50, 125+47, 50, 125+70, height, 125-70, height);
+                            } if(keys[UP] && truckArray[i].x === 250-15) {
+                                quad(250-47, 50, 250+47, 50, 250+70, height, 250-70, height);
+                            } if(keys[RIGHT] && truckArray[i].x === 375-15) {
+                                quad(375-47, 50, 375+47, 50, 375+70, height, 375-70, height);
+                            }
                         }
                    }
             }

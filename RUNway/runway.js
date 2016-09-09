@@ -55,6 +55,26 @@ var keyReleased = function() {
     keys[keyCode] = false; 
 };
 
+// Create the letter "i" based on the top left corner
+var letterI = function(topLeftX, HP) {
+    this.x = topLeftX;
+    this.health = HP; // Number of lives for this character
+};
+letterI.prototype.draw = function() {
+    noStroke();
+    fill(108, 235, 227);
+    rect(this.x, 100, 20, 20);
+    rect(this.x, 100+30, 20, 60);
+    // Draw the number of lives above the letter
+    fill(0, 0, 255);
+    textSize(18);
+    text(this.health, this.x+5, 95);
+}; // total length of the letter "i" = 90 pixels
+letterI.prototype.move = function(lane) {
+    this.x = lane;
+};
+var eye = new letterI(125-10, 9); // initialize "i" to the middle of the left lane
+
 // Detect mouse click on Menu screen at the beginning
 // Determine selection based on click location on screen
 var timer = 60; // default
@@ -63,18 +83,15 @@ mouseClicked = function() {
     if(mouseX >= (width/2)-180 && mouseX <= (width/2)-180+130 &&
        mouseY >= height-170 && mouseY <= height-170+60 && state === "Menu") {
            timer = 30;
+           eye.health = 20;
            state = "Game";
     }
     if(mouseX >= (width/2)+50 && mouseX <= (width/2)+50+130 &&
        mouseY >= height-170 && mouseY <= height-170+60 && state === "Menu") {
            timer = 60;
+           eye.health = 30;
            state = "Game";
     }
-    // // Mouse click processing for choosing to restart on the Game Over screen
-    // if(mouseX >= width/2-100 && mouseX <= width/2-100+200 &&
-    //   mouseY >= height/2+50 && mouseY <= height/2-50+100 && state === "End") {
-    //       state = "Menu";
-    // }
 };
 
 var truckArray = [];
@@ -142,9 +159,17 @@ draw = function() {
             fill(0, 0, 0);
             textSize(20);
             text("60 seconds", (width/2)+66, height-130);
+            // Information about the "i" character
+            fill(255, 255, 255);
+            textSize(15);
+            text("There's a catch! The character \"i\" hovers over the lanes. Use\n" +
+                 "your mouse to control its position. As the character, you need to\n" +
+                 "dodge the incoming trucks! Game is over before the timer if its\n" +
+                 "life runs out first!", 40, height-80);
         break;
         
         case "Game":
+            eye.draw();
             // Draws the garage background
             noStroke();
             fill(180, 180, 180);
@@ -174,6 +199,37 @@ draw = function() {
                 rect(125*i+55, 50 + (130*4), 13, 60);
             }
             for(var i = 0; i < truckArray.length; i++) {
+                // Draws and detects overlapping of trucks on the character "i"
+                if(mouseX >= 0 && mouseX <= 185) { // If the mouse is in the left lane, move "i" to left lane
+                                                   // 185 is ~halfway between the mid-left lane and the mid-middle lane
+                    if(truckArray[i].x === 125-15) { // if trucks are in left lane
+                        if(truckArray[i].y >= 100 && truckArray[i].y <= 190) { // if truck collides with "i"
+                            // Collision! Deduct the number of lives
+                            eye.health--;
+                        }
+                    }
+                    eye.move(125-10);
+                    eye.draw();
+                } if(mouseX >= 186 && mouseX <= 312) {
+                    if(truckArray[i].x === 250-15) { // if trucks are in left lane
+                        if(truckArray[i].y >= 100 && truckArray[i].y <= 190) { // if truck collides with "i"
+                            // Collision! Deduct the number of lives
+                            eye.health--;
+                        }
+                    }
+                    eye.move(250-10); // moves "i" to middle lane if the mouse is hovering over the middle lane
+                    eye.draw();
+                } if(mouseX >= 313 && mouseX <= width) {
+                    if(truckArray[i].x === 375-15) { // if trucks are in left lane
+                        if(truckArray[i].y >= 100 && truckArray[i].y <= 190) { // if truck collides with "i"
+                            // Collision! Deduct the number of lives
+                            eye.health--;
+                        }
+                    }
+                    eye.move(375-10);
+                    eye.draw();
+                }
+                
                 truckArray[i].draw();
                 truckArray[i].move();
                 if(abs(truckArray[i].y-secondWave[i].y) < 500) { // if truck tailgates or is within overlapping distance
@@ -205,7 +261,7 @@ draw = function() {
                     if((!keys[LEFT] && truckArray[i].x === 125-15) ||
                         (!keys[UP] && truckArray[i].x === 250-15) ||
                         (!keys[RIGHT] && truckArray[i].x === 375-15)) {
-                        counter -= 3;
+                        counter -= 5;
                     }
                 }
                 // If a key is pressed down while no trucks are passing through, deduct points.
@@ -226,7 +282,7 @@ draw = function() {
                                 quad(375-47, 50, 375+47, 50, 375+70, height, 375-70, height);
                             }
                         }
-                   }
+                }
             }
             // If no keys are pressed, redraw garage background to overlap the passing trucks
             if(!keyIsPressed) {
@@ -243,6 +299,7 @@ draw = function() {
                 rect(340, 25-7, 40, 14);
                 triangle(380, 10, 420, 25, 380, 40);
             }
+            
             fill(0, 0, 0);
             textSize(20);
             text(counter, 5, 40);
@@ -253,7 +310,7 @@ draw = function() {
             } if(timer >= 10) {
                 text("0:" + timer, width-50, 40);
             }
-            if(timer <= 0) {
+            if(timer <= 0 || eye.health <= 0) {
                 state = "End";
             }
         break;

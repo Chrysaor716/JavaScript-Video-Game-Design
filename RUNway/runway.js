@@ -89,7 +89,7 @@ mouseClicked = function() {
     if(mouseX >= (width/2)+50 && mouseX <= (width/2)+50+130 &&
        mouseY >= height-170 && mouseY <= height-170+60 && state === "Menu") {
            timer = 60;
-           eye.health = 30;
+           eye.health = 35;
            state = "Game";
     }
 };

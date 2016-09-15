@@ -9,6 +9,33 @@ frameRate(60);
 // State machine variable for game
 var state = "Menu";
 
+var lava = function() {
+    this.start = Math.floor((Math.random() * 430) + 1);
+    // Draw lava (w/ bubbles on the top half of the screen)
+    this.x = Math.floor((Math.random() * 400) + 1);
+    this.y = Math.floor((Math.random() * 200) + 1);
+    this.diameter = 0;
+};
+lava.prototype.draw = function() {
+    // Draws a single bubble
+    stroke(0, 0, 0);
+    ellipse(this.x, this.y, this.diameter, this.diameter);
+};
+lava.prototype.move = function() {
+    this.start++;
+    // Grows the bubble until it pops
+    if(this.start > 500) {
+        this.diameter += 0.35;
+    }
+    if(this.diameter > 35) {
+        // Regenerate with a different position and start time after bubble pops
+        this.start = Math.floor((Math.random() * 430) + 1);
+        this.x = Math.floor((Math.random() * 400) + 1);
+        this.y = Math.floor((Math.random() * 150) + 1);
+        this.diameter = -50;
+    }
+};
+
 var flame = function(xC, yC, s) {
     this.xCenter = xC;
     this.yCenter = yC;
@@ -29,6 +56,10 @@ flame.prototype.move = function() {
     }
 };
 
+var danger = [];
+for(var i = 0; i < 60; i++) {
+    danger.push(new lava());
+}
 var fireArr = [new flame(width-55, 30*7+15, 3), new flame(width-165, 30*7+15, 3), new flame(width-275, 30*7+15, 3)];
 draw = function() {
     background(255, 255, 255);
@@ -42,8 +73,13 @@ draw = function() {
         case "Game":
             // Draws a background color to the top half of the screen
             noStroke();
-            fill(122, 83, 49);
+            fill(240, 0, 0);
             rect(0, 0, width, height/2);
+            // Draws the popping bubbles in lava
+            for(var i = 0; i < danger.length; i++) {
+                danger[i].draw();
+                danger[i].move();
+            }
             // Draws a background color to the bottom half of the screen
             noStroke();
             fill(72, 232, 224);
@@ -95,18 +131,6 @@ draw = function() {
             ellipse(width-60, height/2+113, 10, 10);
             ellipse(50, height/2+146, 10, 10);
             ellipse(width-60, height/2+145, 10, 10);
-            
-            // // Draws the lava on the top half of the screen
-            // noStroke();
-            // for(var i = 0; i < 20; i++) {
-            //     fill(255, 115, 0);
-            //     ellipse(random(0, width), random(0, 130), random(5, 80), random(5, 80));
-            //     rect(random (0, width), random (0, 130), random (5, 80), random (5, 80));
-            //     fill(255, 0, 13);
-            //     ellipse(random(0, width), random(0, 130), random(5, 80), random(5, 80));
-            //     rect(random (0, width), random (0, 130), random (5, 80), random (5, 80));
-            //     frameRate(1);
-            // }
             
             // Spawns the meteorites/flames
             for(var i = 0 ; i < 3; i++) {

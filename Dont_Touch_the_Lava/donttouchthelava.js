@@ -9,6 +9,27 @@ frameRate(60);
 // State machine variable for game
 var state = "Menu";
 
+var flame = function(xC, yC, s) {
+    this.xCenter = xC;
+    this.yCenter = yC;
+    this.speed = s;
+};
+flame.prototype.draw = function() {
+    noStroke();
+    fill(255, 0, 0);
+    ellipse(this.xCenter, this.yCenter, 30, 30);
+    triangle(this.xCenter, this.yCenter-15, this.xCenter+30, this.yCenter-7, this.xCenter, this.yCenter);
+    triangle(this.xCenter, this.yCenter-7, this.xCenter+40, this.yCenter, this.xCenter, this.yCenter+7);
+    triangle(this.xCenter, this.yCenter+15, this.xCenter+30, this.yCenter+7, this.xCenter, this.yCenter);
+};
+flame.prototype.move = function() {
+    this.xCenter -= this.speed;
+    if(this.xCenter < -50) {
+        this.xCenter = width + 100;
+    }
+};
+
+var fireArr = [new flame(width-55, 30*7+15, 3), new flame(width-165, 30*7+15, 3), new flame(width-275, 30*7+15, 3)];
 draw = function() {
     background(255, 255, 255);
     switch(state) {
@@ -75,16 +96,22 @@ draw = function() {
             ellipse(50, height/2+146, 10, 10);
             ellipse(width-60, height/2+145, 10, 10);
             
-            // Draws the lava on the top half of the screen
-            noStroke();
-            for(var i = 0; i < 20; i++) {
-                fill(255, 115, 0);
-                ellipse(random(0, width), random(0, 130), random(5, 80), random(5, 80));
-                rect(random (0, width), random (0, 130), random (5, 80), random (5, 80));
-                fill(255, 0, 13);
-                ellipse(random(0, width), random(0, 130), random(5, 80), random(5, 80));
-                rect(random (0, width), random (0, 130), random (5, 80), random (5, 80));
-                frameRate(1);
+            // // Draws the lava on the top half of the screen
+            // noStroke();
+            // for(var i = 0; i < 20; i++) {
+            //     fill(255, 115, 0);
+            //     ellipse(random(0, width), random(0, 130), random(5, 80), random(5, 80));
+            //     rect(random (0, width), random (0, 130), random (5, 80), random (5, 80));
+            //     fill(255, 0, 13);
+            //     ellipse(random(0, width), random(0, 130), random(5, 80), random(5, 80));
+            //     rect(random (0, width), random (0, 130), random (5, 80), random (5, 80));
+            //     frameRate(1);
+            // }
+            
+            // Spawns the meteorites/flames
+            for(var i = 0 ; i < 3; i++) {
+                fireArr[i].draw();
+                fireArr[i].move();
             }
 ///////////////////////////////////////////////////////////////////////////////////////
 // PLACEHOLDER; TEMPORARY; TODO REMOVE THIS LATER!!!!

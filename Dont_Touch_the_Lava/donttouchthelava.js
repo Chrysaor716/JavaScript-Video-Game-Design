@@ -113,22 +113,33 @@ var keyReleased = function() {
 };
 
 var danger = [];
-for(var i = 0; i < 60; i++) {
+for(var i = 0; i < 70; i++) {
     danger.push(new lava());
 }
 
-var fireArr5 = [new flame(width-55, 30*7+15, 1), new flame(width-165, 30*7+15, 1), new flame(width-275, 30*7+15, 1)];
-var fireArr3 = [new flame(width, 30*9+15, 3), new flame(width-200, 30*9+15, 3), new flame(width-400, 30*9+15, 3)];
-var fireArr2 = [new flame(width, 30*10+15, 1), new flame(width-200, 30*10+15, 1), new flame(width-400, 30*10+15, 1)];
+// For more "random" objects flying by, although less Frogger-like
+// var fireArr = [];
+// for(var i = 0; i < 3; i++) {
+//     var f = new flame(width, 30*(Math.floor((Math.random()*11)+7))+15);
+// }
 
-var wood7 = [new platform(0, 30*5, 1, "left"), new platform(-90, 30*5, 1, "left"), new platform(-180, 30*5, 1, "left"), new platform(-270, 30*5, 1, "left")];
-var wood9 = [new platform(100, 30*3, 3, "left"), new platform(200, 30*3, 3, "left"), new platform(300, 30*3, 3, "left"), new platform(400, 30*3, 3, "left")];
-var wood11 = [new platform(150, 30*1, 2, "left"), new platform(300, 30*1, 2, "left"), new platform(450, 30*1, 2, "left")];
-var wood10 = [new platform(90, 30*2, 1, "right"), new platform(180, 30*2, 1, "right"), new platform(270, 30*2, 1, "right"), new platform(360, 30*2, 1, "right")];
-var wood8 = [new platform(150, 30*4, 2, "right"), new platform(300, 30*4, 2, "right"), new platform(450, 30*4, 2, "right")];
+// More set/defined object patterns, per row
+// This creates rows of flames on bottom half of screen, going left
+var fireArr = [new flame(width-55, 30*7+15, 1), new flame(width-165, 30*7+15, 1), new flame(width-275, 30*7+15, 1),
+new flame(width, 30*9+15, 3), new flame(width-200, 30*9+15, 3), new flame(width-400, 30*9+15, 3),
+new flame(width, 30*10+15, 1), new flame(width-200, 30*10+15, 1), new flame(width-400, 30*10+15, 1)];
+// This creates planks going in either direction at the top half of screen
+// The planks are symmetrical so it can go either direction without rotation needed
+var plankArr = [new platform(0, 30*5, 1, "left"),
+// new platform(-90, 30*5, 1, "left"), new platform(-180, 30*5, 1, "left"), new platform//(-270, 30*5, 1, "left"),
+new platform(100, 30*3, 3, "left"), new platform(200, 30*3, 3, "left"), new platform(300, 30*3, 3, "left"), new platform(400, 30*3, 3, "left"),
+new platform(150, 30*1, 2, "left"), new platform(300, 30*1, 2, "left"), new platform(450, 30*1, 2, "left"),
+new platform(90, 30*2, 1, "right"), new platform(180, 30*2, 1, "right"), new platform(270, 30*2, 1, "right"), new platform(360, 30*2, 1, "right"),
+new platform(150, 30*4, 2, "right"), new platform(300, 30*4, 2, "right"), new platform(450, 30*4, 2, "right")];
 
 var boy = new child(width/2, height-30+5);
 var lives = 10;
+var plankID = 0;
 var currFrameCount = 0;
 draw = function() {
     background(255, 255, 255);
@@ -179,7 +190,9 @@ draw = function() {
             // Draws two vertical rectangles for bridge base
             rect(40, height/2, 20, 200-40);
             rect(width-70, height/2, 20, 200-40);
-            // Draws (mostly random) bridge steps
+            // Draws (mostly random) bridge steps; must be drawn individually
+            //      since they're "randomly shaped" enough such that there is no
+            //      similarity for a loop.
             quad(10, height/2+20, width-7, height/2+15,
                     width-15, height/2+34, 5, height/2+40);
             quad(0, height/2+45, width-10, height/2+40,
@@ -190,7 +203,8 @@ draw = function() {
                     width-4, height/2+124, 10, height/2+127);
             quad(0, height/2+135, width, height/2+132,
                     width-13, height/2+157, 7, height/2+156);
-            // Draws the nails on the bridge
+            // Draws the nails on the bridge; also drawn individually due to
+            //      randomly variable distance.
             fill(191, 191, 191);
             ellipse(50, height/2+30, 10, 10);
             ellipse(width-60, height/2+25, 10, 10);
@@ -210,28 +224,18 @@ draw = function() {
             text("S A F E  Z O N E", 110, 30*7-5);
             
             // Spawns the meteorites/flames and platforms
-            for(var i = 0 ; i < 3; i++) {
-                fireArr5[i].draw();
-                fireArr5[i].move();
-                fireArr3[i].draw();
-                fireArr3[i].move();
-                fireArr2[i].draw();
-                fireArr2[i].move();
-                wood11[i].draw();
-                wood11[i].move();
-                wood8[i].draw();
-                wood8[i].move();
+            for(var i = 0 ; i < fireArr.length; i++) {
+                fireArr[i].draw();
+                fireArr[i].move();
             }
-            for(var i = 0 ; i < 4; i++) {
-                wood7[i].draw();
-                wood7[i].move();
-                wood9[i].draw();
-                wood9[i].move();
-                wood10[i].draw();
-                wood10[i].move();
+            for(var i = 0 ; i < plankArr.length; i++) {
+                plankArr[i].draw();
+                plankArr[i].move();
             }
 ///////////////////////////////////////////////////////////////////////////////////////
             // // PLACEHOLDER LINES
+            // // For more visual division of rows during development and
+            // //       backgound/object/visual creations.
             // stroke(0, 0, 0); // round down to 30
             // for(var i = 0; i < 13; i++) {
             //     line(0, 30*i, width, 30*i);
@@ -256,67 +260,65 @@ draw = function() {
                 boy.y += 30;
             }
             // Conditions for getting hit by flames at bottom half of screen
-            for(var i = 0; i < 3; i++) {
-                if(boy.y >= 30*10 && boy.y <= 30*11) {
-                    if(boy.x+15 >= fireArr2[i].xCenter-15 && boy.x-15 <= fireArr2[i].xCenter+40) {
-                        // Reset boy's position
+            for(var i = 0; i < fireArr.length; i++) {  // flames: width = 55, height = 30
+                // Hit box determined by square edges wrapped around flames
+                if(boy.x+15 > fireArr[i].xCenter-15 && // right of boy w/in left of flame
+                   boy.x-15 < fireArr[i].xCenter+40 && // left of boy w/in right of flame
+                   boy.y+15 > fireArr[i].yCenter-15 && // top of boy w/in bottom of flame
+                   boy.y-15 < fireArr[i].yCenter+15) { // bottom of boy w/in top of flame
+                        // If hit by flame, reduce life counter and restart boy's position
                         boy.x = width/2;
                         boy.y = height-30+5;
                         lives--;
-                    }
-                } if(boy.y >= 30*9 && boy.y <= 30*10) {
-                    if(boy.x+15 >= fireArr3[i].xCenter-15 && boy.x-15 <= fireArr3[i].xCenter+40) {
+                   }
+            }
+            // Conditions for riding platforms; occurs in top half of screen, in lava
+            // for(var row = 1; row < 6; row ++) {}
+            if(boy.y <= 30*6 && boy.y >= 30*1) {
+                for(var i = 0; i < plankArr.length; i++) { // platforms are 40x30 pixels
+                    // Tests if the center of the boy is w/in plank
+                    if(boy.x <= plankArr[i].x+40 && boy.x >= plankArr[i].x &&
+                      boy.y <= plankArr[i].y+30 && boy.y >= plankArr[i].y) {
+                          if(plankArr[i].direction === "left") {
+                              boy.x += plankArr[i].speed;
+                          } else {
+                              boy.x -= plankArr[i].speed;
+                          }
+                          plankID = i;
+                    } if((boy.x > plankArr[plankID].x+40 || boy.x < plankArr[plankID].x) &&
+                         (boy.y <= plankArr[i].y+30 && boy.y >= plankArr[i].y)) {
+                        playSound(getSound("rpg/giant-no"));
                         boy.x = width/2;
-                        boy.y = height-30+5;
+                        boy.y = 30*6+15; // respawn back to safe zone
+                        plankID = 0;
                         lives--;
                     }
-                } if(boy.y >= 30*7 && boy.y <= 30*8) {
-                    if(boy.x+15 >= fireArr5[i].xCenter-15 && boy.x-15 <= fireArr5[i].xCenter+40) {
-                        boy.x = width/2;
-                        boy.y = height-30+5;
-                        lives--;
-                    }
                 }
-                
-                // // Conditions for riding platforms
-                // for(var j = 0; j < 3; j++) {
-                //     if(boy.y >= 30*1 && boy.y <= 30*2) { // row 11
-                //         if(boy.x+15 >= wood11[j].x && boy.x-15 <= wood11[j].x+40) {
-                //             boy.x += wood11[j].speed - 1;
-                //         }
-                //     }
-                // }
-                for(var i = 0; i < 3; i++) {
-                    if(boy.y >= 30 && boy.y <= 30*2) {
-                        if(boy.x+15 >= wood11[i].x && boy.x-15 <= wood11[i].x+40) {
-                            boy.x += wood11[i].speed;
-                        } else {
-                            // boy.x = width/2;
-                            // boy.y = height-30+5;
-                            // lives--;
-                        }
-                     } if(boy.y >= 30*4 && boy.y <= 30*5) {
-                        if(boy.x+15 >= wood8[i].x && boy.x-15 <= wood8[i].x+40) {
-                            boy.x -= wood8[i].speed;
-                        } else {
-                            // boy.x = width/2;
-                            // boy.y = height-30+5;
-                            // lives--;
-                        }
-                    }
-                }
-                for(var i = 0; i < 4; i++) {
-                    if(boy.y >= 30*5 && boy.y <= 30*6) {
-                        if(boy.x+10 >= wood7[i].x && boy.x-10 <= wood7[i].x+40) {
-                            boy.x += wood7[i].speed;
-                        }
-                    }
-                }
-                
-                boy.draw();
-                if(lives <= 0) {
-                    state = "End";
-                }
+            }
+            if(boy.y <= 30) {
+                state = "Win";
+            }
+            boy.draw();
+            if(lives <= 0) {
+                state = "End";
+            }
+        break;
+        
+        case "Win":
+            background(0, 0, 0);
+            // Reuse danger bubbles to make the screen more pretty
+            for(var i = 0; i < danger.length; i++) {
+                danger[i].draw();
+                danger[i].move();
+            }
+            textSize(40);
+            fill(255, 255, 255);
+            text("You win!!!!", width/2-100, height/2);
+            textSize(20);
+            fill(255, 0, 0);
+            text("Press Enter to restart", width/2-100, height/2+100);
+            if(keyIsPressed && keys[ENTER]) {
+                state = "Menu";
             }
         break;
         
@@ -325,7 +327,13 @@ draw = function() {
             rect(0, 0, width, height);
             textSize(40);
             fill(255, 0, 0);
-            text("Game Over!", width/2-100, height/2);
+            text("Game Over! :(", width/2-100, height/2);
+            textSize(20);
+            fill(0, 0, 0);
+            text("Press Enter to restart", width/2-100, height/2+100);
+            if(keyIsPressed && keys[ENTER]) {
+                state = "Menu";
+            }
         break;
         
         default:

@@ -90,6 +90,24 @@ platform.prototype.move = function() {
     }
 };
 
+var child = function(xStart, yStart) {
+    this.x = xStart;
+    this.y = yStart;
+};
+child.prototype.draw = function() {
+    stroke(0, 0, 0);
+    fill(219, 208, 0);
+    ellipse(this.x, this.y, 30, 30);
+};
+
+var keys = [];
+var keyPressed = function() {
+    keys[keyCode] = 1;
+};
+var keyReleased = function() {
+    keys[keyCode] = 0;
+};
+
 var danger = [];
 for(var i = 0; i < 60; i++) {
     danger.push(new lava());
@@ -105,6 +123,8 @@ var wood11 = [new platform(150, 30*1, 2, "left"), new platform(300, 30*1, 2, "le
 var wood10 = [new platform(90, 30*2, 1, "right"), new platform(180, 30*2, 1, "right"), new platform(270, 30*2, 1, "right"), new platform(360, 30*2, 1, "right")];
 var wood8 = [new platform(150, 30*4, 2, "right"), new platform(300, 30*4, 2, "right"), new platform(450, 30*4, 2, "right")];
 
+var boy = new child(width/2, height-30+5);
+var currFrameCount = 0;
 draw = function() {
     background(255, 255, 255);
     switch(state) {
@@ -211,6 +231,12 @@ draw = function() {
                 line(0, 30*i, width, 30*i);
             } // height-(30*12) = 40
 ///////////////////////////////////////////////////////////////////////////////////////
+            boy.draw();
+            // Detect key presses and add sampling rate
+            if(keyPressed && keys[UP] && (currFrameCount < (frameCount-10))) {
+                currFrameCount = frameCount;
+                boy.y -= 30;
+            }
         break;
         
         default:

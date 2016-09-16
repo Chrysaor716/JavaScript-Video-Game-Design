@@ -128,14 +128,13 @@ var wood10 = [new platform(90, 30*2, 1, "right"), new platform(180, 30*2, 1, "ri
 var wood8 = [new platform(150, 30*4, 2, "right"), new platform(300, 30*4, 2, "right"), new platform(450, 30*4, 2, "right")];
 
 var boy = new child(width/2, height-30+5);
-var lives = 3;
+var lives = 10;
 var currFrameCount = 0;
 draw = function() {
     background(255, 255, 255);
     switch(state) {
         case "Menu":
-            // code
-            lives = 3;
+            lives = 10;
             state = "Game";
         break;
         
@@ -204,6 +203,12 @@ draw = function() {
             ellipse(50, height/2+146, 10, 10);
             ellipse(width-60, height/2+145, 10, 10);
             
+            // Draws the safe zone in the middle
+            fill(24, 158, 3);
+            rect(0, 30*6, width, 30);
+            fill(0, 0, 0, 140);
+            text("S A F E  Z O N E", 110, 30*7-5);
+            
             // Spawns the meteorites/flames and platforms
             for(var i = 0 ; i < 3; i++) {
                 fireArr5[i].draw();
@@ -226,21 +231,16 @@ draw = function() {
                 wood10[i].move();
             }
 ///////////////////////////////////////////////////////////////////////////////////////
-            // PLACEHOLDER
-            noStroke();
-            fill(43, 41, 39);
-            rect(0, 30*6, width, 30);
-            
-            stroke(0, 0, 0); // round down to 30
-            for(var i = 0; i < 13; i++) {
-                line(0, 30*i, width, 30*i);
-            } // height-(30*12) = 40
+            // // PLACEHOLDER LINES
+            // stroke(0, 0, 0); // round down to 30
+            // for(var i = 0; i < 13; i++) {
+            //     line(0, 30*i, width, 30*i);
+            // } // height-(30*12) = 40
 ///////////////////////////////////////////////////////////////////////////////////////
             // Display life counter at top left corner
             fill(255, 255, 255);
             textSize(25);
             text(lives, 5, 25);
-            boy.draw();
             // Detect key presses and add sampling rate
             if(keyPressed && keys[UP] && (currFrameCount < (frameCount-10))) {
                 currFrameCount = frameCount;
@@ -266,20 +266,54 @@ draw = function() {
                     }
                 } if(boy.y >= 30*9 && boy.y <= 30*10) {
                     if(boy.x+15 >= fireArr3[i].xCenter-15 && boy.x-15 <= fireArr3[i].xCenter+40) {
-                        // Reset boy's position
                         boy.x = width/2;
                         boy.y = height-30+5;
                         lives--;
                     }
                 } if(boy.y >= 30*7 && boy.y <= 30*8) {
                     if(boy.x+15 >= fireArr5[i].xCenter-15 && boy.x-15 <= fireArr5[i].xCenter+40) {
-                        // Reset boy's position
                         boy.x = width/2;
                         boy.y = height-30+5;
                         lives--;
                     }
                 }
                 
+                // // Conditions for riding platforms
+                // for(var j = 0; j < 3; j++) {
+                //     if(boy.y >= 30*1 && boy.y <= 30*2) { // row 11
+                //         if(boy.x+15 >= wood11[j].x && boy.x-15 <= wood11[j].x+40) {
+                //             boy.x += wood11[j].speed - 1;
+                //         }
+                //     }
+                // }
+                for(var i = 0; i < 3; i++) {
+                    if(boy.y >= 30 && boy.y <= 30*2) {
+                        if(boy.x+15 >= wood11[i].x && boy.x-15 <= wood11[i].x+40) {
+                            boy.x += wood11[i].speed;
+                        } else {
+                            // boy.x = width/2;
+                            // boy.y = height-30+5;
+                            // lives--;
+                        }
+                     } if(boy.y >= 30*4 && boy.y <= 30*5) {
+                        if(boy.x+15 >= wood8[i].x && boy.x-15 <= wood8[i].x+40) {
+                            boy.x -= wood8[i].speed;
+                        } else {
+                            // boy.x = width/2;
+                            // boy.y = height-30+5;
+                            // lives--;
+                        }
+                    }
+                }
+                for(var i = 0; i < 4; i++) {
+                    if(boy.y >= 30*5 && boy.y <= 30*6) {
+                        if(boy.x+10 >= wood7[i].x && boy.x-10 <= wood7[i].x+40) {
+                            boy.x += wood7[i].speed;
+                        }
+                    }
+                }
+                
+                boy.draw();
                 if(lives <= 0) {
                     state = "End";
                 }

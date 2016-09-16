@@ -97,6 +97,10 @@ var child = function(xStart, yStart) {
 child.prototype.draw = function() {
     stroke(0, 0, 0);
     fill(219, 208, 0);
+    // Add lower threshold for downwards movement
+    if(this.y > height-30+5) {
+        this.y = height-30+5;
+    }
     ellipse(this.x, this.y, 30, 30);
 };
 
@@ -124,13 +128,14 @@ var wood10 = [new platform(90, 30*2, 1, "right"), new platform(180, 30*2, 1, "ri
 var wood8 = [new platform(150, 30*4, 2, "right"), new platform(300, 30*4, 2, "right"), new platform(450, 30*4, 2, "right")];
 
 var boy = new child(width/2, height-30+5);
+var lives = 3;
 var currFrameCount = 0;
 draw = function() {
     background(255, 255, 255);
     switch(state) {
         case "Menu":
             // code
-            
+            lives = 3;
             state = "Game";
         break;
         
@@ -221,7 +226,7 @@ draw = function() {
                 wood10[i].move();
             }
 ///////////////////////////////////////////////////////////////////////////////////////
-// PLACEHOLDER; TEMPORARY; TODO REMOVE THIS LATER!!!!
+            // PLACEHOLDER
             noStroke();
             fill(43, 41, 39);
             rect(0, 30*6, width, 30);
@@ -231,12 +236,62 @@ draw = function() {
                 line(0, 30*i, width, 30*i);
             } // height-(30*12) = 40
 ///////////////////////////////////////////////////////////////////////////////////////
+            // Display life counter at top left corner
+            fill(255, 255, 255);
+            textSize(25);
+            text(lives, 5, 25);
             boy.draw();
             // Detect key presses and add sampling rate
             if(keyPressed && keys[UP] && (currFrameCount < (frameCount-10))) {
                 currFrameCount = frameCount;
                 boy.y -= 30;
+            } if(keyPressed && keys[LEFT] && (currFrameCount < (frameCount-10))) {
+                currFrameCount = frameCount;
+                boy.x -= 30;
+            } if(keyPressed && keys[RIGHT] && (currFrameCount < (frameCount-10))) {
+                currFrameCount = frameCount;
+                boy.x += 30;
+            } if(keyPressed && keys[DOWN] && (currFrameCount < (frameCount-10))) {
+                currFrameCount = frameCount;
+                boy.y += 30;
             }
+            // Conditions for getting hit by flames at bottom half of screen
+            for(var i = 0; i < 3; i++) {
+                if(boy.y >= 30*10 && boy.y <= 30*11) {
+                    if(boy.x+15 >= fireArr2[i].xCenter-15 && boy.x-15 <= fireArr2[i].xCenter+40) {
+                        // Reset boy's position
+                        boy.x = width/2;
+                        boy.y = height-30+5;
+                        lives--;
+                    }
+                } if(boy.y >= 30*9 && boy.y <= 30*10) {
+                    if(boy.x+15 >= fireArr3[i].xCenter-15 && boy.x-15 <= fireArr3[i].xCenter+40) {
+                        // Reset boy's position
+                        boy.x = width/2;
+                        boy.y = height-30+5;
+                        lives--;
+                    }
+                } if(boy.y >= 30*7 && boy.y <= 30*8) {
+                    if(boy.x+15 >= fireArr5[i].xCenter-15 && boy.x-15 <= fireArr5[i].xCenter+40) {
+                        // Reset boy's position
+                        boy.x = width/2;
+                        boy.y = height-30+5;
+                        lives--;
+                    }
+                }
+                
+                if(lives <= 0) {
+                    state = "End";
+                }
+            }
+        break;
+        
+        case "End":
+            fill(0, 0, 0);
+            rect(0, 0, width, height);
+            textSize(40);
+            fill(255, 0, 0);
+            text("Game Over!", width/2-100, height/2);
         break;
         
         default:

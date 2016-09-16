@@ -44,10 +44,16 @@ var flame = function(xC, yC, s) {
 flame.prototype.draw = function() {
     noStroke();
     fill(255, 0, 0);
-    ellipse(this.xCenter, this.yCenter, 30, 30);
     triangle(this.xCenter, this.yCenter-15, this.xCenter+30, this.yCenter-7, this.xCenter, this.yCenter);
     triangle(this.xCenter, this.yCenter-7, this.xCenter+40, this.yCenter, this.xCenter, this.yCenter+7);
     triangle(this.xCenter, this.yCenter+15, this.xCenter+30, this.yCenter+7, this.xCenter, this.yCenter);
+    ellipse(this.xCenter, this.yCenter, 30, 30);
+    // Draws a smaller, orange version to overlay the red flame (for more "flame" effect)
+    fill(255, 140, 0);
+    triangle(this.xCenter, this.yCenter-10, this.xCenter+20, this.yCenter-5, this.xCenter, this.yCenter);
+    triangle(this.xCenter, this.yCenter-5, this.xCenter+30, this.yCenter, this.xCenter, this.yCenter+5);
+    triangle(this.xCenter, this.yCenter+10, this.xCenter+20, this.yCenter+5, this.xCenter, this.yCenter);
+    ellipse(this.xCenter, this.yCenter, 20, 20);
 };
 flame.prototype.move = function() {
     this.xCenter -= this.speed;
@@ -56,11 +62,49 @@ flame.prototype.move = function() {
     }
 };
 
+var platform = function(xPos, yPos, s, dir) {
+    this.x = xPos;
+    this.y = yPos;
+    this.speed = s;
+    this.direction = dir;
+};
+platform.prototype.draw = function() {
+    // Draws a wooden platform to jump on
+    stroke(0, 0, 0);
+    fill(140, 67, 3);
+    rect(this.x, this.y, 40, 8);
+    rect(this.x, this.y+11, 40, 8);
+    rect(this.x, this.y+22, 40, 8);
+};
+platform.prototype.move = function() {
+    if(this.direction === "left") {
+        this.x += this.speed;
+        if(this.x > width+50) {
+            this.x = -50;
+        }
+    } else {
+        this.x -= this.speed;
+        if(this.x < -50) {
+            this.x = width+50;
+        }
+    }
+};
+
 var danger = [];
 for(var i = 0; i < 60; i++) {
     danger.push(new lava());
 }
-var fireArr = [new flame(width-55, 30*7+15, 3), new flame(width-165, 30*7+15, 3), new flame(width-275, 30*7+15, 3)];
+
+var fireArr5 = [new flame(width-55, 30*7+15, 1), new flame(width-165, 30*7+15, 1), new flame(width-275, 30*7+15, 1)];
+var fireArr3 = [new flame(width, 30*9+15, 3), new flame(width-200, 30*9+15, 3), new flame(width-400, 30*9+15, 3)];
+var fireArr2 = [new flame(width, 30*10+15, 1), new flame(width-200, 30*10+15, 1), new flame(width-400, 30*10+15, 1)];
+
+var wood7 = [new platform(0, 30*5, 1, "left"), new platform(-90, 30*5, 1, "left"), new platform(-180, 30*5, 1, "left"), new platform(-270, 30*5, 1, "left")];
+var wood9 = [new platform(100, 30*3, 3, "left"), new platform(200, 30*3, 3, "left"), new platform(300, 30*3, 3, "left"), new platform(400, 30*3, 3, "left")];
+var wood11 = [new platform(150, 30*1, 2, "left"), new platform(300, 30*1, 2, "left"), new platform(450, 30*1, 2, "left")];
+var wood10 = [new platform(90, 30*2, 1, "right"), new platform(180, 30*2, 1, "right"), new platform(270, 30*2, 1, "right"), new platform(360, 30*2, 1, "right")];
+var wood8 = [new platform(150, 30*4, 2, "right"), new platform(300, 30*4, 2, "right"), new platform(450, 30*4, 2, "right")];
+
 draw = function() {
     background(255, 255, 255);
     switch(state) {
@@ -102,6 +146,9 @@ draw = function() {
             // Draws couch arm rests
             rect(5, 360, 10, 25);
             rect(width-20, 360, 10, 25);
+            // Draws the Finish zone
+            fill(0, 16, 94);
+            rect(0, 0, 400, 30);
             
             // Draws the bridge at the bottom half of the screen
             fill(115, 80, 45);
@@ -132,10 +179,26 @@ draw = function() {
             ellipse(50, height/2+146, 10, 10);
             ellipse(width-60, height/2+145, 10, 10);
             
-            // Spawns the meteorites/flames
+            // Spawns the meteorites/flames and platforms
             for(var i = 0 ; i < 3; i++) {
-                fireArr[i].draw();
-                fireArr[i].move();
+                fireArr5[i].draw();
+                fireArr5[i].move();
+                fireArr3[i].draw();
+                fireArr3[i].move();
+                fireArr2[i].draw();
+                fireArr2[i].move();
+                wood11[i].draw();
+                wood11[i].move();
+                wood8[i].draw();
+                wood8[i].move();
+            }
+            for(var i = 0 ; i < 4; i++) {
+                wood7[i].draw();
+                wood7[i].move();
+                wood9[i].draw();
+                wood9[i].move();
+                wood10[i].draw();
+                wood10[i].move();
             }
 ///////////////////////////////////////////////////////////////////////////////////////
 // PLACEHOLDER; TEMPORARY; TODO REMOVE THIS LATER!!!!

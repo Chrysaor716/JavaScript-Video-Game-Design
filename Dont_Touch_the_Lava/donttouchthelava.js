@@ -146,9 +146,11 @@ draw = function() {
     switch(state) {
         case "Menu":
             lives = 10;
+            boy.x = width/2;
+            boy.y = height-30+5;
             state = "Game";
         break;
-        
+
         case "Game":
             // Draws a background color to the top half of the screen
             noStroke();
@@ -184,7 +186,7 @@ draw = function() {
             // Draws the Finish zone
             fill(0, 16, 94);
             rect(0, 0, 400, 30);
-            
+
             // Draws the bridge at the bottom half of the screen
             fill(115, 80, 45);
             // Draws two vertical rectangles for bridge base
@@ -216,13 +218,13 @@ draw = function() {
             ellipse(width-60, height/2+113, 10, 10);
             ellipse(50, height/2+146, 10, 10);
             ellipse(width-60, height/2+145, 10, 10);
-            
+
             // Draws the safe zone in the middle
             fill(24, 158, 3);
             rect(0, 30*6, width, 30);
             fill(0, 0, 0, 140);
             text("S A F E  Z O N E", 110, 30*7-5);
-            
+
             // Spawns the meteorites/flames and platforms
             for(var i = 0 ; i < fireArr.length; i++) {
                 fireArr[i].draw();
@@ -303,7 +305,7 @@ draw = function() {
                 state = "End";
             }
         break;
-        
+
         case "Win":
             background(0, 0, 0);
             // Reuse danger bubbles to make the screen more pretty
@@ -321,7 +323,7 @@ draw = function() {
                 state = "Menu";
             }
         break;
-        
+
         case "End":
             fill(0, 0, 0);
             rect(0, 0, width, height);
@@ -335,7 +337,7 @@ draw = function() {
                 state = "Menu";
             }
         break;
-        
+
         default:
             state = "Menu";
         break;

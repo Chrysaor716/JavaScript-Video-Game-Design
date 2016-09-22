@@ -1,5 +1,5 @@
 /************** DRAW OBJECTS TO PLACE IN TILE MAP ******************/
-// Rocks
+// Rocks (uses 'r' in tilemap)
 var rockObj = function(xPos, yPos) {
     this.x = xPos;
     this.y = yPos;
@@ -19,7 +19,7 @@ rockObj.prototype.draw = function() {
 };
 var rockArr = [];
 
-// Grass
+// Grass (uses 'g' in tilemap)
 var grassObj = function(xPos, yPos) {
     this.x = xPos;
     this.y = yPos;
@@ -41,29 +41,58 @@ grassObj.prototype.draw = function() {
     ellipse(this.x+7, this.y+10, 3, 19);
 };
 var grassArr = [];
-/*******************************************************************/
 
+// Dirt (uses 'd' in tilemap)
+var dirtObj = function(posX, posY) {
+    this.x = posX;
+    this.y = posY;
+};
+dirtObj.prototype.draw = function() {
+    noStroke();
+    // Draws dirt base
+    fill(191, 153, 40);
+    rect(this.x, this.y, 20, 20);
+    // Draws dirt details
+    fill(166, 129, 70);
+    ellipse(this.x+13, this.y+12, 8, 3);
+    ellipse(this.x+16, this.y+4, 3, 4);
+    rect(this.x, this.y+17, 20, 4);
+    rect(this.x, this.y, 3, 20);
+    rect(this.x+5, this.y+3, 6, 3);
+    stroke(212, 198, 155);
+    line(this.x+16, this.y+5, this.x+13, this.y+15);
+    line(this.x+13, this.y+2, this.x+9, this.y+16);
+    line(this.x+8, this.y+3, this.x+6, this.y+10);
+};
+var dirtArr = [];
+/*******************************************************************/
+/*
+    STRETCH GOAL: Add a setup menu for the tile map that allows
+                  users to place the objects on the grid with
+                  mouse clicks and object selection. Do not allow
+                  more than 20 rocks/obstacles.
+*/
 // Used to initialize object's positions; separate from drawing them
-var tilemap = ["rrrr----------rgggrr",
-               "rrrrr--------ggggggg",
-               "rrrrrr--------ggg---",
-               "rrrrr---------------",
-               "rrrg----------------",
-               "rggggg--------------",
-               "rgggg---------------",
-               "rgg-----------gg----",
-               "rrg---------gggggg--",
-               "rrrr---------gggggrr",
-               "rr------------gggggr",
-               "----------------gggr",
-               "-----------------rrr",
-               "------------------rr",
-               "------------------gg",
-               "------------------gg",
-               "-----------------ggg",
-               "---------------ggggg",
-               "-----------------ggg",
-               "-------------ggggggg"];
+var tilemap = ["gddgggdd------rgggrr",
+               "ddgggddd-----ggggggg",
+               "dggdrrddddd---ggg---",
+               "ggggrddddd----------",
+               "ggggdddd------------",
+               "ggggggddd------r---d",
+               "ddggddd----------ddd",
+               "ddddd---------ggdddd",
+               "drgddggg----ggggggdd",
+               "drrgddggggggdgggggdd",
+               "drggggggggddddgggggd",
+               "g-ddddgggdddddddgggd",
+               "g--ddggrrrdddddddddd",
+               "g-gggddggddggddddddd",
+               "ggggddddgdddggggddgg",
+               "gggrrggdgdddgdddddgg",
+               "gggggggggdddddrddggg",
+               "ggggdddrrdddgddggggg",
+               "ddddggdrddggdddddggg",
+               "dddgdgdddddddggggggg"];
 var initTilemap = function() {
     for(var i = 0; i < tilemap.length; i++) {
         for(var j = 0; j < tilemap[i].length; j++) {
@@ -78,6 +107,10 @@ var initTilemap = function() {
                 
                 case 'g': // grass
                     grassArr.push(new grassObj(j*20, i*20));
+                break;
+                
+                case 'd': // dirt
+                    dirtArr.push(new dirtObj(j*20, i*20));
                 break;
                 
                 default:
@@ -95,10 +128,6 @@ character.checkCollsion();
 character.draw();
 */
 
-/////////////////////////////////////////
-var g = new grassObj(width/2, height/2);
-/////////////////////////////////////////
-
 initTilemap();
 draw = function() {
     background(255, 255, 255);
@@ -108,6 +137,9 @@ draw = function() {
     }
     for(var i = 0; i < grassArr.length; i++) {
         grassArr[i].draw();
+    }
+    for(var i = 0; i < dirtArr.length; i++) {
+        dirtArr[i].draw();
     }
     
     //////////////////////////////////////////////////////////////////////////////////

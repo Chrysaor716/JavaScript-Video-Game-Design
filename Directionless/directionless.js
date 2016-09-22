@@ -65,8 +65,7 @@ var dirtArr = [];
 
 ////////////////////////////////////////////////////
 
-// Draws the food (bread) on top of the mouse depending on mouse clicks
-// The food overlays the tilemap and its objects
+// Draws the food (bread) on cell of tilemap depending on mouse clicks
 var foodObj = function(posX, posY) {
     this.x = posX;
     this.y = posY;
@@ -163,33 +162,90 @@ var initTilemap = function() {
     }
 };
 
+/**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
+var bunnyObj = function(xPos, yPos, color) {
+    this.x = xPos; // initial position
+    this.y = yPos;
+    this.speed = 4;
+    this.RGB = color;
+};
+bunnyObj.prototype.draw = function() {
+    noStroke();
+    // Draws the head
+    fill(255, 255, 255);
+    ellipse(this.x, this.y, 20, 20);
+    // Draws the ears
+    stroke(0, 0, 0);
+    fill(0, 123, 255);
+    arc(this.x-5, this.y+3, 5, 30, 20, 180);
+    arc(this.x+5, this.y+3, 5, 30, 0, 160);
+    // Draws the nose and whiskers
+    noStroke();
+    fill(242, 121, 165);
+    ellipse(this.x, this.y-9, 6, 6);
+    stroke(0, 0, 0);
+    line(this.x-7, this.y-3, this.x-15, this.y);
+    line(this.x+7, this.y-3, this.x+15, this.y);
+    line(this.x-5, this.y-6, this.x-12, this.y-4);
+    line(this.x+5, this.y-6, this.x+12, this.y-4);
+    // // Draws the eyes
+    // fill(0, 0, 0);
+    // ellipse(this.x-5, this.y-1, 2, 2);
+    // ellipse(this.x+5, this.y-1, 2, 2);
+};
+/***********************************************************************/
+
 initTilemap();
+var gameState = "menu";
+
+/////////////////////////////////////////
+var bunny = new bunnyObj(width/2, height/2);
+/////////////////////////////////////////
+
 draw = function() {
-    background(189, 145, 79);
+    switch(gameState) {
+        case "menu":
+            //
 
-    for(var i = 0; i < rockArr.length; i++) {
-        rockArr[i].draw();
-    }
-    for(var i = 0; i < grassArr.length; i++) {
-        grassArr[i].draw();
-    }
-    for(var i = 0; i < dirtArr.length; i++) {
-        dirtArr[i].draw();
-    }
+            gameState = "game";
+        break;
 
-    for(var i = 0; i < foodArr.length; i++) {
-        foodArr[i].draw();
-    }
+        case "game":
+            background(189, 145, 79);
 
-    //////////////////////////////////////////////////////////////////////////////////
-    // TEMPORARY; PLACEHOLDER LINES TO LAY OUT GRID
-    // 400 / 20 = 20
-    // stroke(166, 166, 166);
-    // for(var i = 20; i < 400; i = i + 20) {
-    //     line(0, i, width, i);
-    // }
-    // for(var i = 20; i < 400; i = i + 20) {
-    //     line(i, 0, i, height);
-    // }
-    //////////////////////////////////////////////////////////////////////////////////
+            for(var i = 0; i < rockArr.length; i++) {
+                rockArr[i].draw();
+            }
+            for(var i = 0; i < grassArr.length; i++) {
+                grassArr[i].draw();
+            }
+            for(var i = 0; i < dirtArr.length; i++) {
+                dirtArr[i].draw();
+            }
+
+            for(var i = 0; i < foodArr.length; i++) {
+                foodArr[i].draw();
+            }
+
+/////////////////////////////////////////
+bunny.draw();
+/////////////////////////////////////////
+
+            //////////////////////////////////////////////////////////////////////////////
+            // TEMPORARY; PLACEHOLDER LINES TO LAY OUT GRID
+            // 400 / 20 = 20
+            // stroke(166, 166, 166);
+            // for(var i = 20; i < 400; i = i + 20) {
+            //     line(0, i, width, i);
+            // }
+            // for(var i = 20; i < 400; i = i + 20) {
+            //     line(i, 0, i, height);
+            // }
+            //////////////////////////////////////////////////////////////////////////////
+        break;
+
+        default:
+            gameState = "menu";
+        break;
+    }
 };

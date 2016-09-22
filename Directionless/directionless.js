@@ -1,5 +1,7 @@
 /**************** DRAW OBJECTS TO PLACE IN TILE MAP ********************/
 // Rocks (uses 'r' in tilemap)
+// Rocks are obstacles in the tilemap, so it should have collision-detection
+// Food cannot be placed on top of the rocks
 var rockObj = function(xPos, yPos) {
     this.x = xPos;
     this.y = yPos;
@@ -73,6 +75,8 @@ foodObj.prototype.draw = function() {
     noStroke();
     // Draws bread base
     fill(204, 152, 63);
+    // The food is drawn with ellipses, but the starting coordinates
+    //      refer to the top left hand corner of the cell
     ellipse(this.x+10, this.y+10, 16, 10);
     stroke(173, 124, 59);
     arc(this.x+10, this.y+10, 16, 10, 0, 180);
@@ -84,11 +88,20 @@ foodObj.prototype.draw = function() {
     ellipse(this.x+12, this.y+8, 2, 4);
 };
 var foodArr = [];
-/////////////////////////////////////TODO TODO TODO TODO//////////////////////////
 // Places food on the map depending on mouse click
-// mouseClicked = function() {
-//     foodArr.push(mouseX);
-// };
+mouseClicked = function() {
+    // TODO add state check later, once states are added into the program
+
+    // Check if a rock is in the cell; if so, remove food source from
+    //      that cell
+    foodArr.push(new foodObj(mouseX-(mouseX%20), mouseY-(mouseY%20)));
+    for(var i = 0; i < rockArr.length; i++) {
+        if( (rockArr[i].x === mouseX-(mouseX%20)) &&
+            (rockArr[i].y === mouseY-(mouseY%20)) ) {
+              foodArr.pop();
+        }
+    }
+};
 /***********************************************************************/
 /*
     STRETCH GOAL: Add a setup menu for the tile map that allows
@@ -129,19 +142,19 @@ var initTilemap = function() {
                 case '-': // blank
                     //
                 break;
-                
+
                 case 'r': // rock
                     rockArr.push(new rockObj(j*20, i*20));
                 break;
-                
+
                 case 'g': // grass
                     grassArr.push(new grassObj(j*20, i*20));
                 break;
-                
+
                 case 'd': // dirt
                     dirtArr.push(new dirtObj(j*20, i*20));
                 break;
-                
+
                 default:
                     //
                 break;
@@ -153,7 +166,7 @@ var initTilemap = function() {
 initTilemap();
 draw = function() {
     background(189, 145, 79);
-    
+
     for(var i = 0; i < rockArr.length; i++) {
         rockArr[i].draw();
     }
@@ -163,11 +176,11 @@ draw = function() {
     for(var i = 0; i < dirtArr.length; i++) {
         dirtArr[i].draw();
     }
-    
+
     for(var i = 0; i < foodArr.length; i++) {
         foodArr[i].draw();
     }
-    
+
     //////////////////////////////////////////////////////////////////////////////////
     // TEMPORARY; PLACEHOLDER LINES TO LAY OUT GRID
     // 400 / 20 = 20

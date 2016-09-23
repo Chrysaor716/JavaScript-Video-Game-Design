@@ -7,95 +7,25 @@ var paintDiameter = 30; // used in Menu screen and mouse click location detectio
 // Flags for changing head or ear color of character; global for mouse clicks
 var changeHead = 0;
 
-/**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
-var bunnyObj = function(x, y, headColor, earColor) {
-    // Drawing variables
-    this.headRGB = headColor;
-    this.earRGB = earColor;
-    
-    // Wander variables
-    this.position = new PVector(x, y);
-    this.step = new PVector(0, 0);
-    this.wanderAngle = random(0, radians(180));
-    // this.wanderAngle = random(0, Math.PI);
-    this.wanderDist = random(70, 100); // distance in pixels
-};
-bunnyObj.prototype.draw = function() {
-    noStroke();
-    // Draws the head
-    fill(this.headRGB);
-    ellipse(this.position.x, this.position.y, 20, 20);
-    // Draws the ears
-    stroke(this.earRGB);
-    fill(255, 105, 213);
-    arc(this.position.x-5, this.position.y+3, 5, 30, 20, 180);
-    arc(this.position.x+5, this.position.y+3, 5, 30, 0, 160);
-    // Draws the nose and whiskers
-    noStroke();
-    fill(242, 121, 165);
-    ellipse(this.position.x, this.position.y-9, 6, 6);
-    stroke(0, 0, 0);
-    line(this.position.x-7, this.position.y-3,
-         this.position.x-15, this.position.y);
-    line(this.position.x+7, this.position.y-3,
-         this.position.x+15, this.position.y);
-    line(this.position.x-5, this.position.y-6,
-         this.position.x-12, this.position.y-4);
-    line(this.position.x+5, this.position.y-6,
-         this.position.x+12, this.position.y-4);
-};
-bunnyObj.prototype.wander = function() {
-    // Walk a direction at arbitray small angles
-    this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
-    this.position.add(this.step); // add vectors for wandering movement
-    // small turns taken within "wandering distance"
-    this.wanderAngle += random(-15, 15);
-    
-    this.wanderDist--; // distance before making significant turn
-    if(this.wanderDist < 0 ||
-       this.position.x >= 380 || this.position.x <= 20 ||
-       this.position.y >= 380 || this.position.y <= 20) {
-        this.wanderDist = random(70, 100);
-        this.wanderAngle += random(-(Math.PI/2), Math.PI/2);
-    } // Continuously turn and change directions while walking a direction
-    
-    // Change angle and position when hitting the edges of the canvas
-    if(this.position.x >= 400) {
-        this.position.x--;
-    } else if(this.position.x <= 0) {
-        this.position.x++;
-    } 
-    if(this.position.y >= 400) {
-        this.position.y--;
-    } else if(this.position.y <= 0) {
-        this.position.y++;
-    }
-};
-var bunnyArr = [];
-// To display on menu screen; global for mouse detection (color changes)
-var bunnyMenu = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
-/***********************************************************************/
-
 /**************** DRAW OBJECTS TO PLACE IN TILE MAP ********************/
 // Rocks (uses 'r' in tilemap)
 // Rocks are obstacles in the tilemap, so it should have collision-detection
 // Food cannot be placed on top of the rocks
-var rockObj = function(xPos, yPos) {
-    this.x = xPos;
-    this.y = yPos;
+var rockObj = function(x, y) {
+    this.position = new PVector(x, y);
 };
 rockObj.prototype.draw = function() {
     noStroke();
     fill(168, 168, 168);
     // Draws the base color of entire rock
-    rect(this.x, this.y, 20, 20);
+    rect(this.position.x, this.position.y, 20, 20);
     // Draws the details of the rock
     fill(99, 99, 99);
-    rect(this.x, this.y+3, 5, 17);
-    rect(this.x, this.y+15, 20, 5);
+    rect(this.position.x, this.position.y+3, 5, 17);
+    rect(this.position.x, this.position.y+15, 20, 5);
     fill(201, 201, 201);
-    rect(this.x+5, this.y+3, 13, 2);
-    rect(this.x+17, this.y+3, 3, 12);
+    rect(this.position.x+5, this.position.y+3, 13, 2);
+    rect(this.position.x+17, this.position.y+3, 3, 12);
 };
 var rockArr = [];
 
@@ -141,6 +71,102 @@ dirtObj.prototype.draw = function() {
 };
 var dirtArr = [];
 /***********************************************************************/
+
+/**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
+var bunnyObj = function(x, y, headColor, earColor) {
+    // Drawing variables
+    this.headRGB = headColor;
+    this.earRGB = earColor;
+    
+    // Wander variables
+    this.position = new PVector(x, y);
+    this.step = new PVector(0, 0);
+    this.wanderAngle = random(0, radians(180));
+    // this.wanderAngle = random(0, Math.PI);
+    this.wanderDist = random(70, 100); // distance in pixels
+};
+bunnyObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    rotate(this.wanderAngle);
+    
+    // Draw bunny with coordinated relative to origin
+    //      (due to translation and rotation of grid)
+    noStroke();
+    // Draws the head
+    fill(this.headRGB);
+    ellipse(0, 0, 20, 20);
+    // Draws the ears
+    stroke(this.earRGB);
+    fill(255, 105, 213);
+    arc(-5, 3, 5, 30, 20, 180);
+    arc(5, 3, 5, 30, 0, 160);
+    // Draws the nose and whiskers
+    noStroke();
+    fill(242, 121, 165);
+    ellipse(0, 9, 6, 6);
+    stroke(0, 0, 0);
+    line(-7, -3, -15, 0);
+    line(7, -3, 15, 0);
+    line(-5, -6, -12, -4);
+    line(5, -6, 12, -4);
+         
+    popMatrix();
+};
+bunnyObj.prototype.wander = function() {
+//    this.checkObstacle();
+    // Walk a direction at arbitray small angles
+    this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
+    this.position.add(this.step); // add vectors for wandering movement
+    // small turns taken within "wandering distance"
+    this.wanderAngle += random(-15, 15);
+    
+    this.wanderDist--; // distance before making significant turn
+    if(this.wanderDist < 0 ||
+       this.position.x >= 400 || this.position.x <= 0 ||
+       this.position.y >= 400 || this.position.y <= 0) {
+        this.wanderDist = random(70, 180);
+        this.wanderAngle += random(-180, 180);
+        // this.wanderAngle += random(-(Math.PI/2), Math.PI/2);
+    } // Continuously turn and change directions while walking a direction
+    
+    // Change angle and position when hitting the edges of the canvas
+    if(this.position.x >= 400) {
+        this.position.x--;
+    } else if(this.position.x <= 0) {
+        this.position.x++;
+    } 
+    if(this.position.y >= 400) {
+        this.position.y--;
+    } else if(this.position.y <= 0) {
+        this.position.y++;
+    }
+};
+bunnyObj.prototype.checkObstacle = function() {
+    for(var i = 0; i < rockArr.length; i++) {
+        // Compute distance between rocks and animals
+        var vec = PVector.sub(rockArr[i].position, this.position);
+        var angle = this.wanderAngle - 90 - vec.heading();
+        // Extract the y distance between animals and objects
+        var y = vec.mag() * cos(angle);
+        if((y > -80) && (y < 80)) {
+            // Extract x distance between animals and objects
+            var x = vec.mag() * sin(angle);
+            if((x > 0) && (x < 40)) {         
+                this.wanderAngle++;         
+            } else if((x <= 0) && (x > -40)) {
+                this.wanderAngle--;
+            }
+            this.velocity.x = sin(this.wanderAngle);
+            this.velocity.y = -cos(this.wanderAngle);
+        }
+    }
+};
+var bunnyArr = [];
+// To display on menu screen; global for mouse detection (color changes)
+var bunnyMenu = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
+/***********************************************************************/
+
 // Draws the food (bread) on cell of tilemap depending on mouse clicks
 var foodObj = function(posX, posY) {
     this.x = posX;
@@ -255,8 +281,8 @@ mouseClicked = function() {
         //      that cell
         foodArr.push(new foodObj(mouseX-(mouseX%20), mouseY-(mouseY%20)));
         for(var i = 0; i < rockArr.length; i++) {
-            if( (rockArr[i].x === mouseX-(mouseX%20)) &&
-                (rockArr[i].y === mouseY-(mouseY%20)) ) {
+            if( (rockArr[i].position.x === mouseX-(mouseX%20)) &&
+                (rockArr[i].position.y === mouseY-(mouseY%20)) ) {
                   foodArr.pop();
             }
         }

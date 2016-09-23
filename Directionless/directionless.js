@@ -173,6 +173,30 @@ mouseClicked = function() {
             } else {
                 bunnyMenu.earRGB = color(0, 0, 255);
             }
+        } else if(circleDetected(230, 280)) { // Yellow
+            if(changeHead) {
+                bunnyMenu.headRGB = color(237, 237, 0);
+            } else {
+                bunnyMenu.earRGB = color(237, 237, 0);
+            }
+        } else if(circleDetected(220, 320)) { // Purple
+            if(changeHead) {
+                bunnyMenu.headRGB = color(214, 30, 214);
+            } else {
+                bunnyMenu.earRGB = color(214, 30, 214);
+            }
+        } else if(circleDetected(250, 345)) { // Black
+            if(changeHead) {
+                bunnyMenu.headRGB = color(0, 0, 0);
+            } else {
+                bunnyMenu.earRGB = color(0, 0, 0);
+            }
+        } else if(circleDetected(290, 350)) { // White
+            if(changeHead) {
+                bunnyMenu.headRGB = color(255, 255, 255);
+            } else {
+                bunnyMenu.earRGB = color(255, 255, 255);
+            }
         }
     } else if(gameState === "game") {
         // Check if a rock is in the cell; if so, remove food source from
@@ -298,14 +322,14 @@ draw = function() {
             fill(0, 0, 255); // blue
             ellipse(270, 260, paintDiameter, paintDiameter);
             fill(237, 237, 0); // yellow
-            ellipse((width/2)+30, (height/2)+80, paintDiameter, paintDiameter);
+            ellipse(230, 280, paintDiameter, paintDiameter);
             fill(214, 30, 214); // purple
-            ellipse((width/2)+20, (height/2)+120, paintDiameter, paintDiameter);
+            ellipse(220, 320, paintDiameter, paintDiameter);
             fill(0, 0, 0); // black
-            ellipse((width/2)+50, (height/2)+145, paintDiameter, paintDiameter);
+            ellipse(250, 345, paintDiameter, paintDiameter);
             stroke(0, 0, 0);
             fill(255, 255, 255); // white
-            ellipse((width/2)+90, (height/2)+150, paintDiameter, paintDiameter);
+            ellipse(290, 350, paintDiameter, paintDiameter);
 
             // TODO add more animals and if/else or switch/case for animals
             bunnyMenu.draw();

@@ -79,14 +79,24 @@ var dirtArr = [];
 
 /**************** DRAW HOMES TO PLACE IN TILE MAP ********************/
 // There is one home for each animal type
-var bunnyHomeObj = function(xPos, yPos) {
-    this.x = xPos;
-    this.y = yPos;
+var bunnyHomeObj = function(x, y) {
+    this.position = new PVector(x, y);
 };
 bunnyHomeObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
     noStroke();
     fill(176, 120, 23);
-    ellipse(this.x, this.y, 20, 20);
+    rect(-3, -3, 26, 26);
+    fill(42, 224, 54);
+    ellipse(6, -2, 2, 12);
+    ellipse(1, -4, 2, 16);
+    ellipse(10, -5, 2, 10);
+    fill(41, 41, 41);
+    ellipse(10, 10, 20, 20);
+
+    popMatrix();
 };
 var bunnyHomeArr = [];
 /***********************************************************************/
@@ -103,6 +113,8 @@ var bunnyObj = function(x, y, headColor, earColor) {
     this.wanderAngle = random(0, radians(180));
     // this.wanderAngle = random(0, Math.PI);
     this.wanderDist = random(70, 100); // distance in pixels
+    
+    this.foundHome = 0;
 };
 bunnyObj.prototype.draw = function() {
     pushMatrix();
@@ -162,23 +174,34 @@ bunnyObj.prototype.wander = function() {
     }
 };
 bunnyObj.prototype.checkObstacle = function() {
+    // Checks for rock collision
     for(var i = 0; i < rockArr.length; i++) {
         // Compute distance between rocks and animals
         var vec = PVector.sub(rockArr[i].position, this.position);
         var angle = this.wanderAngle - 90 - vec.heading();
         // Extract the y distance between animals and objects
         var y = vec.mag() * cos(angle);
-        if((y > -50) && (y < 50)) {
+        if((y > -60) && (y < 60)) {
             // Extract x distance between animals and objects
             var x = vec.mag() * sin(angle);
-            if((x > 0) && (x < 50)) {         
+            if((x > 0) && (x < 60)) {         
                 this.wanderAngle++;         
-            } else if((x <= 0) && (x > -50)) {
+            } else if((x <= 0) && (x > -60)) {
                 this.wanderAngle--;
             }
             this.step.x = sin(this.wanderAngle);
             this.step.y = -cos(this.wanderAngle);
         }
+    }
+    // Checks for bunny hole
+    for(var i = 0; i < bunnyHomeArr.length; i++) {
+        if(this.position.x >= bunnyHomeArr[i].position.x-15 &&
+           this.position.x <= bunnyHomeArr[i].position.x+15) {
+                if(this.position.y >= bunnyHomeArr[i].position.y-15 &&
+                  this.position.y <= bunnyHomeArr[i].position.y+15) {
+                    this.foundHome = 1;
+                }
+           }
     }
 };
 var bunnyArr = [];
@@ -532,7 +555,9 @@ draw = function() {
             
             for(var i = 0; i < bunnyArr.length; i++) {
                 bunnyArr[i].draw();
-                bunnyArr[i].wander();
+                if(bunnyArr[i].foundHome !== 1) {
+                    bunnyArr[i].wander();
+                }
             }
             
             //////////////////////////////////////////////////////////////////////////////

@@ -8,36 +8,72 @@ var paintDiameter = 30; // used in Menu screen and mouse click location detectio
 var changeHead = 0;
 
 /**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
-var bunnyObj = function(xPos, yPos, headColor, earColor) {
-    this.x = xPos; // initial position
-    this.y = yPos;
-    this.speed = 4;
+var bunnyObj = function(x, y, headColor, earColor) {
+    // Drawing variables
     this.headRGB = headColor;
     this.earRGB = earColor;
+    
+    // Wander variables
+    this.position = new PVector(x, y);
+    this.step = new PVector(0, 0);
+    this.wanderAngle = random(0, radians(180));
+    // this.wanderAngle = random(0, Math.PI);
+    this.wanderDist = random(70, 100); // distance in pixels
 };
 bunnyObj.prototype.draw = function() {
     noStroke();
     // Draws the head
     fill(this.headRGB);
-    ellipse(this.x, this.y, 20, 20);
+    ellipse(this.position.x, this.position.y, 20, 20);
     // Draws the ears
     stroke(this.earRGB);
     fill(255, 105, 213);
-    arc(this.x-5, this.y+3, 5, 30, 20, 180);
-    arc(this.x+5, this.y+3, 5, 30, 0, 160);
+    arc(this.position.x-5, this.position.y+3, 5, 30, 20, 180);
+    arc(this.position.x+5, this.position.y+3, 5, 30, 0, 160);
     // Draws the nose and whiskers
     noStroke();
     fill(242, 121, 165);
-    ellipse(this.x, this.y-9, 6, 6);
+    ellipse(this.position.x, this.position.y-9, 6, 6);
     stroke(0, 0, 0);
-    line(this.x-7, this.y-3, this.x-15, this.y);
-    line(this.x+7, this.y-3, this.x+15, this.y);
-    line(this.x-5, this.y-6, this.x-12, this.y-4);
-    line(this.x+5, this.y-6, this.x+12, this.y-4);
+    line(this.position.x-7, this.position.y-3,
+         this.position.x-15, this.position.y);
+    line(this.position.x+7, this.position.y-3,
+         this.position.x+15, this.position.y);
+    line(this.position.x-5, this.position.y-6,
+         this.position.x-12, this.position.y-4);
+    line(this.position.x+5, this.position.y-6,
+         this.position.x+12, this.position.y-4);
+};
+bunnyObj.prototype.wander = function() {
+    // Walk a direction at arbitray small angles
+    this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
+    this.position.add(this.step); // add vectors for wandering movement
+    // small turns taken within "wandering distance"
+    this.wanderAngle += random(-15, 15);
+    
+    this.wanderDist--; // distance before making significant turn
+    if(this.wanderDist < 0 ||
+       this.position.x >= 380 || this.position.x <= 20 ||
+       this.position.y >= 380 || this.position.y <= 20) {
+        this.wanderDist = random(70, 100);
+        this.wanderAngle += random(-(Math.PI/2), Math.PI/2);
+    } // Continuously turn and change directions while walking a direction
+    
+    // Change angle and position when hitting the edges of the canvas
+    if(this.position.x >= 400) {
+        this.position.x--;
+    } else if(this.position.x <= 0) {
+        this.position.x++;
+    } 
+    if(this.position.y >= 400) {
+        this.position.y--;
+    } else if(this.position.y <= 0) {
+        this.position.y++;
+    }
 };
 var bunnyArr = [];
 // To display on menu screen; global for mouse detection (color changes)
-var bunnyMenu = new bunnyObj(130, 100, color(255, 255, 255), color(255, 255, 255));
+var bunnyMenu = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
 /***********************************************************************/
 
 /**************** DRAW OBJECTS TO PLACE IN TILE MAP ********************/
@@ -202,11 +238,16 @@ mouseClicked = function() {
         
         // Check if user clicked on the "Confirm" button
         if(mouseX <= 300+80 && mouseX >= 300 && mouseY >= 80 && mouseY <= 80+30) {
-            bunnyArr.push(bunnyMenu);
+            // Initialize new bunny with a random starting position and with the
+            //      menu bunny's attributes
+            var bunny = new bunnyObj(Math.floor((Math.random() * 350) + 50),
+                                     Math.floor((Math.random() * 350) + 50),
+                                     bunnyMenu.headRGB, bunnyMenu.earRGB);
+            bunnyArr.push(bunny); // push the new bunny object into array
         }
         
         // Check if user clicked "GO!" for game start
-        if(mouseX <= 40+60 && mouseX >= 40 && mouseY >= 230 && mouseY <= 230+40) {
+        if(mouseX <= 40+60 && mouseX >= 40 && mouseY >= 260 && mouseY <= 260+40) {
             gameState = "game";
         }
     } else if(gameState === "game") {
@@ -330,6 +371,9 @@ draw = function() {
                  "3. When you've finalized your customization, click \"Confirm\"\n" +
                  "4. Proceed to make as many animals as desired.\n" +
                  "5. Press \"GO!\" to start!", 20, 135);
+            fill(255, 255, 255);
+            text("During game, you can click\n" +
+                 "around to spawn food!", 20, 233);
             
             // Draws a paint palette
             noStroke();
@@ -394,27 +438,34 @@ draw = function() {
             // Draws a button to enter gameplay
             noStroke();
             fill(63, 31, 242);
-            rect(40, 230, 60, 40);
+            rect(40, 260, 60, 40);
             // Draw button details to prettify it
             strokeWeight(5);
             stroke(255, 255, 255, 230);
-            rect(40, 230, 60, 40);
+            rect(40, 260, 60, 40);
             stroke(255, 255, 255, 180);
-            rect(43, 233, 55, 36);
+            rect(43, 263, 55, 36);
             fill(255, 255, 255); // Add text to button
             textSize(15);
-            text("GO!", 57, 256);
+            text("GO!", 57, 286);
             
             strokeWeight(1); //reset stroke weight
-            // gameState = "game";
+            
+            // Display number of characters added
+            fill(0, 0, 0);
+            textSize(12);
+            text("Number of characters added: " + bunnyArr.length, 10, 320);
         break;
         
         case "game":
             background(189, 145, 79);
             
+            // Rocks are obstables not to be collided into
+            // Food cannot be spawned on rocks either
             for(var i = 0; i < rockArr.length; i++) {
                 rockArr[i].draw();
             }
+            
             for(var i = 0; i < grassArr.length; i++) {
                 grassArr[i].draw();
             }
@@ -424,6 +475,11 @@ draw = function() {
             
             for(var i = 0; i < foodArr.length; i++) {
                 foodArr[i].draw();
+            }
+            
+            for(var i = 0; i < bunnyArr.length; i++) {
+                bunnyArr[i].draw();
+                bunnyArr[i].wander();
             }
             
             //////////////////////////////////////////////////////////////////////////////

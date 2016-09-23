@@ -37,7 +37,7 @@ bunnyObj.prototype.draw = function() {
 };
 var bunnyArr = [];
 // To display on menu screen; global for mouse detection (color changes)
-var bunnyMenu = new bunnyObj(100, 90, color(255, 255, 255), color(255, 255, 255));
+var bunnyMenu = new bunnyObj(130, 100, color(255, 255, 255), color(255, 255, 255));
 /***********************************************************************/
 
 /**************** DRAW OBJECTS TO PLACE IN TILE MAP ********************/
@@ -145,6 +145,7 @@ var circleDetected = function(xPos, yPos) {
 // "menu" state: Menu interaction based on mouse location on canvas
 // "game" state: Places food on the map depending on mouse click
 mouseClicked = function() {
+    // Lots of mouse-clicking location detection on the canvas
     if(gameState === "menu") {
         // Check for body selection for which body part's color to change
         if(mouseX <= 50+20 && mouseX >= 20 && mouseY <= 360+20 && mouseY >= 360) {
@@ -198,6 +199,16 @@ mouseClicked = function() {
                 bunnyMenu.earRGB = color(255, 255, 255);
             }
         }
+        
+        // Check if user clicked on the "Confirm" button
+        if(mouseX <= 300+80 && mouseX >= 300 && mouseY >= 80 && mouseY <= 80+30) {
+            bunnyArr.push(bunnyMenu);
+        }
+        
+        // Check if user clicked "GO!" for game start
+        if(mouseX <= 40+60 && mouseX >= 40 && mouseY >= 230 && mouseY <= 230+40) {
+            gameState = "game";
+        }
     } else if(gameState === "game") {
         // Check if a rock is in the cell; if so, remove food source from
         //      that cell
@@ -225,28 +236,31 @@ mouseClicked = function() {
 // Used to initialize object's positions; separate from drawing them
 // "Final product" map; uncomment this out for "better" map
 // Commented because Khan Academy can barely render the details!
-// var tilemap = ["gddggg----dd--rgg-rr",
-//               "ddggg--d-----gggggg-",
-//               "dggdrrdd-dd---gggddd",
-//               "-gggrdd--d-----ddddd",
-//               "gggg--dd----dd------",
-//               "ggggggddd---dddr---d",
-//               "d-ggddd------ddg-ddd",
-//               "--dddg--------ggdddd",
-//               "-rgddggd---gggggg-dd",
-//               "-rrgdgg---ggdgg---dd",
-//               "-rgggggg----ddg--ggd",
-//               "-dddddggg---dd-dgggd",
-//               "---ddggrrrdddddd--dd",
-//               "g-gggddggddggd-----d",
-//               "ggggddddgd--ggg-d---",
-//               "-ggrrggdgg-d-dddddg-",
-//               "--gggggggdddddrdd-gg",
-//               "ggggdddrr-ddgdd---dg",
-//               "d---ggdr--ggdddddggg",
-//               "dddgdgd---dddgg---gg"];
+/*
+var tilemap = ["gddggg----dd--rgg-rr",
+              "ddggg--d-----gggggg-",
+              "dggdrrdd-dd---gggddd",
+              "-gggrdd--d-----ddddd",
+              "gggg--dd----dd------",
+              "ggggggddd---dddr---d",
+              "d-ggddd------ddg-ddd",
+              "--dddg--------ggdddd",
+              "-rgddggd---gggggg-dd",
+              "-rrgdgg---ggdgg---dd",
+              "-rgggggg----ddg--ggd",
+              "-dddddggg---dd-dgggd",
+              "---ddggrrrdddddd--dd",
+              "g-gggddggddggd-----d",
+              "ggggddddgd--ggg-d---",
+              "-ggrrggdgg-d-dddddg-",
+              "--gggggggdddddrdd-gg",
+              "ggggdddrr-ddgdd---dg",
+              "d---ggdr--ggdddddggg",
+              "dddgdgd---dddgg---gg"];
+*/
 ///////////////////////////////////////////////////////////////////////////////
 // This is a lighter tilemap; use for development and easier render
+//      and to reduce freezing time
 var tilemap = ["--------------r-----",
                "---gg--d----------rr",
                "----rr---dd---ggg---",
@@ -275,19 +289,19 @@ var initTilemap = function() {
                 case '-': // blank
                     //
                 break;
-
+                
                 case 'r': // rock
                     rockArr.push(new rockObj(j*20, i*20));
                 break;
-
+                
                 case 'g': // grass
                     grassArr.push(new grassObj(j*20, i*20));
                 break;
-
+                
                 case 'd': // dirt
                     dirtArr.push(new dirtObj(j*20, i*20));
                 break;
-
+                
                 default:
                     //
                 break;
@@ -305,8 +319,18 @@ draw = function() {
             textSize(40);
             text("Directionless", width/2-120, 40);
             textSize(15);
-            text("Hello! To begin, choose a character below:", 60, 60);
-
+            text("Hello! To begin, modify a character below:", 60, 60);
+            textSize(12);
+            text("Use your mouse!", 150, 75);
+            // Print instructions
+            textSize(14);
+            text("1. Start by clicking on the paint color on the palette.\n" +
+                 "2. Notice you can select which body part you want to\n" +
+                 "    change from the HEAD & EAR buttons at the bottom.\n" +
+                 "3. When you've finalized your customization, click \"Confirm\"\n" +
+                 "4. Proceed to make as many animals as desired.\n" +
+                 "5. Press \"GO!\" to start!", 20, 135);
+            
             // Draws a paint palette
             noStroke();
             fill(201, 155, 99);
@@ -330,11 +354,10 @@ draw = function() {
             stroke(0, 0, 0);
             fill(255, 255, 255); // white
             ellipse(290, 350, paintDiameter, paintDiameter);
-
+            
             // TODO add more animals and if/else or switch/case for animals
             bunnyMenu.draw();
-            // TODO When confirmed, push bunny into bunny array
-
+            
             // Draw buttons to choose between changing head and ear of animal
             noStroke();
             fill(0, 0, 0);
@@ -355,14 +378,40 @@ draw = function() {
             } else {
                 rect(90, 360, 50, 20);
             }
+            
+            // Draws a character confirmation button; pushes bunny to array
+            noStroke();
+            fill(0, 0, 0);
+            rect(300, 80, 80, 30);
+            stroke(255, 255, 255); // Adds extra detail to button
+            fill(255, 255, 255, 0);
+            rect(305, 85, 70, 20);
+            fill(255, 255, 255);
+            textSize(15);
+            text("Confirm", 314, 100);
             strokeWeight(1); // reset stroke weight for subsequent drawings
-
+            
+            // Draws a button to enter gameplay
+            noStroke();
+            fill(63, 31, 242);
+            rect(40, 230, 60, 40);
+            // Draw button details to prettify it
+            strokeWeight(5);
+            stroke(255, 255, 255, 230);
+            rect(40, 230, 60, 40);
+            stroke(255, 255, 255, 180);
+            rect(43, 233, 55, 36);
+            fill(255, 255, 255); // Add text to button
+            textSize(15);
+            text("GO!", 57, 256);
+            
+            strokeWeight(1); //reset stroke weight
             // gameState = "game";
         break;
-
+        
         case "game":
             background(189, 145, 79);
-
+            
             for(var i = 0; i < rockArr.length; i++) {
                 rockArr[i].draw();
             }
@@ -372,11 +421,11 @@ draw = function() {
             for(var i = 0; i < dirtArr.length; i++) {
                 dirtArr[i].draw();
             }
-
+            
             for(var i = 0; i < foodArr.length; i++) {
                 foodArr[i].draw();
             }
-
+            
             //////////////////////////////////////////////////////////////////////////////
             // TEMPORARY; PLACEHOLDER LINES TO LAY OUT GRID
             // 400 / 20 = 20
@@ -389,7 +438,7 @@ draw = function() {
             // }
             //////////////////////////////////////////////////////////////////////////////
         break;
-
+        
         default:
             gameState = "menu";
         break;

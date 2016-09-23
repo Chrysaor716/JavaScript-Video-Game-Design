@@ -15,17 +15,22 @@ var rockObj = function(x, y) {
     this.position = new PVector(x, y);
 };
 rockObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
     noStroke();
     fill(168, 168, 168);
     // Draws the base color of entire rock
-    rect(this.position.x, this.position.y, 20, 20);
+    rect(0, 0, 20, 20);
     // Draws the details of the rock
     fill(99, 99, 99);
-    rect(this.position.x, this.position.y+3, 5, 17);
-    rect(this.position.x, this.position.y+15, 20, 5);
+    rect(0, 3, 5, 17);
+    rect(0, 15, 20, 5);
     fill(201, 201, 201);
-    rect(this.position.x+5, this.position.y+3, 13, 2);
-    rect(this.position.x+17, this.position.y+3, 3, 12);
+    rect(5, 3, 13, 2);
+    rect(17, 3, 3, 12);
+    
+    popMatrix();
 };
 var rockArr = [];
 
@@ -72,6 +77,20 @@ dirtObj.prototype.draw = function() {
 var dirtArr = [];
 /***********************************************************************/
 
+/**************** DRAW HOMES TO PLACE IN TILE MAP ********************/
+// There is one home for each animal type
+var bunnyHomeObj = function(xPos, yPos) {
+    this.x = xPos;
+    this.y = yPos;
+};
+bunnyHomeObj.prototype.draw = function() {
+    noStroke();
+    fill(176, 120, 23);
+    ellipse(this.x, this.y, 20, 20);
+};
+var bunnyHomeArr = [];
+/***********************************************************************/
+
 /**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
 var bunnyObj = function(x, y, headColor, earColor) {
     // Drawing variables
@@ -104,7 +123,7 @@ bunnyObj.prototype.draw = function() {
     // Draws the nose and whiskers
     noStroke();
     fill(242, 121, 165);
-    ellipse(0, 9, 6, 6);
+    ellipse(0, -9, 6, 6);
     stroke(0, 0, 0);
     line(-7, -3, -15, 0);
     line(7, -3, 15, 0);
@@ -114,7 +133,7 @@ bunnyObj.prototype.draw = function() {
     popMatrix();
 };
 bunnyObj.prototype.wander = function() {
-//    this.checkObstacle();
+    this.checkObstacle();
     // Walk a direction at arbitray small angles
     this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
     this.position.add(this.step); // add vectors for wandering movement
@@ -149,16 +168,16 @@ bunnyObj.prototype.checkObstacle = function() {
         var angle = this.wanderAngle - 90 - vec.heading();
         // Extract the y distance between animals and objects
         var y = vec.mag() * cos(angle);
-        if((y > -80) && (y < 80)) {
+        if((y > -50) && (y < 50)) {
             // Extract x distance between animals and objects
             var x = vec.mag() * sin(angle);
-            if((x > 0) && (x < 40)) {         
+            if((x > 0) && (x < 50)) {         
                 this.wanderAngle++;         
-            } else if((x <= 0) && (x > -40)) {
+            } else if((x <= 0) && (x > -50)) {
                 this.wanderAngle--;
             }
-            this.velocity.x = sin(this.wanderAngle);
-            this.velocity.y = -cos(this.wanderAngle);
+            this.step.x = sin(this.wanderAngle);
+            this.step.y = -cos(this.wanderAngle);
         }
     }
 };
@@ -306,7 +325,7 @@ mouseClicked = function() {
 /*
 var tilemap = ["gddggg----dd--rgg-rr",
               "ddggg--d-----gggggg-",
-              "dggdrrdd-dd---gggddd",
+              "dggbrrdd-dd---gggddd",
               "-gggrdd--d-----ddddd",
               "gggg--dd----dd------",
               "ggggggddd---dddr---d",
@@ -333,7 +352,7 @@ var tilemap = ["--------------r-----",
                "----rr---dd---ggg---",
                "----rdd--d----------",
                "------------dd------",
-               "---------------r---d",
+               "--b------------r---d",
                "---------------g----",
                "--------------------",
                "-r-----------------d",
@@ -367,6 +386,10 @@ var initTilemap = function() {
                 
                 case 'd': // dirt
                     dirtArr.push(new dirtObj(j*20, i*20));
+                break;
+                
+                case 'b': // bunny home/hole
+                    bunnyHomeArr.push(new bunnyHomeObj(j*20, i*20));
                 break;
                 
                 default:
@@ -501,6 +524,10 @@ draw = function() {
             
             for(var i = 0; i < foodArr.length; i++) {
                 foodArr[i].draw();
+            }
+            
+            for(var i = 0; i < bunnyHomeArr.length; i++) {
+                bunnyHomeArr[i].draw();
             }
             
             for(var i = 0; i < bunnyArr.length; i++) {

@@ -8,7 +8,6 @@ var earColor = color(255, 255, 255);
 var paintDiameter = 30; // used in Menu screen and mouse click location detection
 // Flags for changing head or ear color of character; global for mouse clicks
 var changeHead = 0;
-var changeEar = 0;
 
 /**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
 var bunnyObj = function(xPos, yPos, headColor, earColor) {
@@ -149,15 +148,31 @@ var circleDetected = function(xPos, yPos) {
 // "game" state: Places food on the map depending on mouse click
 mouseClicked = function() {
     if(gameState === "menu") {
-// rect(20, 360, 50, 20);
-// rect(90, 360, 50, 20);
-        // Check color palette click locations
+        // Check for body selection for which body part's color to change
+        if(mouseX <= 50+20 && mouseX >= 20 && mouseY <= 360+20 && mouseY >= 360) {
+            changeHead = 1;
+        } if(mouseX <= 90+50 && mouseX >= 90 && mouseY <= 360+20 && mouseY >= 360) {
+            changeHead = 0;
+        }
+
+        // Check color palette click locations & check for button
+        //      selection to change desired body part
         if(circleDetected(350, 280)) { // Red
-            headColor = color(255, 0, 0);
-            bunnyMenu.headRGB = headColor;
+            if(changeHead) {
+                headColor = color(255, 0, 0);
+                bunnyMenu.headRGB = headColor;
+            } else {
+                earColor = color(255, 0, 0);
+                bunnyMenu.earRGB = earColor;
+            }
         } else if (circleDetected(310, 260)) { // Green
-            headColor = color(0, 230, 0);
-            bunnyMenu.headRGB = headColor;
+            if(changeHead) {
+                headColor = color(0, 230, 0);
+                bunnyMenu.headRGB = headColor;
+            } else {
+                earColor = color (0, 230, 0);
+                bunnyMenu.earRGB = earColor;
+            }
         }
     } else if(gameState === "game") {
         // Check if a rock is in the cell; if so, remove food source from

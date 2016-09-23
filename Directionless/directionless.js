@@ -210,25 +210,29 @@ var bunnyMenu = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255
 /***********************************************************************/
 
 // Draws the food (bread) on cell of tilemap depending on mouse clicks
-var foodObj = function(posX, posY) {
-    this.x = posX;
-    this.y = posY;
+var foodObj = function(x, y) {
+    this.position = new PVector(x, y);
 };
 foodObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
     noStroke();
     // Draws bread base
     fill(204, 152, 63);
     // The food is drawn with ellipses, but the starting coordinates
     //      refer to the top left hand corner of the cell
-    ellipse(this.x+10, this.y+10, 16, 10);
+    ellipse(10, 10, 16, 10);
     stroke(173, 124, 59);
-    arc(this.x+10, this.y+10, 16, 10, 0, 180);
-    ellipse(this.x+5, this.y+8, 1, 3);
-    ellipse(this.x+10, this.y+8, 1, 4);
-    ellipse(this.x+15, this.y+8, 1, 2);
+    arc(10, 10, 16, 10, 0, 180);
+    ellipse(5, 8, 1, 3);
+    ellipse(10, 8, 1, 4);
+    ellipse(15, 8, 1, 2);
     noStroke();
     fill(240, 208, 149);
-    ellipse(this.x+12, this.y+8, 2, 4);
+    ellipse(12, 8, 2, 4);
+    
+    popMatrix();
 };
 var foodArr = [];
 

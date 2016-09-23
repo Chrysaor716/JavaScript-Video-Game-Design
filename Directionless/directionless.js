@@ -101,6 +101,33 @@ bunnyHomeObj.prototype.draw = function() {
 var bunnyHomeArr = [];
 /***********************************************************************/
 
+// Draws the food (bread) on cell of tilemap depending on mouse clicks
+var foodObj = function(x, y) {
+    this.position = new PVector(x, y);
+};
+foodObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
+    noStroke();
+    // Draws bread base
+    fill(204, 152, 63);
+    // The food is drawn with ellipses, but the starting coordinates
+    //      refer to the top left hand corner of the cell
+    ellipse(10, 10, 16, 10);
+    stroke(173, 124, 59);
+    arc(10, 10, 16, 10, 0, 180);
+    ellipse(5, 8, 1, 3);
+    ellipse(10, 8, 1, 4);
+    ellipse(15, 8, 1, 2);
+    noStroke();
+    fill(240, 208, 149);
+    ellipse(12, 8, 2, 4);
+    
+    popMatrix();
+};
+var foodArr = [];
+
 /**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
 var bunnyObj = function(x, y, headColor, earColor) {
     // Drawing variables
@@ -201,6 +228,16 @@ bunnyObj.prototype.checkObstacle = function() {
                   this.position.y <= bunnyHomeArr[i].position.y+15) {
                     this.foundHome = 1;
                 }
+        }
+    }
+    // Checks for food
+    for(var i = 0; i < foodArr.length; i++) {
+        if(foodArr[i].position.x <= this.position.x+10 &&
+           foodArr[i].position.x >= this.position.x-10) {
+                if(foodArr[i].position.y <= this.position.y+10 &&
+                   foodArr[i].position.y >= this.position.y-10) {
+                       foodArr.splice(i, 1);
+                   }
            }
     }
 };
@@ -208,33 +245,6 @@ var bunnyArr = [];
 // To display on menu screen; global for mouse detection (color changes)
 var bunnyMenu = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
 /***********************************************************************/
-
-// Draws the food (bread) on cell of tilemap depending on mouse clicks
-var foodObj = function(x, y) {
-    this.position = new PVector(x, y);
-};
-foodObj.prototype.draw = function() {
-    pushMatrix();
-    translate(this.position.x, this.position.y);
-    
-    noStroke();
-    // Draws bread base
-    fill(204, 152, 63);
-    // The food is drawn with ellipses, but the starting coordinates
-    //      refer to the top left hand corner of the cell
-    ellipse(10, 10, 16, 10);
-    stroke(173, 124, 59);
-    arc(10, 10, 16, 10, 0, 180);
-    ellipse(5, 8, 1, 3);
-    ellipse(10, 8, 1, 4);
-    ellipse(15, 8, 1, 2);
-    noStroke();
-    fill(240, 208, 149);
-    ellipse(12, 8, 2, 4);
-    
-    popMatrix();
-};
-var foodArr = [];
 
 // Detects color palette selection in "menu" state
 var circleDetected = function(xPos, yPos) {

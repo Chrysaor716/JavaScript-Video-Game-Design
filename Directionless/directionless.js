@@ -3,8 +3,6 @@
  */
 
 var gameState = "menu";
-var headColor = color(255, 255, 255); // for character customization
-var earColor = color(255, 255, 255);
 var paintDiameter = 30; // used in Menu screen and mouse click location detection
 // Flags for changing head or ear color of character; global for mouse clicks
 var changeHead = 0;
@@ -39,7 +37,7 @@ bunnyObj.prototype.draw = function() {
 };
 var bunnyArr = [];
 // To display on menu screen; global for mouse detection (color changes)
-var bunnyMenu = new bunnyObj(100, 90, headColor, earColor);
+var bunnyMenu = new bunnyObj(100, 90, color(255, 255, 255), color(255, 255, 255));
 /***********************************************************************/
 
 /**************** DRAW OBJECTS TO PLACE IN TILE MAP ********************/
@@ -159,19 +157,21 @@ mouseClicked = function() {
         //      selection to change desired body part
         if(circleDetected(350, 280)) { // Red
             if(changeHead) {
-                headColor = color(255, 0, 0);
-                bunnyMenu.headRGB = headColor;
+                bunnyMenu.headRGB = color(255, 0, 0);
             } else {
-                earColor = color(255, 0, 0);
-                bunnyMenu.earRGB = earColor;
+                bunnyMenu.earRGB = color(255, 0, 0);
             }
-        } else if (circleDetected(310, 260)) { // Green
+        } else if(circleDetected(310, 260)) { // Green
             if(changeHead) {
-                headColor = color(0, 230, 0);
-                bunnyMenu.headRGB = headColor;
+                bunnyMenu.headRGB = color(0, 230, 0);
             } else {
-                earColor = color (0, 230, 0);
-                bunnyMenu.earRGB = earColor;
+                bunnyMenu.earRGB = color(0, 230, 0);
+            }
+        } else if(circleDetected(270, 260)) { // Blue
+            if(changeHead) {
+                bunnyMenu.headRGB = color(0, 0, 255);
+            } else {
+                bunnyMenu.earRGB = color(0, 0, 255);
             }
         }
     } else if(gameState === "game") {
@@ -296,7 +296,7 @@ draw = function() {
             fill(0, 230, 0); // green
             ellipse(310, 260, paintDiameter, paintDiameter);
             fill(0, 0, 255); // blue
-            ellipse((width/2)+70, (height/2)+60, paintDiameter, paintDiameter);
+            ellipse(270, 260, paintDiameter, paintDiameter);
             fill(237, 237, 0); // yellow
             ellipse((width/2)+30, (height/2)+80, paintDiameter, paintDiameter);
             fill(214, 30, 214); // purple
@@ -322,6 +322,16 @@ draw = function() {
             textSize(15);
             text("HEAD", 24, 375);
             text("EAR", 100, 375);
+            // Highlights button selection for visual feedback
+            stroke(232, 208, 55);
+            strokeWeight(3);
+            fill(255, 255, 255, 0); // transparent rect (only show stroke color)
+            if(changeHead) {
+                rect(20, 360, 50, 20);
+            } else {
+                rect(90, 360, 50, 20);
+            }
+            strokeWeight(1); // reset stroke weight for subsequent drawings
 
             // gameState = "game";
         break;

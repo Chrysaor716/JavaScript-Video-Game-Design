@@ -129,10 +129,13 @@ foodObj.prototype.draw = function() {
 var foodArr = [];
 
 /**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
-var bunnyObj = function(x, y, headColor, earColor) {
+var bunnyObj = function(x, y, headColor, earColor, snap) {
     // Drawing variables
     this.headRGB = headColor;
     this.earRGB = earColor;
+    this.currFrame = frameCount;
+    // variable to iterate through different images for animation
+    this.snapshot = snap;
     
     // Wander variables
     this.position = new PVector(x, y);
@@ -148,27 +151,116 @@ bunnyObj.prototype.draw = function() {
     translate(this.position.x, this.position.y);
     rotate(this.wanderAngle);
     
-    // Draw bunny with coordinated relative to origin
-    //      (due to translation and rotation of grid)
-    noStroke();
-    // Draws the head
-    fill(this.headRGB);
-    ellipse(0, 0, 20, 20);
-    // Draws the ears
-    stroke(this.earRGB);
-    fill(255, 105, 213);
-    arc(-5, 3, 5, 30, 20, 180);
-    arc(5, 3, 5, 30, 0, 160);
-    // Draws the nose and whiskers
-    noStroke();
-    fill(242, 121, 165);
-    ellipse(0, -9, 6, 6);
     stroke(0, 0, 0);
-    line(-7, -3, -15, 0);
-    line(7, -3, 15, 0);
-    line(-5, -6, -12, -4);
-    line(5, -6, 12, -4);
-         
+    // Draw bunny with coordinates relative to origin
+    //      (due to translation and rotation of grid)
+    switch(this.snapshot) {
+        case 0:
+            // Draws the feet sticking out for "hop"
+            fill(this.headRGB);
+            ellipse(-9, 7, 5, 14);
+            ellipse(9, 7, 5, 14);
+            ellipse(-7, -7, 5, 13);
+            ellipse(7, -7, 5, 13);
+            fill(this.headRGB);
+            ellipse(0, 0, 20, 20);
+            // Draws the nose and whiskers
+            fill(242, 121, 165);
+            ellipse(0, -9, 6, 6);
+            stroke(0, 0, 0);
+            line(-7, -3, -15, 0);
+            line(7, -3, 15, 0);
+            line(-5, -6, -12, -4);
+            line(5, -6, 12, -4);
+            // Draws the ears
+            stroke(this.earRGB);
+            fill(255, 105, 213);
+            arc(-5, 3, 5, 25, 20, 180);
+            arc(5, 3, 5, 25, 0, 160);
+        break;
+        
+        case 1:
+            // Draws the feet slightly sticking out for "hop"
+            fill(this.headRGB);
+            ellipse(-9, 5, 5, 11);
+            ellipse(9, 5, 5, 11);
+            ellipse(-7, -5, 5, 11);
+            ellipse(7, -5, 5, 11);
+            fill(this.headRGB);
+            ellipse(0, 0, 20, 20);
+            // Draws the nose and whiskers
+            fill(242, 121, 165);
+            ellipse(0, -9, 6, 6);
+            stroke(0, 0, 0);
+            line(-7, -3, -15, 0);
+            line(7, -3, 15, 0);
+            line(-5, -6, -12, -4);
+            line(5, -6, 12, -4);
+            // Draws the ears
+            stroke(this.earRGB);
+            fill(255, 105, 213);
+            arc(-5, 3, 5, 20, 20, 180);
+            arc(5, 3, 5, 20, 0, 160);
+        break;
+        
+        case 2:
+            // Draws the feet slightly sticking out for "hop"
+            fill(this.headRGB);
+            // No feet (below head; bird's eye view)
+            fill(this.headRGB);
+            ellipse(0, 0, 20, 20);
+            // Draws the nose and whiskers
+            fill(242, 121, 165);
+            ellipse(0, -9, 6, 6);
+            stroke(0, 0, 0);
+            line(-7, -3, -15, 0);
+            line(7, -3, 15, 0);
+            line(-5, -6, -12, -4);
+            line(5, -6, 12, -4);
+            // Draws the ears
+            stroke(this.earRGB);
+            fill(255, 105, 213);
+            arc(-5, 3, 5, 20, 20, 180);
+            arc(5, 3, 5, 20, 0, 160);
+        break;
+        
+        case 3:
+            // Draws the feet slightly sticking out for "hop"
+            fill(this.headRGB);
+            ellipse(-9, 5, 5, 11);
+            ellipse(9, 5, 5, 11);
+            ellipse(-7, -5, 5, 11);
+            ellipse(7, -5, 5, 11);
+            fill(this.headRGB);
+            ellipse(0, 0, 20, 20);
+            // Draws the nose and whiskers
+            fill(242, 121, 165);
+            ellipse(0, -9, 6, 6);
+            stroke(0, 0, 0);
+            line(-7, -3, -15, 0);
+            line(7, -3, 15, 0);
+            line(-5, -6, -12, -4);
+            line(5, -6, 12, -4);
+            // Draws the ears
+            stroke(this.earRGB);
+            fill(255, 105, 213);
+            arc(-5, 3, 5, 20, 20, 180);
+            arc(5, 3, 5, 20, 0, 160);
+        break;
+        
+        default:
+            this.snapshot = 0;
+        break;
+    }
+    if(this.currFrame < (frameCount - 30)) {
+        this.currFrame = frameCount;
+        this.snapshot++;
+    }
+    if(this.snapshot > 3) {
+        this.snapshot = 0;
+    }
+    stroke(0, 0, 0);
+    
     popMatrix();
 };
 bunnyObj.prototype.wander = function() {
@@ -324,7 +416,8 @@ mouseClicked = function() {
             //      menu bunny's attributes
             var bunny = new bunnyObj(Math.floor((Math.random() * 350) + 50),
                                      Math.floor((Math.random() * 350) + 50),
-                                     bunnyMenu.headRGB, bunnyMenu.earRGB);
+                                     bunnyMenu.headRGB, bunnyMenu.earRGB,
+                                     Math.floor((Math.random() * 3) + 0));
             bunnyArr.push(bunny); // push the new bunny object into array
         }
         

@@ -2,6 +2,8 @@
  *      Directionless
  */
 
+angleMode = "radians";
+
 var gameState = "menu";
 var paintDiameter = 30; // used in Menu screen and mouse click location detection
 // Flags for changing head or ear color of character; global for mouse clicks
@@ -140,7 +142,7 @@ var bunnyObj = function(x, y, headColor, earColor, snap) {
     // Wander variables
     this.position = new PVector(x, y);
     this.step = new PVector(0, 0);
-    this.wanderAngle = random(0, 180);
+    this.wanderAngle = random(0, Math.PI);
     // this.wanderAngle = random(0, Math.PI);
     this.wanderDist = random(70, 100); // distance in pixels
     
@@ -175,8 +177,8 @@ bunnyObj.prototype.draw = function() {
             // Draws the ears
             stroke(this.earRGB);
             fill(255, 105, 213);
-            arc(-5, 3, 5, 25, 20, 180);
-            arc(5, 3, 5, 25, 0, 160);
+            arc(-5, 3, 5, 25, radians(20), Math.PI);
+            arc(5, 3, 5, 25, 0, radians(160));
         break;
         
         case 1:
@@ -199,8 +201,8 @@ bunnyObj.prototype.draw = function() {
             // Draws the ears
             stroke(this.earRGB);
             fill(255, 105, 213);
-            arc(-5, 3, 5, 20, 20, 180);
-            arc(5, 3, 5, 20, 0, 160);
+            arc(-5, 3, 5, 20, radians(20), Math.PI);
+            arc(5, 3, 5, 20, 0, radians(160));
         break;
         
         case 2:
@@ -220,8 +222,8 @@ bunnyObj.prototype.draw = function() {
             // Draws the ears
             stroke(this.earRGB);
             fill(255, 105, 213);
-            arc(-5, 3, 5, 20, 20, 180);
-            arc(5, 3, 5, 20, 0, 160);
+            arc(-5, 3, 5, 20, radians(20), Math.PI);
+            arc(5, 3, 5, 20, 0, radians(160));
         break;
         
         case 3:
@@ -244,8 +246,8 @@ bunnyObj.prototype.draw = function() {
             // Draws the ears
             stroke(this.earRGB);
             fill(255, 105, 213);
-            arc(-5, 3, 5, 20, 20, 180);
-            arc(5, 3, 5, 20, 0, 160);
+            arc(-5, 3, 5, 20, radians(20), Math.PI);
+            arc(5, 3, 5, 20, 0, radians(160));
         break;
         
         default:
@@ -275,7 +277,7 @@ bunnyObj.prototype.wander = function() {
     this.position.add(this.step); // add vectors for wandering movement
     if(frameCount%30 === 0) {
         // small turns taken within "wandering distance"
-        this.wanderAngle += random(-15, 15);
+        this.wanderAngle += random(-radians(15), radians(15));
     }
     this.wanderDist--; // distance before making significant turn
     
@@ -283,8 +285,7 @@ bunnyObj.prototype.wander = function() {
        this.position.x >= 400 || this.position.x <= 0 ||
        this.position.y >= 400 || this.position.y <= 0) {
         this.wanderDist = random(70, 180);
-        this.wanderAngle += random(-180, 180);
-        // this.wanderAngle += random(-(Math.PI/2), Math.PI/2);
+        this.wanderAngle += random(-Math.PI, Math.PI);
     } // Continuously turn and change directions while walking a direction
     
     // Change position when hitting the edges of the canvas
@@ -304,7 +305,7 @@ bunnyObj.prototype.checkObstacle = function() {
     for(var i = 0; i < rockArr.length; i++) {
         // Compute distance between rocks and animals
         var vec = PVector.sub(rockArr[i].position, this.position);
-        var angle = this.wanderAngle - 90 - vec.heading();
+        var angle = this.wanderAngle - (Math.PI/2) - vec.heading();
         // Extract the y distance between animals and objects
         var y = vec.mag() * cos(angle);
         if((y > -30) && (y < 30)) {
@@ -312,9 +313,9 @@ bunnyObj.prototype.checkObstacle = function() {
             var x = vec.mag() * sin(angle);
             if((x > 0) && (x < 30)) {
                 // "Bounce" off at an angle between these values
-                this.wanderAngle += random(45, 90);
+                this.wanderAngle += random(Math.PI/4, Math.PI/2);
             } else if((x <= 0) && (x > -30)) {
-                this.wanderAngle -= random(45, 90);
+                this.wanderAngle -= random(Math.PI/4, Math.PI/2);
             }
             this.step.set(-cos(this.wanderAngle), -sin(this.wanderAngle));
         }

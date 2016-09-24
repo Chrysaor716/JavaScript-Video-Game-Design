@@ -140,7 +140,7 @@ var bunnyObj = function(x, y, headColor, earColor, snap) {
     // Wander variables
     this.position = new PVector(x, y);
     this.step = new PVector(0, 0);
-    this.wanderAngle = random(0, radians(180));
+    this.wanderAngle = random(0, 180);
     // this.wanderAngle = random(0, Math.PI);
     this.wanderDist = random(70, 100); // distance in pixels
     
@@ -252,9 +252,13 @@ bunnyObj.prototype.draw = function() {
             this.snapshot = 0;
         break;
     }
-    if(this.currFrame < (frameCount - 30)) {
+    if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
-        this.snapshot++;
+        if(this.foundHome === 0) { // Freeze bunny when it reaches home
+            this.snapshot++;
+        } else {
+            this.snapshot = 2;
+        }
     }
     if(this.snapshot > 3) {
         this.snapshot = 0;
@@ -265,13 +269,16 @@ bunnyObj.prototype.draw = function() {
 };
 bunnyObj.prototype.wander = function() {
     this.checkObstacle();
+    
     // Walk a direction at arbitray small angles
     this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
     this.position.add(this.step); // add vectors for wandering movement
-    // small turns taken within "wandering distance"
-    this.wanderAngle += random(-15, 15);
-    
+    if(frameCount%30 === 0) {
+        // small turns taken within "wandering distance"
+        this.wanderAngle += random(-15, 15);
+    }
     this.wanderDist--; // distance before making significant turn
+    
     if(this.wanderDist < 0 ||
        this.position.x >= 400 || this.position.x <= 0 ||
        this.position.y >= 400 || this.position.y <= 0) {
@@ -280,7 +287,7 @@ bunnyObj.prototype.wander = function() {
         // this.wanderAngle += random(-(Math.PI/2), Math.PI/2);
     } // Continuously turn and change directions while walking a direction
     
-    // Change angle and position when hitting the edges of the canvas
+    // Change position when hitting the edges of the canvas
     if(this.position.x >= 400) {
         this.position.x--;
     } else if(this.position.x <= 0) {
@@ -300,16 +307,16 @@ bunnyObj.prototype.checkObstacle = function() {
         var angle = this.wanderAngle - 90 - vec.heading();
         // Extract the y distance between animals and objects
         var y = vec.mag() * cos(angle);
-        if((y > -60) && (y < 60)) {
+        if((y > -30) && (y < 30)) {
             // Extract x distance between animals and objects
             var x = vec.mag() * sin(angle);
-            if((x > 0) && (x < 60)) {         
-                this.wanderAngle++;         
-            } else if((x <= 0) && (x > -60)) {
-                this.wanderAngle--;
+            if((x > 0) && (x < 30)) {
+                // "Bounce" off at an angle between these values
+                this.wanderAngle += random(45, 90);
+            } else if((x <= 0) && (x > -30)) {
+                this.wanderAngle -= random(45, 90);
             }
-            this.step.x = sin(this.wanderAngle);
-            this.step.y = -cos(this.wanderAngle);
+            this.step.set(-cos(this.wanderAngle), -sin(this.wanderAngle));
         }
     }
     // Checks for bunny hole
@@ -319,6 +326,7 @@ bunnyObj.prototype.checkObstacle = function() {
                 if(this.position.y >= bunnyHomeArr[i].position.y-15 &&
                   this.position.y <= bunnyHomeArr[i].position.y+15) {
                     this.foundHome = 1;
+                    playSound(getSound("rpg/step-heavy"));
                 }
         }
     }
@@ -453,7 +461,7 @@ mouseClicked = function() {
 // "Final product" map; uncomment this out for "better" map
 // Commented because Khan Academy can barely render the details!
 /*
-var tilemap = ["gddggg----dd--rgg-rr",
+var tilemap = ["gddggg----dd--dgg---",
               "ddggg--d-----gggggg-",
               "dggbrrdd-dd---gggddd",
               "-gggrdd--d-----ddddd",
@@ -461,42 +469,42 @@ var tilemap = ["gddggg----dd--rgg-rr",
               "ggggggddd---dddr---d",
               "d-ggddd------ddg-ddd",
               "--dddg--------ggdddd",
-              "-rgddggd---gggggg-dd",
-              "-rrgdgg---ggdgg---dd",
-              "-rgggggg----ddg--ggd",
+              "--gddggd---gggggg-dd",
+              "--gdgg---ggdgg---dd",
+              "--gggggg----ddg--ggd",
               "-dddddggg---dd-dgggd",
               "---ddggrrrdddddd--dd",
               "g-gggddggddggd-----d",
               "ggggddddgd--ggg-d---",
-              "-ggrrggdgg-d-dddddg-",
-              "--gggggggdddddrdd-gg",
+              "-gg--ggdgg-d-dddddg-",
+              "--gggggrgddddd-dd-gg",
               "ggggdddrr-ddgdd---dg",
-              "d---ggdr--ggdddddggg",
+              "d---ggd---ggdddddggg",
               "dddgdgd---dddgg---gg"];
 */
 ///////////////////////////////////////////////////////////////////////////////
 // This is a lighter tilemap; use for development and easier render
 //      and to reduce freezing time
-var tilemap = ["--------------r-----",
-               "---gg--d----------rr",
-               "----rr---dd---ggg---",
+var tilemap = ["ggggddd------gg---gg",
+               "g--gg--d----------gg",
+               "g---rr---dd---ggg--g",
                "----rdd--d----------",
-               "------------dd------",
+               "------------dd-r----",
                "--b------------r---d",
-               "---------------g----",
-               "--------------------",
-               "-r-----------------d",
-               "-rr---------------dd",
-               "-r------------------",
-               "------------dd------",
-               "-------rrr----------",
-               "g------------d------",
-               "--------------------",
-               "---rr---------------",
-               "--------------rdd-g-",
-               "-------rr-----------",
-               "d------r------------",
-               "--------------------"];
+               "---------------g---g",
+               "g------------------g",
+               "g---ddd---------g--d",
+               "gg---dd--------gg-dd",
+               "gggd----------------",
+               "gg--ggg-----dd------",
+               "------grrr-------dgg",
+               "g------------d----gg",
+               "---g-------ggg-----g",
+               "------------gg------",
+               "-------d-----ggdd-g-",
+               "-------gr---------gg",
+               "d--------dd-ddd-----",
+               "g--dddd-ggg---g-----"];
 ///////////////////////////////////////////////////////////////////////////////
 var initTilemap = function() {
     for(var i = 0; i < tilemap.length; i++) {

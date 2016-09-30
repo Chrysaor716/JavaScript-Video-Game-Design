@@ -490,7 +490,7 @@ var tilemap = ["rrrrrrrrrrrrrrrrrrrr",
                "r------d-----ggdd-gr",
                "r------gr---------gr",
                "r--------dd-ddd----r",
-               "rrrrrrd-ggg---g----r",
+               "rrrrrrd-ggg---g----r", // @ 400 pixels down from top
                "rrggdrd------gg---gr",
                "r--ggr-d----------gr",
                "r---rrr--dd---ggg--r",
@@ -625,6 +625,9 @@ draw = function() {
         break;
 
         case "game":
+            pushMatrix();
+            translate(0, -(player.position.y-200));
+
             background(189, 145, 79);
 
             // Rocks are obstables not to be collided into
@@ -659,6 +662,8 @@ draw = function() {
                 player.position.x++;
             }
             player.draw();
+
+            popMatrix();
         break;
 
         default:

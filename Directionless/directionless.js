@@ -9,6 +9,19 @@ var paintDiameter = 30; // used in Menu screen and mouse click location detectio
 // Flags for changing head or ear color of character; global for mouse clicks
 var changeHead = 0;
 
+/***************************** KEYPRESSES *********************************/
+/*
+ *  Used to control the player character (bunny object)
+ */
+var keys = []; // Detect key multiple presses
+var keyPressed = function() { 
+    keys[keyCode] = true;
+};
+var keyReleased = function() { 
+    keys[keyCode] = false; 
+};
+/**************************************************************************/
+
 /**************** DRAW OBJECTS TO PLACE IN TILE MAP ********************/
 // Rocks (uses 'r' in tilemap)
 // Rocks are obstacles in the tilemap, so it should have collision-detection
@@ -79,7 +92,9 @@ dirtObj.prototype.draw = function() {
 var dirtArr = [];
 /***********************************************************************/
 
-// Draws the food (bread) on cell of tilemap depending on mouse clicks
+var foodPts = 0; // counts the number of food the player collected
+// Draws the food (bread)
+// Uses 'f' in tilemap
 var foodObj = function(x, y) {
     this.position = new PVector(x, y);
 };
@@ -94,7 +109,7 @@ foodObj.prototype.draw = function() {
     //      refer to the top left hand corner of the cell
     ellipse(10, 10, 16, 10);
     stroke(173, 124, 59);
-    arc(10, 10, 16, 10, 0, 180);
+    arc(10, 10, 16, 10, 0, Math.PI);
     ellipse(5, 8, 1, 3);
     ellipse(10, 8, 1, 4);
     ellipse(15, 8, 1, 2);
@@ -106,7 +121,7 @@ foodObj.prototype.draw = function() {
 };
 var foodArr = [];
 
-/**************** DRAW CHARACTERS TO PLACE IN TILE MAP ********************/
+/*********************** DRAW PLAYER CHARACTER ****************************/
 var bunnyObj = function(x, y, headColor, earColor, snap) {
     // Drawing variables
     this.headRGB = headColor;
@@ -114,7 +129,7 @@ var bunnyObj = function(x, y, headColor, earColor, snap) {
     this.currFrame = frameCount;
     // variable to iterate through different images for animation
     this.snapshot = snap;
-
+    
     this.position = new PVector(x, y);
     this.angle = 0;
 };
@@ -122,7 +137,7 @@ bunnyObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-
+    
     stroke(0, 0, 0);
     // Draw bunny with coordinates relative to origin
     //      (due to translation and rotation of grid)
@@ -235,41 +250,34 @@ bunnyObj.prototype.draw = function() {
 
     popMatrix();
 };
-//////////////////////////// TODO checkObstale unused///////////////////////////////
-bunnyObj.prototype.checkObstacle = function() {
-    // Checks for rock collision
-    for(var i = 0; i < rockArr.length; i++) {
-        // Compute distance between rocks and animals
-        var vec = PVector.sub(rockArr[i].position, this.position);
-        var angle = this.wanderAngle - (Math.PI/2) - vec.heading();
-        // Extract the y distance between animals and objects
-        var y = vec.mag() * cos(angle);
-        if((y > -30) && (y < 30)) {
-            // Extract x distance between animals and objects
-            var x = vec.mag() * sin(angle);
-            if((x > 0) && (x < 30)) {
-                // "Bounce" off at an angle between these values
-                this.wanderAngle += random(Math.PI/4, Math.PI/2);
-            } else if((x <= 0) && (x > -30)) {
-                this.wanderAngle -= random(Math.PI/4, Math.PI/2);
-            }
-            this.step.set(-cos(this.wanderAngle), -sin(this.wanderAngle));
-        }
+bunnyObj.prototype.move = function() {
+    // Uses key presses to move player character (bunny)
+    if(keyIsPressed && keys[LEFT]) {
+        this.position.x -= 2;
+    } if(keyIsPressed && keys[UP]) {
+        this.position.y -= 2;
+    } if(keyIsPressed && keys[DOWN]) {
+        this.position.y += 2;
+    } if(keyIsPressed && keys[RIGHT]) {
+        this.position.x += 2;
     }
-    // Checks for food
+    // Bunny collects food when it goes on top of it
     for(var i = 0; i < foodArr.length; i++) {
-        if(foodArr[i].position.x <= this.position.x+10 &&
-           foodArr[i].position.x >= this.position.x-10) {
+        if(foodArr[i].position.x <= this.position.x+15 &&
+           foodArr[i].position.x >= this.position.x-25) {
                 if(foodArr[i].position.y <= this.position.y+10 &&
-                   foodArr[i].position.y >= this.position.y-10) {
+                   foodArr[i].position.y >= this.position.y-20) {
                        foodArr.splice(i, 1);
+                       foodPts++;
                    }
            }
     }
 };
 // To display on menu screen; global for mouse detection (color changes)
 var player = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
+/************************************************************************/
 
+/**************** DRAW DEVILS TO PLACE IN TILE MAP ********************/
 var enemyObj = function(x, y, snap) {
     this.currFrame = frameCount;
     // variable to iterate through different images for animation
@@ -277,14 +285,38 @@ var enemyObj = function(x, y, snap) {
 
     // Wander variables
     this.position = new PVector(x, y);
-    this.step = new PVector(0, 0);
-    this.wanderAngle = random(0, Math.PI);
+    this.velocity = new PVector(0, -1); // "velocity"
+    // this.wanderAngle = random(0, Math.PI);
+    this.wanderAngle = 0;
     this.wanderDist = random(70, 100); // distance in pixels
+};
+enemyObj.prototype.checkObstacle = function() {
+    for(var i = 0 ; i < rockArr.length; i++) {
+        var vec = PVector.sub(rockArr[i].position, this.position);
+        // var angle = this.wanderAngle - 90 - vec.heading();
+        var angle = this.wanderAngle - Math.PI/2 - vec.heading();
+        var y = vec.mag() * cos(angle); // y distance away from obstacle
+        if((y > -20) && (y < 20)) {
+            var x = vec.mag() * sin(angle);
+            if((x > 0) && (x < 20)) {
+                this.wanderAngle--;
+            }
+            if((x <= 0) && (x > -20)) {
+                this.wanderAngle++;
+            }
+            this.velocity.x = sin(this.wanderAngle);
+            if(y > -20) {
+                this.velocity.y = cos(this.wanderAngle);
+            } else if(y <= 20) {
+                this.velocity.y = -cos(this.wanderAngle);
+            }
+        }
+    }
 };
 enemyObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-    rotate(this.wanderAngle);
+    rotate(this.wanderAngle + Math.PI/2);
 
     stroke(0, 0, 0);
     switch(this.snapshot) {
@@ -332,9 +364,10 @@ enemyObj.prototype.draw = function() {
     popMatrix();
 };
 enemyObj.prototype.wander = function() {
+    this.checkObstacle();
     // Walk a direction at arbitray small angles
-    this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
-    this.position.add(this.step); // add vectors for wandering movement
+    this.velocity.set(cos(this.wanderAngle), sin(this.wanderAngle));
+    this.position.add(this.velocity); // add vectors for wandering movement
     if(frameCount%30 === 0) {
         // small turns taken within "wandering distance"
         this.wanderAngle += random(-radians(15), radians(15));
@@ -343,30 +376,33 @@ enemyObj.prototype.wander = function() {
 
     if(this.wanderDist < 0 ||
        this.position.x >= 400 || this.position.x <= 0 || // Checks the borders of canvas
-       this.position.y >= 400 || this.position.y <= 0) {
+       this.position.y >= 800 || this.position.y <= 0) {
         this.wanderDist = random(70, 180);
         // Turn significantly when colliding with border
         this.wanderAngle += random(-Math.PI, Math.PI);
     }
 
-    // Change position when hitting the edges of the canvas
-    if(this.position.x >= 400) {
+    // Ensure position of the enemies do not surpass the borders
+    if(this.position.x >= 380) {
         this.position.x--;
-    } else if(this.position.x <= 0) {
+    } else if(this.position.x <= 20) {
         this.position.x++;
     }
-    if(this.position.y >= 400) {
+    if(this.position.y >= 780) {
         this.position.y--;
-    } else if(this.position.y <= 0) {
+    } else if(this.position.y <= 20) {
         this.position.y++;
     }
 };
 var enemyArr = [];
-for(var i = 0; i < 3; i++) { // Create 3 enemies to roam the map
-    enemyArr.push(new enemyObj(Math.floor((Math.random()*350)+50),
-                               Math.floor((Math.random()*350)+50),
-                               Math.floor(Math.random())));
-}
+// for(var i = 0; i < 3; i++) { // Create 3 enemies to roam the map
+//     enemyArr.push(new enemyObj(Math.floor((Math.random()*350)+50),
+//                               Math.floor((Math.random()*750)+50),
+//                               Math.floor(Math.random())));
+// }
+enemyArr.push(new enemyObj(250, 200, 0));
+enemyArr.push(new enemyObj(250, 550, 1));
+enemyArr.push(new enemyObj(300, 700, 0));
 /***********************************************************************/
 
 // Detects color palette selection in "menu" state
@@ -447,14 +483,6 @@ mouseClicked = function() {
     }
 };
 
-var keys = []; // Detect key multiple presses
-var keyPressed = function() {
-    keys[keyCode] = true;
-};
-var keyReleased = function() {
-    keys[keyCode] = false;
-};
-
 /*
     STRETCH GOAL: Dynamically place rocks (except for the hardcoded
                   rocks that go on the borders) -- about 40% of
@@ -466,51 +494,46 @@ var keyReleased = function() {
                   25x25 for next layer, 40x40 for the next, etc.)
 */
 // Used to initialize object's positions; separate from drawing them
-// 20 pixel x 20 pixel tiles in grid/tilemap --> 20 rows, 40, columns
-//      for 400x800 pixel map
-// 20 * 40 = 800 tiles --> 40% rocks
-// 800 * 0.40 = 320 tiles are rocks; include borders
-// 116 rocks allocated on borders --> 204 rocks left
 var tilemap = ["rrrrrrrrrrrrrrrrrrrr",
-               "r------d----------gr",
+               "r-------d----rr---gr",
                "r--------dd---ggg--r",
-               "rrrrrrrr-----------r",
-               "rrrrrrrr----rrrr---r",
+               "rrrrrrr------------r",
+               "rrrrrrr-----rrrr---r",
                "rrr---------rrrr---r",
                "rrr---------rrrr---r",
-               "r-----------rr-----r",
-               "r---ddd---------g--r",
-               "rr---dd--------gg-dr",
-               "rrrrr---------rrrrrr",
+               "r-----rrrr--rr-----r",
+               "r---ddrrrr------g--r",
+               "rr---dd--r-----gg-dr",
+               "rrrrr----r----rrrrrr",
                "rrrrrr------dd-----r",
                "rrrr--g----------dgr",
-               "r---------rrrrrrrrrr",
-               "r--g-------ggg--rrrr",
-               "r-----------gg--rrrr",
-               "r------d-----ggdd-gr",
-               "r------gr---------gr",
-               "r--------dd-ddd----r",
-               "rrrrrrd-ggg---g----r", // @ 400 pixels down from top
-               "rrggdrd------gg---gr",
-               "r--ggr-d----------gr",
+               "r-------rrrrrrrrrrrr",
+               "r--g----rr-ggg--rrrr",
+               "rrr-----rr--gg--rrrr",
+               "rrr----drrrr-ggdd-gr",
+               "r------grrrr------gr",
+               "r--------drrrrrr---r",
+               "rrrrrrd-ggg-rrrr---r", // @ ~400 pixels down from top
+               "rrggdrd------rrr--gr",
+               "r--ggr-d------rr--gr",
                "r---rrr--dd---ggg--r",
                "r---rrrr-d---------r",
-               "r---rrrrrr--dd-r---r",
-               "r-b------------r---r",
+               "r---rrrrrr--ddrrrrrr",
+               "r-b-----------rrrrrr",
                "r--------------g---r",
-               "r----rrrrr-------rrr",
-               "r---dddrrr------grrr",
-               "rg---ddrrr-----ggrrr",
-               "rggd---rrrrrr----rrr",
+               "rrrrrrrrrr---------r",
+               "r---rrrrrr------grrr",
+               "rg---drrrr-----ggrrr",
+               "rggd---rrrrrrr---rrr",
                "rg--rrrrrr--dd---rrr",
                "r---rrrrrr-------dgr",
-               "r------r-----d----gr",
-               "r--g---r---ggg-----r",
-               "r------rr---gg-----r",
-               "r------rr----ggdd-gr",
-               "r------rr---------gr",
-               "r--------dd-ddd----r",
-               "rrrrrrrrrrrrrrrrrrrr"];     // current rock count ~132
+               "r-----rr-----d----gr",
+               "r--gg-rr---ggg-----r",
+               "r---g-rrrrr-gg-----r",
+               "rd----rrrrr--ggdd-gr",
+               "rrd---------------rr",
+               "rrd------dd-ddd--rrr",
+               "rrrrrrrrrrrrrrrrrrrr"];
 var initTilemap = function() {
     for(var i = 0; i < tilemap.length; i++) {
         for(var j = 0; j < tilemap[i].length; j++) {
@@ -540,6 +563,27 @@ var initTilemap = function() {
 };
 initTilemap();
 
+var initFood = function() {
+    // UNCOMMENT THIS OUT IN FINAL CODE; SIZE REDUCED FOR FASTER RENDERING
+    //      ON KHAN ACDEMY
+//    for(var i = 0; i < 100; i++) {
+    for(var i = 0; i < 50; i++) {
+        // Check if a rock is in the cell; if so, remove food source from
+        //      that cell
+        var randX = Math.floor((Math.random()*400)+0);
+        var randY = Math.floor((Math.random()*800)+0);
+        foodArr.push(new foodObj(randX - (randX%20), randY - (randY%20)));
+        for(var j = 0; j < rockArr.length; j++) {
+            if( (rockArr[j].position.x === randX-(randX%20)) &&
+                (rockArr[j].position.y === randY-(randY%20)) ) {
+                  foodArr.pop();
+                  i--;
+            }
+        }
+    }
+};
+initFood();
+
 draw = function() {
     switch(gameState) {
         case "menu":
@@ -556,9 +600,8 @@ draw = function() {
             text("1. Start by clicking on the paint color on the palette.\n" +
                  "2. Notice you can select which body part you want to\n" +
                  "    change from the HEAD & EAR buttons at the bottom.\n" +
-                 "3. When you've finalized your customization, click \"Confirm\"\n" +
-                 "4. Proceed to make as many animals as desired.\n" +
-                 "5. Press \"GO!\" to start!", 20, 135);
+                 "3. When you've finalized your customization, click \"GO!\"\n" +
+                 "    to begin!", 20, 135);
 
             // Draws a paint palette
             noStroke();
@@ -627,11 +670,9 @@ draw = function() {
         case "game":
             pushMatrix();
             translate(0, -(player.position.y-200));
-
+            
             background(189, 145, 79);
-
-            // Rocks are obstables not to be collided into
-            // Food cannot be spawned on rocks either
+            
             for(var i = 0; i < rockArr.length; i++) {
                 rockArr[i].draw();
             }
@@ -642,27 +683,23 @@ draw = function() {
             for(var i = 0; i < dirtArr.length; i++) {
                 dirtArr[i].draw();
             }
-
+            
             for(var i = 0; i < foodArr.length; i++) {
                 foodArr[i].draw();
             }
 
             for(var i = 0; i < enemyArr.length; i++) {
-                enemyArr[i].draw();
                 enemyArr[i].wander();
+                enemyArr[i].draw();
             }
-
-            if(keyIsPressed && keys[LEFT]) {
-                player.position.x--;
-            } if(keyIsPressed && keys[UP]) {
-                player.position.y--;
-            } if(keyIsPressed && keys[DOWN]) {
-                player.position.y++;
-            } if(keyIsPressed && keys[RIGHT]) {
-                player.position.x++;
-            }
+            
             player.draw();
-
+            player.move();
+            
+            textSize(20);
+            fill(255, 255, 255);
+            text("Score: " + foodPts, 10, player.position.y-180);
+            
             popMatrix();
         break;
 

@@ -19,7 +19,7 @@ var rockObj = function(x, y) {
 rockObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-    
+
     noStroke();
     fill(168, 168, 168);
     // Draws the base color of entire rock
@@ -31,7 +31,7 @@ rockObj.prototype.draw = function() {
     fill(201, 201, 201);
     rect(5, 3, 13, 2);
     rect(17, 3, 3, 12);
-    
+
     popMatrix();
 };
 var rockArr = [];
@@ -79,30 +79,6 @@ dirtObj.prototype.draw = function() {
 var dirtArr = [];
 /***********************************************************************/
 
-/**************** DRAW HOMES TO PLACE IN TILE MAP ********************/
-// There is one home for each animal type
-var bunnyHomeObj = function(x, y) {
-    this.position = new PVector(x, y);
-};
-bunnyHomeObj.prototype.draw = function() {
-    pushMatrix();
-    translate(this.position.x, this.position.y);
-    
-    noStroke();
-    fill(176, 120, 23);
-    rect(-3, -3, 26, 26);
-    fill(42, 224, 54);
-    ellipse(6, -2, 2, 12);
-    ellipse(1, -4, 2, 16);
-    ellipse(10, -5, 2, 10);
-    fill(41, 41, 41);
-    ellipse(10, 10, 20, 20);
-
-    popMatrix();
-};
-var bunnyHomeArr = [];
-/***********************************************************************/
-
 // Draws the food (bread) on cell of tilemap depending on mouse clicks
 var foodObj = function(x, y) {
     this.position = new PVector(x, y);
@@ -110,7 +86,7 @@ var foodObj = function(x, y) {
 foodObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-    
+
     noStroke();
     // Draws bread base
     fill(204, 152, 63);
@@ -125,12 +101,12 @@ foodObj.prototype.draw = function() {
     noStroke();
     fill(240, 208, 149);
     ellipse(12, 8, 2, 4);
-    
+
     popMatrix();
 };
 var foodArr = [];
 
-/**************** DRAW ANIMALS TO PLACE IN TILE MAP ********************/
+/**************** DRAW CHARACTERS TO PLACE IN TILE MAP ********************/
 var bunnyObj = function(x, y, headColor, earColor, snap) {
     // Drawing variables
     this.headRGB = headColor;
@@ -138,21 +114,15 @@ var bunnyObj = function(x, y, headColor, earColor, snap) {
     this.currFrame = frameCount;
     // variable to iterate through different images for animation
     this.snapshot = snap;
-    
-    // Wander variables
+
     this.position = new PVector(x, y);
-    this.step = new PVector(0, 0);
-    this.wanderAngle = random(0, Math.PI);
-    // this.wanderAngle = random(0, Math.PI);
-    this.wanderDist = random(70, 100); // distance in pixels
-    
-    this.foundHome = 0;
+    this.angle = 0;
 };
 bunnyObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-    rotate(this.wanderAngle);
-    
+    rotate(this.angle);
+
     stroke(0, 0, 0);
     // Draw bunny with coordinates relative to origin
     //      (due to translation and rotation of grid)
@@ -180,7 +150,7 @@ bunnyObj.prototype.draw = function() {
             arc(-5, 3, 5, 25, radians(20), Math.PI);
             arc(5, 3, 5, 25, 0, radians(160));
         break;
-        
+
         case 1:
             // Draws the feet slightly sticking out for "hop"
             fill(this.headRGB);
@@ -204,7 +174,7 @@ bunnyObj.prototype.draw = function() {
             arc(-5, 3, 5, 20, radians(20), Math.PI);
             arc(5, 3, 5, 20, 0, radians(160));
         break;
-        
+
         case 2:
             // Draws the feet slightly sticking out for "hop"
             fill(this.headRGB);
@@ -225,7 +195,7 @@ bunnyObj.prototype.draw = function() {
             arc(-5, 3, 5, 20, radians(20), Math.PI);
             arc(5, 3, 5, 20, 0, radians(160));
         break;
-        
+
         case 3:
             // Draws the feet slightly sticking out for "hop"
             fill(this.headRGB);
@@ -249,57 +219,23 @@ bunnyObj.prototype.draw = function() {
             arc(-5, 3, 5, 20, radians(20), Math.PI);
             arc(5, 3, 5, 20, 0, radians(160));
         break;
-        
+
         default:
             this.snapshot = 0;
         break;
     }
     if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
-        if(this.foundHome === 0) { // Freeze bunny when it reaches home
-            this.snapshot++;
-        } else {
-            this.snapshot = 2;
-        }
+        this.snapshot++;
     }
     if(this.snapshot > 3) {
         this.snapshot = 0;
     }
     stroke(0, 0, 0);
-    
+
     popMatrix();
 };
-bunnyObj.prototype.wander = function() {
-    this.checkObstacle();
-    
-    // Walk a direction at arbitray small angles
-    this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
-    this.position.add(this.step); // add vectors for wandering movement
-    if(frameCount%30 === 0) {
-        // small turns taken within "wandering distance"
-        this.wanderAngle += random(-radians(15), radians(15));
-    }
-    this.wanderDist--; // distance before making significant turn
-    
-    if(this.wanderDist < 0 ||
-       this.position.x >= 400 || this.position.x <= 0 ||
-       this.position.y >= 400 || this.position.y <= 0) {
-        this.wanderDist = random(70, 180);
-        this.wanderAngle += random(-Math.PI, Math.PI);
-    } // Continuously turn and change directions while walking a direction
-    
-    // Change position when hitting the edges of the canvas
-    if(this.position.x >= 400) {
-        this.position.x--;
-    } else if(this.position.x <= 0) {
-        this.position.x++;
-    } 
-    if(this.position.y >= 400) {
-        this.position.y--;
-    } else if(this.position.y <= 0) {
-        this.position.y++;
-    }
-};
+//////////////////////////// TODO checkObstale unused///////////////////////////////
 bunnyObj.prototype.checkObstacle = function() {
     // Checks for rock collision
     for(var i = 0; i < rockArr.length; i++) {
@@ -320,17 +256,6 @@ bunnyObj.prototype.checkObstacle = function() {
             this.step.set(-cos(this.wanderAngle), -sin(this.wanderAngle));
         }
     }
-    // Checks for bunny hole
-    for(var i = 0; i < bunnyHomeArr.length; i++) {
-        if(this.position.x >= bunnyHomeArr[i].position.x-15 &&
-           this.position.x <= bunnyHomeArr[i].position.x+15) {
-                if(this.position.y >= bunnyHomeArr[i].position.y-15 &&
-                  this.position.y <= bunnyHomeArr[i].position.y+15) {
-                    this.foundHome = 1;
-                    playSound(getSound("rpg/step-heavy"));
-                }
-        }
-    }
     // Checks for food
     for(var i = 0; i < foodArr.length; i++) {
         if(foodArr[i].position.x <= this.position.x+10 &&
@@ -342,9 +267,106 @@ bunnyObj.prototype.checkObstacle = function() {
            }
     }
 };
-var bunnyArr = [];
 // To display on menu screen; global for mouse detection (color changes)
-var bunnyMenu = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
+var player = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
+
+var enemyObj = function(x, y, snap) {
+    this.currFrame = frameCount;
+    // variable to iterate through different images for animation
+    this.snapshot = snap;
+
+    // Wander variables
+    this.position = new PVector(x, y);
+    this.step = new PVector(0, 0);
+    this.wanderAngle = random(0, Math.PI);
+    this.wanderDist = random(70, 100); // distance in pixels
+};
+enemyObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    rotate(this.wanderAngle);
+
+    stroke(0, 0, 0);
+    switch(this.snapshot) {
+        case 0:
+            // Draws the tail
+            stroke(255, 0, 0); // fill color for arcs
+            fill(255, 0, 0, 0); // transparent fill; only want outline of arcs
+            arc(0, 15, 10, 10, (Math.PI/2)+(radians(10)), radians(240));
+            arc(0, 25, 10, 10, radians(270), Math.PI + (3*Math.PI/2));
+            fill(255, 0, 0);
+            triangle(-7, 28, 0, 27, -3, 33);
+        break;
+
+        case 1:
+            // Draws the tail
+            stroke(255, 0, 0); // fill color for arcs
+            fill(255, 0, 0, 0); // transparent fill; only want outline of arcs
+            arc(0, 25, 10, 10, (Math.PI/2)+(radians(10)), radians(270));
+            arc(0, 15, 10, 10, radians(270), Math.PI + (3*Math.PI/2));
+            fill(255, 0, 0);
+            triangle(7, 29, 2, 26, 0, 33);
+        break;
+
+        default:
+            this.snapshot = 0;
+        break;
+    }
+    // Draws the head
+    stroke(0, 0, 0);
+    fill(255, 0, 0);
+    ellipse(0, 0, 20, 20);
+    // Draws the ears
+    arc(-7, 5, 10, 20, Math.PI/2, radians(240));
+    arc(7, 5, 10, 20, radians(-60), Math.PI/2);
+
+    if(this.currFrame < (frameCount - 20)) {
+        this.currFrame = frameCount;
+        this.snapshot++;
+    }
+    if(this.snapshot > 1) {
+        this.snapshot = 0;
+    }
+    stroke(0, 0, 0);
+
+    popMatrix();
+};
+enemyObj.prototype.wander = function() {
+    // Walk a direction at arbitray small angles
+    this.step.set(cos(this.wanderAngle), sin(this.wanderAngle));
+    this.position.add(this.step); // add vectors for wandering movement
+    if(frameCount%30 === 0) {
+        // small turns taken within "wandering distance"
+        this.wanderAngle += random(-radians(15), radians(15));
+    }
+    this.wanderDist--; // distance before making significant turn
+
+    if(this.wanderDist < 0 ||
+       this.position.x >= 400 || this.position.x <= 0 || // Checks the borders of canvas
+       this.position.y >= 400 || this.position.y <= 0) {
+        this.wanderDist = random(70, 180);
+        // Turn significantly when colliding with border
+        this.wanderAngle += random(-Math.PI, Math.PI);
+    }
+
+    // Change position when hitting the edges of the canvas
+    if(this.position.x >= 400) {
+        this.position.x--;
+    } else if(this.position.x <= 0) {
+        this.position.x++;
+    }
+    if(this.position.y >= 400) {
+        this.position.y--;
+    } else if(this.position.y <= 0) {
+        this.position.y++;
+    }
+};
+var enemyArr = [];
+for(var i = 0; i < 3; i++) { // Create 3 enemies to roam the map
+    enemyArr.push(new enemyObj(Math.floor((Math.random()*350)+50),
+                               Math.floor((Math.random()*350)+50),
+                               Math.floor(Math.random())));
+}
 /***********************************************************************/
 
 // Detects color palette selection in "menu" state
@@ -360,9 +382,6 @@ var circleDetected = function(xPos, yPos) {
         return false;
     }
 };
-
-// "menu" state: Menu interaction based on mouse location on canvas
-// "game" state: Places food on the map depending on mouse click
 mouseClicked = function() {
     // Lots of mouse-clicking location detection on the canvas
     if(gameState === "menu") {
@@ -377,81 +396,69 @@ mouseClicked = function() {
         //      selection to change desired body part
         if(circleDetected(350, 280)) { // Red
             if(changeHead) {
-                bunnyMenu.headRGB = color(255, 0, 0);
+                player.headRGB = color(255, 0, 0);
             } else {
-                bunnyMenu.earRGB = color(255, 0, 0);
+                player.earRGB = color(255, 0, 0);
             }
         } else if(circleDetected(310, 260)) { // Green
             if(changeHead) {
-                bunnyMenu.headRGB = color(0, 230, 0);
+                player.headRGB = color(0, 230, 0);
             } else {
-                bunnyMenu.earRGB = color(0, 230, 0);
+                player.earRGB = color(0, 230, 0);
             }
         } else if(circleDetected(270, 260)) { // Blue
             if(changeHead) {
-                bunnyMenu.headRGB = color(0, 0, 255);
+                player.headRGB = color(0, 0, 255);
             } else {
-                bunnyMenu.earRGB = color(0, 0, 255);
+                player.earRGB = color(0, 0, 255);
             }
         } else if(circleDetected(230, 280)) { // Yellow
             if(changeHead) {
-                bunnyMenu.headRGB = color(237, 237, 0);
+                player.headRGB = color(237, 237, 0);
             } else {
-                bunnyMenu.earRGB = color(237, 237, 0);
+                player.earRGB = color(237, 237, 0);
             }
         } else if(circleDetected(220, 320)) { // Purple
             if(changeHead) {
-                bunnyMenu.headRGB = color(214, 30, 214);
+                player.headRGB = color(214, 30, 214);
             } else {
-                bunnyMenu.earRGB = color(214, 30, 214);
+                player.earRGB = color(214, 30, 214);
             }
         } else if(circleDetected(250, 345)) { // Black
             if(changeHead) {
-                bunnyMenu.headRGB = color(0, 0, 0);
+                player.headRGB = color(0, 0, 0);
             } else {
-                bunnyMenu.earRGB = color(0, 0, 0);
+                player.earRGB = color(0, 0, 0);
             }
         } else if(circleDetected(290, 350)) { // White
             if(changeHead) {
-                bunnyMenu.headRGB = color(255, 255, 255);
+                player.headRGB = color(255, 255, 255);
             } else {
-                bunnyMenu.earRGB = color(255, 255, 255);
+                player.earRGB = color(255, 255, 255);
             }
         }
-        
-        // Check if user clicked on the "Confirm" button
-        if(mouseX <= 300+80 && mouseX >= 300 && mouseY >= 80 && mouseY <= 80+30) {
-            // Initialize new bunny with a random starting position and with the
-            //      menu bunny's attributes
-            var bunny = new bunnyObj(Math.floor((Math.random() * 350) + 50),
-                                     Math.floor((Math.random() * 350) + 50),
-                                     bunnyMenu.headRGB, bunnyMenu.earRGB,
-                                     Math.floor((Math.random() * 3) + 0));
-            bunnyArr.push(bunny); // push the new bunny object into array
-        }
-        
+
         // Check if user clicked "GO!" for game start
         if(mouseX <= 40+60 && mouseX >= 40 && mouseY >= 260 && mouseY <= 260+40) {
+            // Initialize player at position
+            player.position = new PVector(200, 400);
             gameState = "game";
-        }
-    } else if(gameState === "game") {
-        // Check if a rock is in the cell; if so, remove food source from
-        //      that cell
-        foodArr.push(new foodObj(mouseX-(mouseX%20), mouseY-(mouseY%20)));
-        for(var i = 0; i < rockArr.length; i++) {
-            if( (rockArr[i].position.x === mouseX-(mouseX%20)) &&
-                (rockArr[i].position.y === mouseY-(mouseY%20)) ) {
-                  foodArr.pop();
-            }
         }
     }
 };
 
+var keys = []; // Detect key multiple presses
+var keyPressed = function() {
+    keys[keyCode] = true;
+};
+var keyReleased = function() {
+    keys[keyCode] = false;
+};
+
 /*
-    STRETCH GOAL: Add a setup menu for the tile map that allows
-                  users to place the objects on the grid with
-                  mouse clicks and object selection. Do not allow
-                  more than 20 rocks/obstacles.
+    STRETCH GOAL: Dynamically place rocks (except for the hardcoded
+                  rocks that go on the borders) -- about 40% of
+                  map, including borders
                   ---
     OPTIONAL:     Multi-layered tile maps; a layer dedicated to
                   particular objects (rocks, grass, dirt, etc.)
@@ -459,54 +466,51 @@ mouseClicked = function() {
                   25x25 for next layer, 40x40 for the next, etc.)
 */
 // Used to initialize object's positions; separate from drawing them
-// "Final product" map; uncomment this out for "better" map
-// Commented because Khan Academy can barely render the details!
-/*
-var tilemap = ["gddggg----dd--dgg---",
-              "ddggg--d-----gggggg-",
-              "dggbrrdd-dd---gggddd",
-              "-gggrdd--d-----ddddd",
-              "gggg--dd----dd------",
-              "ggggggddd---dddr---d",
-              "d-ggddd------ddg-ddd",
-              "--dddg--------ggdddd",
-              "--gddggd---gggggg-dd",
-              "--gdgg---ggdgg---dd",
-              "--gggggg----ddg--ggd",
-              "-dddddggg---dd-dgggd",
-              "---ddggrrrdddddd--dd",
-              "g-gggddggddggd-----d",
-              "ggggddddgd--ggg-d---",
-              "-gg--ggdgg-d-dddddg-",
-              "--gggggrgddddd-dd-gg",
-              "ggggdddrr-ddgdd---dg",
-              "d---ggd---ggdddddggg",
-              "dddgdgd---dddgg---gg"];
-*/
-///////////////////////////////////////////////////////////////////////////////
-// This is a lighter tilemap; use for development and easier render
-//      and to reduce freezing time
-var tilemap = ["ggggddd------gg---gg",
-               "g--gg--d----------gg",
-               "g---rr---dd---ggg--g",
-               "----rdd--d----------",
-               "------------dd-r----",
-               "--b------------r---d",
-               "---------------g---g",
-               "g------------------g",
-               "g---ddd---------g--d",
-               "gg---dd--------gg-dd",
-               "gggd----------------",
-               "gg--ggg-----dd------",
-               "------grrr-------dgg",
-               "g------------d----gg",
-               "---g-------ggg-----g",
-               "------------gg------",
-               "-------d-----ggdd-g-",
-               "-------gr---------gg",
-               "d--------dd-ddd-----",
-               "g--dddd-ggg---g-----"];
-///////////////////////////////////////////////////////////////////////////////
+// 20 pixel x 20 pixel tiles in grid/tilemap --> 20 rows, 40, columns
+//      for 400x800 pixel map
+// 20 * 40 = 800 tiles --> 40% rocks
+// 800 * 0.40 = 320 tiles are rocks; include borders
+// 116 rocks allocated on borders --> 204 rocks left
+var tilemap = ["rrrrrrrrrrrrrrrrrrrr",
+               "r------d----------gr",
+               "r--------dd---ggg--r",
+               "rrrrrrrr-----------r",
+               "rrrrrrrr----rrrr---r",
+               "rrr---------rrrr---r",
+               "rrr---------rrrr---r",
+               "r-----------rr-----r",
+               "r---ddd---------g--r",
+               "rr---dd--------gg-dr",
+               "rrrrr---------rrrrrr",
+               "rrrrrr------dd-----r",
+               "rrrr--g----------dgr",
+               "r---------rrrrrrrrrr",
+               "r--g-------ggg--rrrr",
+               "r-----------gg--rrrr",
+               "r------d-----ggdd-gr",
+               "r------gr---------gr",
+               "r--------dd-ddd----r",
+               "rrrrrrd-ggg---g----r",
+               "rrggdrd------gg---gr",
+               "r--ggr-d----------gr",
+               "r---rrr--dd---ggg--r",
+               "r---rrrr-d---------r",
+               "r---rrrrrr--dd-r---r",
+               "r-b------------r---r",
+               "r--------------g---r",
+               "r----rrrrr-------rrr",
+               "r---dddrrr------grrr",
+               "rg---ddrrr-----ggrrr",
+               "rggd---rrrrrr----rrr",
+               "rg--rrrrrr--dd---rrr",
+               "r---rrrrrr-------dgr",
+               "r------r-----d----gr",
+               "r--g---r---ggg-----r",
+               "r------rr---gg-----r",
+               "r------rr----ggdd-gr",
+               "r------rr---------gr",
+               "r--------dd-ddd----r",
+               "rrrrrrrrrrrrrrrrrrrr"];     // current rock count ~132
 var initTilemap = function() {
     for(var i = 0; i < tilemap.length; i++) {
         for(var j = 0; j < tilemap[i].length; j++) {
@@ -514,23 +518,19 @@ var initTilemap = function() {
                 case '-': // blank
                     //
                 break;
-                
+
                 case 'r': // rock
                     rockArr.push(new rockObj(j*20, i*20));
                 break;
-                
+
                 case 'g': // grass
                     grassArr.push(new grassObj(j*20, i*20));
                 break;
-                
+
                 case 'd': // dirt
                     dirtArr.push(new dirtObj(j*20, i*20));
                 break;
-                
-                case 'b': // bunny home/hole
-                    bunnyHomeArr.push(new bunnyHomeObj(j*20, i*20));
-                break;
-                
+
                 default:
                     //
                 break;
@@ -548,7 +548,7 @@ draw = function() {
             textSize(40);
             text("Directionless", width/2-120, 40);
             textSize(15);
-            text("Hello! To begin, modify a character below:", 60, 60);
+            text("Hello! To begin, customize the character below:", 40, 60);
             textSize(12);
             text("Use your mouse!", 150, 75);
             // Print instructions
@@ -559,10 +559,7 @@ draw = function() {
                  "3. When you've finalized your customization, click \"Confirm\"\n" +
                  "4. Proceed to make as many animals as desired.\n" +
                  "5. Press \"GO!\" to start!", 20, 135);
-            fill(255, 255, 255);
-            text("During game, you can click\n" +
-                 "around to spawn food!", 20, 233);
-            
+
             // Draws a paint palette
             noStroke();
             fill(201, 155, 99);
@@ -586,10 +583,9 @@ draw = function() {
             stroke(0, 0, 0);
             fill(255, 255, 255); // white
             ellipse(290, 350, paintDiameter, paintDiameter);
-            
-            // TODO add more animals and if/else or switch/case for animals
-            bunnyMenu.draw();
-            
+
+            player.draw();
+
             // Draw buttons to choose between changing head and ear of animal
             noStroke();
             fill(0, 0, 0);
@@ -610,19 +606,7 @@ draw = function() {
             } else {
                 rect(90, 360, 50, 20);
             }
-            
-            // Draws a character confirmation button; pushes bunny to array
-            noStroke();
-            fill(0, 0, 0);
-            rect(300, 80, 80, 30);
-            stroke(255, 255, 255); // Adds extra detail to button
-            fill(255, 255, 255, 0);
-            rect(305, 85, 70, 20);
-            fill(255, 255, 255);
-            textSize(15);
-            text("Confirm", 314, 100);
-            strokeWeight(1); // reset stroke weight for subsequent drawings
-            
+
             // Draws a button to enter gameplay
             noStroke();
             fill(63, 31, 242);
@@ -636,59 +620,47 @@ draw = function() {
             fill(255, 255, 255); // Add text to button
             textSize(15);
             text("GO!", 57, 286);
-            
+
             strokeWeight(1); //reset stroke weight
-            
-            // Display number of characters added
-            fill(0, 0, 0);
-            textSize(12);
-            text("Number of characters added: " + bunnyArr.length, 10, 320);
         break;
-        
+
         case "game":
             background(189, 145, 79);
-            
+
             // Rocks are obstables not to be collided into
             // Food cannot be spawned on rocks either
             for(var i = 0; i < rockArr.length; i++) {
                 rockArr[i].draw();
             }
-            
+
             for(var i = 0; i < grassArr.length; i++) {
                 grassArr[i].draw();
             }
             for(var i = 0; i < dirtArr.length; i++) {
                 dirtArr[i].draw();
             }
-            
+
             for(var i = 0; i < foodArr.length; i++) {
                 foodArr[i].draw();
             }
-            
-            for(var i = 0; i < bunnyHomeArr.length; i++) {
-                bunnyHomeArr[i].draw();
+
+            for(var i = 0; i < enemyArr.length; i++) {
+                enemyArr[i].draw();
+                enemyArr[i].wander();
             }
-            
-            for(var i = 0; i < bunnyArr.length; i++) {
-                bunnyArr[i].draw();
-                if(bunnyArr[i].foundHome !== 1) {
-                    bunnyArr[i].wander();
-                }
+
+            if(keyIsPressed && keys[LEFT]) {
+                player.position.x--;
+            } if(keyIsPressed && keys[UP]) {
+                player.position.y--;
+            } if(keyIsPressed && keys[DOWN]) {
+                player.position.y++;
+            } if(keyIsPressed && keys[RIGHT]) {
+                player.position.x++;
             }
-            
-            //////////////////////////////////////////////////////////////////////////////
-            // TEMPORARY; PLACEHOLDER LINES TO LAY OUT GRID
-            // 400 / 20 = 20
-            // stroke(166, 166, 166);
-            // for(var i = 20; i < 400; i = i + 20) {
-            //     line(0, i, width, i);
-            // }
-            // for(var i = 20; i < 400; i = i + 20) {
-            //     line(i, 0, i, height);
-            // }
-            //////////////////////////////////////////////////////////////////////////////
+            player.draw();
         break;
-        
+
         default:
             gameState = "menu";
         break;

@@ -118,6 +118,7 @@ foodObj.prototype.draw = function() {
 var foodArr = [];
 
 /*********************** DRAW PLAYER CHARACTER ****************************/
+var rockDetected = 0; // boolean for rock collision detection
 var bunnyObj = function(x, y, headColor, earColor, snap) {
     // Drawing variables
     this.headRGB = headColor;
@@ -249,14 +250,35 @@ bunnyObj.prototype.draw = function() {
 bunnyObj.prototype.move = function() {
     // Uses key presses to move player character (bunny)
     if(keyIsPressed && keys[LEFT]) {
-        this.position.x -= 2;
+        // if(rockDetected === 0) {
+            this.position.x -= 2;
+        // } else {
+        //     this.position.x += 3;
+        //     rockDetected = 0;
+        // }
     } if(keyIsPressed && keys[UP]) {
-        this.position.y -= 2;
+        // if(rockDetected === 0) {
+            this.position.y -= 2;
+        // } else {
+        //     this.position.y += 3;
+        //     rockDetected = 0;
+        // }
     } if(keyIsPressed && keys[DOWN]) {
-        this.position.y += 2;
+        // if(rockDetected === 0) {
+            this.position.y += 2;
+        // } else {
+        //     this.position.y += 3;
+        //     rockDetected = 0;
+        // }
     } if(keyIsPressed && keys[RIGHT]) {
-        this.position.x += 2;
+        // if(rockDetected === 0) {
+            this.position.x += 2;
+        // } else {
+        //     this.position.x -= 3;
+        //     rockDetected = 0;
+        // }
     }
+    
     // Bunny collects food when it goes on top of it
     for(var i = 0; i < foodArr.length; i++) {
         if(foodArr[i].position.x <= this.position.x+15 &&
@@ -299,6 +321,9 @@ chaseState.prototype.execute = function(me) {
     }
     if(dist(me.position.x, me.position.y, player.position.x, player.position.y) > 80) {
          me.changeState(0);
+    }
+    if(dist(me.position.x, me.position.y, player.position.x, player.position.y) <= 8) {
+        gameState = "defeat";
     }
 };
 //------------------------------
@@ -749,12 +774,38 @@ draw = function() {
             
             player.draw();
             player.move();
+            // Check for rocks
+            for(var i = 0 ; i < rockArr.length; i++) {
+                var distance = dist(player.position.x, player.position.y,
+                                    rockArr[i].position.x, rockArr[i].position.y);
+                if(distance <= 20) {
+                    rockDetected = 1;
+                }
+            }
             
             textSize(20);
             fill(255, 255, 255);
             text("Score: " + foodPts, 10, player.position.y-180);
             
+            if(foodPts >= 100) {
+                gameState = "victory";
+            }
+            
             popMatrix();
+        break;
+        
+        case "defeat":
+            background(0, 0, 0);
+            textSize(25);
+            fill(255, 0, 0);
+            text("Oh no! You got caught!", 80, 200);
+        break;
+        
+        case "victory":
+            background(0, 0, 0);
+            textSize(25);
+            fill(255, 0, 0);
+            text("You win!", 80, 200);
         break;
 
         default:

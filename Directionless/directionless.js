@@ -1,7 +1,3 @@
-/*
- *      Directionless
- */
-
 angleMode = "radians";
 
 var gameState = "menu";
@@ -284,14 +280,23 @@ var player = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
 var chaseState = function() {
     this.velocity = new PVector(0,0);
 };
+chaseState.prototype.checkObstacle = function(pos) {
+    for(var i = 0 ; i < rockArr.length; i++) {
+        var distance = dist(pos.x, pos.y, rockArr[i].position.x, rockArr[i].position.y);
+        if(distance < 30) {
+            pos.sub(this.velocity);
+        }
+    }
+};
 chaseState.prototype.execute = function(me) {
-    // if(dist(player.position.x, player.position.y, me.position.x, me.position.y) > 5) {
+    this.checkObstacle(me.position);
+    if(dist(player.position.x, player.position.y, me.position.x, me.position.y) > 5) {
         this.velocity.set(player.position.x - me.position.x,
                           player.position.y - me.position.y);
         this.velocity.normalize();
         this.velocity.mult(2);
         me.position.add(this.velocity);
-    // }
+    }
     if(dist(me.position.x, me.position.y, player.position.x, player.position.y) > 80) {
          me.changeState(0);
     }
@@ -641,7 +646,10 @@ draw = function() {
                  "2. Notice you can select which body part you want to\n" +
                  "    change from the HEAD & EAR buttons at the bottom.\n" +
                  "3. When you've finalized your customization, click \"GO!\"\n" +
-                 "    to begin!", 20, 135);
+                 "    to begin! You will need to collect all the food on the\n" +
+                 "    map without getting caught by the devils!", 20, 135);
+            fill(89, 29, 29);
+            text("Gameplay controls: arrow keys", 30, 240);
 
             // Draws a paint palette
             noStroke();

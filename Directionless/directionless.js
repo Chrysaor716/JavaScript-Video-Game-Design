@@ -278,21 +278,33 @@ var player = new bunnyObj(200, 100, color(255, 255, 255), color(255, 255, 255));
 /************************************************************************/
 
 /**************** DRAW DEVILS TO PLACE IN TILE MAP ********************/
-var enemyObj = function(x, y, snap) {
-    this.currFrame = frameCount;
-    // variable to iterate through different images for animation
-    this.snapshot = snap;
-
-    // Wander variables
-    this.position = new PVector(x, y);
-    this.velocity = new PVector(0, -1); // "velocity"
-    // this.wanderAngle = random(0, Math.PI);
-    this.wanderAngle = 0;
-    this.wanderDist = random(70, 100); // distance in pixels
+/*
+ *      NPC states
+ */
+var chaseState = function() {
+    this.velocity = new PVector(0,0);
 };
-enemyObj.prototype.checkObstacle = function() {
+chaseState.prototype.execute = function(me) {
+    // if(dist(player.position.x, player.position.y, me.position.x, me.position.y) > 5) {
+        this.velocity.set(player.position.x - me.position.x,
+                          player.position.y - me.position.y);
+        this.velocity.normalize();
+        this.velocity.mult(2);
+        me.position.add(this.velocity);
+    // }
+    if(dist(me.position.x, me.position.y, player.position.x, player.position.y) > 80) {
+         me.changeState(0);
+    }
+};
+//------------------------------
+var wanderState = function() {
+    this.wanderAngle = 0;
+    this.wanderDist = random(70, 100);
+    this.velocity = new PVector(0, 0);
+};
+wanderState.prototype.checkObstacle = function(pos) {
     for(var i = 0 ; i < rockArr.length; i++) {
-        var vec = PVector.sub(rockArr[i].position, this.position);
+        var vec = PVector.sub(rockArr[i].position, pos);
         // var angle = this.wanderAngle - 90 - vec.heading();
         var angle = this.wanderAngle - Math.PI/2 - vec.heading();
         var y = vec.mag() * cos(angle); // y distance away from obstacle
@@ -313,10 +325,69 @@ enemyObj.prototype.checkObstacle = function() {
         }
     }
 };
+wanderState.prototype.execute = function(me) {
+    this.checkObstacle(me.position);
+    // Walk a direction at arbitray small angles
+    this.velocity.set(cos(this.wanderAngle), sin(this.wanderAngle));
+    me.position.add(this.velocity); // add vectors for wandering movement
+    if(frameCount%30 === 0) {
+        // small turns taken within "wandering distance"
+        this.wanderAngle += random(-radians(15), radians(15));
+    }
+    this.wanderDist--; // distance before making significant turn
+
+    if(this.wanderDist < 0 ||
+       me.position.x >= 400 || me.position.x <= 0 || // Checks the borders of canvas
+       me.position.y >= 800 || me.position.y <= 0) {
+        this.wanderDist = random(70, 180);
+        // Turn significantly when colliding with border
+        this.wanderAngle += random(-Math.PI, Math.PI);
+    }
+
+    // Ensure position of the enemies do not surpass the borders
+    if(me.position.x >= 380) {
+        me.position.x--;
+    } else if(me.position.x <= 20) {
+        me.position.x++;
+    }
+    if(me.position.y >= 780) {
+        me.position.y--;
+    } else if(me.position.y <= 20) {
+        me.position.y++;
+    }
+    
+    // Change to chasing state if player is within certain distance from enemy
+    if(dist(me.position.x, me.position.y, player.position.x, player.position.y) < 80) {
+        me.changeState(1);
+    }
+};
+
+/*
+ *      NPC drawing and behvior
+ */
+var enemyObj = function(x, y, snap) {
+    this.currFrame = frameCount;
+    // variable to iterate through different images for animation
+    this.snapshot = snap;
+
+    // Wander variables
+    this.position = new PVector(x, y);
+    // this.velocity = new PVector(0, -1);
+    // // this.wanderAngle = random(0, Math.PI);
+    // this.wanderAngle = 0;
+    // this.wanderDist = random(70, 100); // distance in pixels
+    
+    this.state = [new wanderState(), new chaseState()];
+    this.currState = 0;
+};
+enemyObj.prototype.changeState = function(s) {
+    this.currState = s;
+};
 enemyObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-    rotate(this.wanderAngle + Math.PI/2);
+    // rotate(this.wanderAngle + Math.PI/2);
+    rotate(Math.PI/2);
 
     stroke(0, 0, 0);
     switch(this.snapshot) {
@@ -362,37 +433,6 @@ enemyObj.prototype.draw = function() {
     stroke(0, 0, 0);
 
     popMatrix();
-};
-enemyObj.prototype.wander = function() {
-    this.checkObstacle();
-    // Walk a direction at arbitray small angles
-    this.velocity.set(cos(this.wanderAngle), sin(this.wanderAngle));
-    this.position.add(this.velocity); // add vectors for wandering movement
-    if(frameCount%30 === 0) {
-        // small turns taken within "wandering distance"
-        this.wanderAngle += random(-radians(15), radians(15));
-    }
-    this.wanderDist--; // distance before making significant turn
-
-    if(this.wanderDist < 0 ||
-       this.position.x >= 400 || this.position.x <= 0 || // Checks the borders of canvas
-       this.position.y >= 800 || this.position.y <= 0) {
-        this.wanderDist = random(70, 180);
-        // Turn significantly when colliding with border
-        this.wanderAngle += random(-Math.PI, Math.PI);
-    }
-
-    // Ensure position of the enemies do not surpass the borders
-    if(this.position.x >= 380) {
-        this.position.x--;
-    } else if(this.position.x <= 20) {
-        this.position.x++;
-    }
-    if(this.position.y >= 780) {
-        this.position.y--;
-    } else if(this.position.y <= 20) {
-        this.position.y++;
-    }
 };
 var enemyArr = [];
 // for(var i = 0; i < 3; i++) { // Create 3 enemies to roam the map
@@ -665,6 +705,11 @@ draw = function() {
             text("GO!", 57, 286);
 
             strokeWeight(1); //reset stroke weight
+            
+            // Initialize enemies to wandering state
+            for(var i = 0; i < enemyArr.length; i++) {
+                enemyArr[i].changeState(0);
+            }
         break;
 
         case "game":
@@ -689,8 +734,9 @@ draw = function() {
             }
 
             for(var i = 0; i < enemyArr.length; i++) {
-                enemyArr[i].wander();
+                // enemyArr[i].wander();
                 enemyArr[i].draw();
+                enemyArr[i].state[enemyArr[i].currState].execute(enemyArr[i]);
             }
             
             player.draw();

@@ -22,28 +22,34 @@ ballObj.prototype.applyForce = function(force) {
     this.acceleration.add(f);
 };
 ballObj.prototype.updatePosition = function() {
-    // if(noMouse === 1) { // Use air/wind/gravity drag if no mouse touching ball
-        var gravityForce = PVector.mult(gravity, this.mass);
-        this.applyForce(gravityForce);
+    // Use air/wind/gravity drag if no mouse touching ball
+    var gravityForce = PVector.mult(gravity, this.mass);
+    this.applyForce(gravityForce);
 
-        var airFriction = PVector.mult(this.velocity, -1);
-        airFriction.normalize();
-        airFriction.mult(0.08);
+    var airFriction = PVector.mult(this.velocity, -1);
+    airFriction.normalize();
+    airFriction.mult(0.08);
 
-        this.applyForce(airFriction);
-        this.velocity.add(this.acceleration);
-        this.position.add(this.velocity);
-        // Bottom of canvas is the ground; bounce off the ground
-        if(this.position.y > (height - (this.size/2))) {
-            this.position.y = height - this.size/2;
-            this.velocity.y *= -1;
-        }
-        if(this.position.x < 20) { // bounce off left edge
-            this.position.x = 20;
-            this.velocity.x *= -1;
-        }
-        this.acceleration.set(0, 0); // reset acceleration each frame
-    // }
+    this.applyForce(airFriction);
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+    // Bottom of canvas is the ground; bounce off the ground
+    if(this.position.y > (height - (this.size/2))) {
+        this.position.y = height - this.size/2;
+        this.velocity.y *= -1;
+    }
+    if(this.position.x < 20) { // bounce off left edge
+        this.position.x = 20;
+        this.velocity.x *= -1;
+    }
+    this.acceleration.set(0, 0); // reset acceleration each frame
+
+    // If ball exceeds right edge of canvas, reset it's position
+    if(this.position.x-20 > width) {
+        this.position.set(40, 350);
+        this.velocity.set(0, 0);
+        this.acceleration.set(0, 0);
+    }
 };
 /* STRETCH GOAL: MAKE THE BALL PRETTIER */
 ballObj.prototype.draw = function() {
@@ -63,12 +69,9 @@ ballObj.prototype.draw = function() {
     arc(this.position.x, this.position.y, this.size, this.size/2, Math.PI/6, 5*Math.PI/6);
     arc(this.position.x, this.position.y, this.size, this.size/2, 7*Math.PI/6, 11*Math.PI/6);
 
-    // if(noMouse === 1) {
-        if(this.thrown === 2) {
-            // this.position.add(this.dir);
-            this.position.add(this.acceleration);
-        }
-    // }
+    if(this.thrown === 2) {
+        this.position.add(this.acceleration);
+    }
 };
 var basketball = new ballObj(40, 350);
 
@@ -131,6 +134,7 @@ var girl = new childObj(width-70, 320);
 //////////////////////* Game states *//////////////////////
 var menuState = function() {}; // constructor
 menuState.prototype.execute = function() {
+    noMouse = 1; // initialize to no mouse touching the ball
     background(0, 0, 0);
     fill(255, 255, 255);
     textSize(30);
@@ -154,7 +158,7 @@ playState.prototype.execute = function() {
        basketball.position.y <= girl.position.y+55) {
            // STRETCH GOAL: Adding bouncing inside basket
            if(basketball.position.x-20 >= girl.position.x-22 &&
-              basketball.position.x+20 <= girl.position.x+23) {
+              basketball.position.x+20 <= girl.position.x+30) {
                score += 8;
             //   basketball = new ballObj(40, 350);
                 basketball.position.set(40, 350);
@@ -162,7 +166,8 @@ playState.prototype.execute = function() {
                 basketball.acceleration.set(0, 0);
            }
            // bounce off left edge of girl's basket
-           if(basketball.position.x+20 > girl.position.x-22) {
+           if(basketball.position.x+20 > girl.position.x-22 &&
+              basketball.position.x+20 <= girl.position.x-20) {
                 basketball.position.x = girl.position.x-42;
                 basketball.velocity.x *= -1;
            }
@@ -215,6 +220,7 @@ var mouseDragged = function() {
 mouseReleased = function() {
     if(basketball.thrown === 1) { // mouse is released AND ball was previously picked up
         basketball.thrown = 2; // ball is airborne
+        score--; // costs 1 point to shoot a ball
         noMouse = 1; // ball is released (so mouse no longer touches it)
     }
 };

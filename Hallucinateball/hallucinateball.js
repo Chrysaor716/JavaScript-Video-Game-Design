@@ -2,6 +2,7 @@ angleMode = "radians";
 
 // Global variables to determine if the mouse is interacting with the ball or not
 var noMouse = 1; // Initialize to no mouse touching the ball
+var score = 5;
 
 /************************* Game objects ****************************/
 var gravity = new PVector(0, 0.1); // apply graviational force on ball
@@ -37,7 +38,7 @@ ballObj.prototype.updatePosition = function() {
             this.position.y = height - this.size/2;
             this.velocity.y *= -1;
         }
-        if(this.position.x < 20) {
+        if(this.position.x < 20) { // bounce off left edge
             this.position.x = 20;
             this.velocity.x *= -1;
         }
@@ -76,13 +77,33 @@ var childObj = function(x, y) {
 };
 childObj.prototype.draw = function() {
     noStroke();
+    // Draws the (totally accurate) tuba the child hugs
+    fill(207, 185, 20);
+    arc(this.position.x+2, this.position.y-30, 70, 16, Math.PI, 2*Math.PI);
+    triangle(this.position.x-33, this.position.y-30,
+             this.position.x+29, this.position.y-30, this.position.x+5, this.position.y+10);
+    rect(this.position.x-22, this.position.y-19, 45, 60);
+    fill(194, 159, 31);
+    rect(this.position.x-8, this.position.y-22, 10, 60);
+    triangle(this.position.x-26, this.position.y-30,
+             this.position.x+15, this.position.y-30, this.position.x-3, this.position.y-18);
+    arc(this.position.x, this.position.y-28, 50, 12, Math.PI, 2*Math.PI);
+    rect(this.position.x+15, this.position.y-20, 7, 55);
+    fill(232, 227, 135); // draws the shine
+    ellipse(this.position.x-10, this.position.y+8, 6, 63);
+    fill(115, 87, 32);
+    rect(this.position.x, this.position.y-20, 5, 55);
+
     fill(227, 169, 54);
     // Draws head
     ellipse(this.position.x+40, this.position.y-20, 30, 30);
     // Draws "hugging" arm
-    ellipse(this.position.x+15, this.position.y, 100, 14); // CENTER POINT FOR "BASKET"
-    fill(57, 45, 214);
+    ellipse(this.position.x+15, this.position.y, 100, 14);
+    // Draws the eye
+    fill(0, 0, 0);
+    ellipse(this.position.x+30, this.position.y-20, 4, 7);
     // Draws (short) sleeve
+    fill(57, 45, 214);
     ellipse(this.position.x+40, this.position.y+2, 20, 20);
     rect(this.position.x+20, this.position.y-8, 20, 20);
     rect(this.position.x+25, this.position.y, 25, 35);
@@ -92,17 +113,19 @@ childObj.prototype.draw = function() {
     rect(this.position.x+45, this.position.y-32, 15, 30);
     arc(this.position.x+56, this.position.y-5, 22, 25, 0, Math.PI);
     arc(this.position.x+42, this.position.y-30, 35, 20, Math.PI, 2*Math.PI);
-    // Draws the eye
-    fill(0, 0, 0);
-    ellipse(this.position.x+30, this.position.y-17, 5, 5);
     // Draws the leg/foot
     fill(92, 156, 196);
     rect(this.position.x-20, this.position.y+35, 70, 20);
     fill(92, 92, 92);
     rect(this.position.x-40, this.position.y+35, 25, 20);
     ellipse(this.position.x-31, this.position.y+35, 18, 30);
+
+    ////////////////TEMP; FOR HIT BOX/////////////////////
+    // fill(255, 0, 0);
+    // rect(this.position.x-22, this.position.y-30, 45, 85);
+    //////////////////////////////////////////////////////
 };
-var girl = new childObj(width-100, 250);
+var girl = new childObj(width-70, 320);
 /*******************************************************************/
 
 //////////////////////* Game states *//////////////////////
@@ -117,11 +140,33 @@ menuState.prototype.execute = function() {
 var playState = function() {}; // constructor
 playState.prototype.execute = function() {
     background(255, 255, 255);
+    fill(255, 0, 0);
+    textSize(15);
+    text("Score: " + score, width-70, height-5);
+
     basketball.draw();
     if(noMouse === 1) {
         basketball.updatePosition();
     }
     girl.draw();
+    // Checks if basketball is within the girl's trumpet
+    if(basketball.position.y >= girl.position.y-30 &&
+       basketball.position.y <= girl.position.y+55) {
+           // STRETCH GOAL: Adding bouncing inside basket
+           if(basketball.position.x-20 >= girl.position.x-22 &&
+              basketball.position.x+20 <= girl.position.x+23) {
+               score += 8;
+            //   basketball = new ballObj(40, 350);
+                basketball.position.set(40, 350);
+                basketball.velocity.set(0, 0);
+                basketball.acceleration.set(0, 0);
+           }
+           // bounce off left edge of girl's basket
+           if(basketball.position.x+20 > girl.position.x-22) {
+                basketball.position.x = girl.position.x-42;
+                basketball.velocity.x *= -1;
+           }
+    }
 };
 //--------------------------------------------------------
 var gameObj = function() {

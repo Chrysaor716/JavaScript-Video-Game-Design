@@ -6,7 +6,7 @@ var noMouse = 1; // Initialize to no mouse touching the ball
 /************************* Game objects ****************************/
 var gravity = new PVector(0, 0.1); // apply graviational force on ball
 var ballObj = function(x, y) {
-    this.position = new PVector(x,y);
+    this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
     this.acceleration = new PVector(0, 0);
     this.size = 40;
@@ -21,12 +21,14 @@ ballObj.prototype.applyForce = function(force) {
     this.acceleration.add(f);
 };
 ballObj.prototype.updatePosition = function() {
-    if(noMouse === 1) { // Use air/wind/gravity drag if no mouse touching ball
+    // if(noMouse === 1) { // Use air/wind/gravity drag if no mouse touching ball
         var gravityForce = PVector.mult(gravity, this.mass);
         this.applyForce(gravityForce);
+
         var airFriction = PVector.mult(this.velocity, -1);
         airFriction.normalize();
-        airFriction.mult(0.02);
+        airFriction.mult(0.08);
+
         this.applyForce(airFriction);
         this.velocity.add(this.acceleration);
         this.position.add(this.velocity);
@@ -35,8 +37,12 @@ ballObj.prototype.updatePosition = function() {
             this.position.y = height - this.size/2;
             this.velocity.y *= -1;
         }
-        this.acceleration.set(0, 0);
-    }
+        if(this.position.x < 20) {
+            this.position.x = 20;
+            this.velocity.x *= -1;
+        }
+        this.acceleration.set(0, 0); // reset acceleration each frame
+    // }
 };
 /* STRETCH GOAL: MAKE THE BALL PRETTIER */
 ballObj.prototype.draw = function() {
@@ -58,15 +64,45 @@ ballObj.prototype.draw = function() {
 
     // if(noMouse === 1) {
         if(this.thrown === 2) {
-            this.position.add(this.dir);
-        }
-        if((this.position.x < 20) ||
-           (this.position.y < 20) || (this.position.y > (height-(this.size/2)))) {
-                this.thrown = 0;
+            // this.position.add(this.dir);
+            this.position.add(this.acceleration);
         }
     // }
 };
-var basketball = new ballObj(40, 370);
+var basketball = new ballObj(40, 350);
+
+var childObj = function(x, y) {
+    this.position = new PVector(x, y);
+};
+childObj.prototype.draw = function() {
+    noStroke();
+    fill(227, 169, 54);
+    // Draws head
+    ellipse(this.position.x+40, this.position.y-20, 30, 30);
+    // Draws "hugging" arm
+    ellipse(this.position.x+15, this.position.y, 100, 14); // CENTER POINT FOR "BASKET"
+    fill(57, 45, 214);
+    // Draws (short) sleeve
+    ellipse(this.position.x+40, this.position.y+2, 20, 20);
+    rect(this.position.x+20, this.position.y-8, 20, 20);
+    rect(this.position.x+25, this.position.y, 25, 35);
+    // Draws the hair
+    fill(128, 99, 41);
+    rect(this.position.x+24, this.position.y-32, 30, 10);
+    rect(this.position.x+45, this.position.y-32, 15, 30);
+    arc(this.position.x+56, this.position.y-5, 22, 25, 0, Math.PI);
+    arc(this.position.x+42, this.position.y-30, 35, 20, Math.PI, 2*Math.PI);
+    // Draws the eye
+    fill(0, 0, 0);
+    ellipse(this.position.x+30, this.position.y-17, 5, 5);
+    // Draws the leg/foot
+    fill(92, 156, 196);
+    rect(this.position.x-20, this.position.y+35, 70, 20);
+    fill(92, 92, 92);
+    rect(this.position.x-40, this.position.y+35, 25, 20);
+    ellipse(this.position.x-31, this.position.y+35, 18, 30);
+};
+var girl = new childObj(width-100, 250);
 /*******************************************************************/
 
 //////////////////////* Game states *//////////////////////
@@ -82,7 +118,10 @@ var playState = function() {}; // constructor
 playState.prototype.execute = function() {
     background(255, 255, 255);
     basketball.draw();
-    basketball.updatePosition();
+    if(noMouse === 1) {
+        basketball.updatePosition();
+    }
+    girl.draw();
 };
 //--------------------------------------------------------
 var gameObj = function() {
@@ -121,7 +160,8 @@ var mouseDragged = function() {
         if(circleDetected(basketball.position.x, basketball.position.y)) {
             noMouse = 0; // mouse is touching the ball, so this boolean is false
             // pmouseX, pmouseY = previous mouse position
-            basketball.dir.set(mouseX-pmouseX, mouseY - pmouseY);
+            // basketball.dir.set(mouseX-pmouseX, mouseY - pmouseY);
+            basketball.acceleration.set(mouseX-pmouseX, mouseY - pmouseY);
             basketball.position.set(mouseX, mouseY);
             basketball.thrown = 1; // state before ball is throw (picked up by mouse)
         }

@@ -259,8 +259,8 @@ menuState.prototype.execute = function(me) {
     text("At the bottom left is a transparent box. That's the arena\n" +
          "where you can throw your ball from. In the background are\n" +
          "two backboards. Intersecting them gets you 4 points.\n" +
-         "Then lies a bar counter. Getting the ball through that\n" +
-         "counter gets you 3 points.\n" +
+         "Then lies a hot tub. Getting the ball through that\n" +
+         "tub gets you 3 points.\n" +
          "Last, there is a little girl with her instrument. Making the ball\n" +
          "into her tuba gets you 7 points.", 10, 150);
     text("Each shot you take costs you a point. If you reach zero,\n" +
@@ -472,6 +472,10 @@ mouseClicked = function() {
         game.changeStateTo(1); //   change to play state
         noMouse = 1; // initialize to no mouse touching the ball
     }
+    if(game.currState === 2) { // Win state
+        game.changeStateTo(0); // Go back to menu
+        noMouse = 1;
+    }
     if(game.currState === 3) { // Game over/lose state
         game.changeStateTo(0); // Go back to menu
         noMouse = 1;
@@ -500,6 +504,5 @@ mouseReleased = function() {
 /**********************************************************************/
 
 draw = function() {
-    // game.state[game.currState].execute(game);
-    game.state[1].execute();
+    game.state[game.currState].execute(game);
 };

@@ -188,16 +188,45 @@ var barCounter = new counterObj(width-230, 190);
 
 //////////////////////* Game states *//////////////////////
 var menuState = function() {}; // constructor
-menuState.prototype.execute = function() {
+menuState.prototype.execute = function(me) {
+    // Reset variables
     noMouse = 1; // initialize to no mouse touching the ball
+    score = 5;
+    basketball.position.set(40, 350);
+    basketball.velocity.set(0, 0);
+    basketball.acceleration.set(0, 0);
+
     background(0, 0, 0);
+    colorMode(HSB);
+    textSize(40);
+    var title = "Hallucinateball";
+    for(var i = 0; i < title.length; i ++){
+        fill(map(i, 0, title.length, 0, 255), 255, 255);
+        text(title, 70, 40);
+    }
+    colorMode(RGB);
     fill(255, 255, 255);
-    textSize(30);
-    text("menu state", width/2-70, height/2);
+    textSize(17);
+    text("Hi there. You're playing basketball. Everything is\n" +
+         "colorful. The baskets aren't actual baskets, but a\n" +
+         "part of your hallucination. Go get some rest, mate.\n" +
+         "But...not after a few shots at the hoop...or...hoops?", 10, 60);
+    textSize(15);
+    text("At the bottom left is a transparent box. That's the arena\n" +
+         "where you can throw your ball from. In the background are\n" +
+         "two backboards. Intersecting them gets you 4 points.\n" +
+         "Then lies a bar counter. Getting the ball through that\n" +
+         "counter gets you 3 points.\n" +
+         "Last, there is a little girl with her instrument. Making the ball\n" +
+         "into her tuba gets you 7 points.", 10, 150);
+    text("Each shot you take costs you a point. If you reach zero,\n" +
+         "you lose. Earn 20 points to win!", 10, 280);
+    textSize(20);
+    text("Click anywhere on the screen to begin.", 25, 380);
 };
 
 var playState = function() {}; // constructor
-playState.prototype.execute = function() {
+playState.prototype.execute = function(me) {
     background(255, 255, 255);
     fill(255, 0, 0);
     textSize(15);
@@ -284,7 +313,7 @@ playState.prototype.execute = function() {
                 blueBoard.colour = color(0, 0, 255);
            }
            // bounce off left edge of girl's basket
-           if(basketball.position.x+20 > girl.position.x-22 &&
+           if(basketball.position.x+20 > girl.position.x-25 &&
               basketball.position.x+20 <= girl.position.x-20) {
                 basketball.position.x = girl.position.x-42;
                 basketball.velocity.x *= -1;
@@ -319,10 +348,43 @@ playState.prototype.execute = function() {
             //       basketball.velocity.x *= -1;
             // }
     }
+
+    if(score <= 0) {
+        me.changeStateTo(3);
+    }
+    if(score >= 20) {
+        me.changeStateTo(2);
+    }
+};
+var winState = function(me) {}; // constructor
+winState.prototype.execute = function() {
+    background(255, 255, 255);
+    textSize(40);
+    fill(0, 0, 0);
+    text("You win!", 120, 160);
+    textSize(20);
+    text("Your head feeling better?", 90, 200);
+    textSize(15);
+    text("Click anywhere on the screen to try again.", 60, 220);
+
+    var starkySapling = getImage("avatars/starky-sapling");
+    image(starkySapling, 150, 220, 80, 80);
+};
+var loseState = function(me) {}; // constructor
+loseState.prototype.execute = function() {
+    background(0, 0, 0);
+    textSize(40);
+    fill(255, 255, 255);
+    text("Oh noes!", 120, 160);
+    textSize(20);
+    text("Click screen to try again.", 90, 200);
+
+    var redMarcimus = getImage("avatars/marcimus-red");
+    image(redMarcimus, 150, 220, 80, 80);
 };
 //--------------------------------------------------------
 var gameObj = function() {
-    this.state = [new menuState(), new playState()];
+    this.state = [new menuState(), new playState(), new winState(), new loseState()];
     this.currState = 0; // index 0 (menuState)
 };
 gameObj.prototype.changeStateTo = function(state) {
@@ -350,6 +412,10 @@ mouseClicked = function() {
         game.changeStateTo(1); //   change to play state
         noMouse = 1; // initialize to no mouse touching the ball
     }
+    if(game.currState === 3) { // Game over/lose state
+        game.changeStateTo(0); // Go back to menu
+        noMouse = 1;
+    }
 };
 var mouseDragged = function() {
     if(game.currState === 1) { // In play state
@@ -374,6 +440,6 @@ mouseReleased = function() {
 /**********************************************************************/
 
 draw = function() {
-    // game.state[game.currState].execute();
-    game.state[1].execute();
+    game.state[game.currState].execute(game);
+    // game.state[3].execute();
 };

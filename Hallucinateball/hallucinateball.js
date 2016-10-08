@@ -5,6 +5,24 @@ var noMouse = 1; // Initialize to no mouse touching the ball
 var score = 5;
 
 /************************* Game objects ****************************/
+var boardObj = function(x, y, RGB) {
+    this.position = new PVector(x, y);
+    this.colour = RGB;
+    this.size = 50;
+};
+boardObj.prototype.draw = function() {
+    noStroke();
+    fill(this.colour);
+    rect(this.position.x, this.position.y, this.size, this.size);
+    fill(0, 0, 0, 1);
+    stroke(255, 255, 255);
+    strokeWeight(3);
+    rect(this.position.x+(this.size/4)-1, this.position.y+(this.size/2),
+         this.size/2, this.size/2);
+};
+var redBoard = new boardObj(130, 50, color(255, 0, 0));
+var blueBoard = new boardObj(220, 50, color(0, 0, 255));
+
 var gravity = new PVector(0, 0.1); // apply graviational force on ball
 var ballObj = function(x, y) {
     this.position = new PVector(x, y);
@@ -35,7 +53,7 @@ ballObj.prototype.updatePosition = function() {
     this.position.add(this.velocity);
     // Bottom of canvas is the ground; bounce off the ground
     if(this.position.y > (height - (this.size/2))) {
-        this.position.y = height - this.size/2;
+        this.position.y = height - (this.size/2);
         this.velocity.y *= -1;
     }
     if(this.position.x < 20) { // bounce off left edge
@@ -49,9 +67,11 @@ ballObj.prototype.updatePosition = function() {
         this.position.set(40, 350);
         this.velocity.set(0, 0);
         this.acceleration.set(0, 0);
+
+        redBoard.colour = color(255, 0, 0);
+        blueBoard.colour = color(0, 0, 255);
     }
 };
-/* STRETCH GOAL: MAKE THE BALL PRETTIER */
 ballObj.prototype.draw = function() {
     noStroke();
     fill(74, 74, 74);
@@ -129,6 +149,34 @@ childObj.prototype.draw = function() {
     //////////////////////////////////////////////////////
 };
 var girl = new childObj(width-70, 320);
+
+var counterObj = function(x, y) {
+    this.position = new PVector(x, y);
+};
+counterObj.prototype.draw = function() {
+    noStroke();
+    fill(112, 77, 25);
+    rect(this.position.x, this.position.y, 120, 60); //---note this line for hitbox---
+    fill(87, 54, 23);
+    rect(this.position.x+105, this.position.y, 10, 60);
+
+    fill(255, 255, 255);
+    arc(this.position.x+60, this.position.y, 120, 20, 0, Math.PI);
+    stroke(87, 57, 14);
+    strokeWeight(15);
+    arc(this.position.x+60, this.position.y, 105, 20, 0, Math.PI);
+    fill(255, 255, 255, 1);
+    stroke(214, 185, 145);
+    strokeWeight(4);
+    arc(this.position.x+60, this.position.y+20, 110, 20, 0, Math.PI);
+    arc(this.position.x+60, this.position.y+30, 110, 20, radians(35), radians(55));
+    arc(this.position.x+60, this.position.y+35, 110, 20, radians(35), radians(60));
+    arc(this.position.x+60, this.position.y+45, 110, 20, radians(35), radians(60));
+    fill(214, 185, 145);
+    rect(this.position.x+94, this.position.y+28, 8, 30);
+    noStroke();
+};
+var barCounter = new counterObj(width-130, 190);
 /*******************************************************************/
 
 //////////////////////* Game states *//////////////////////
@@ -148,10 +196,37 @@ playState.prototype.execute = function() {
     textSize(15);
     text("Score: " + score, width-70, height-5);
 
+    redBoard.draw();
+    blueBoard.draw();
+    // Check if ball hits boards
+    if(basketball.position.x <= redBoard.position.x + 50 &&
+       basketball.position.x >= redBoard.position.x &&
+       basketball.position.y <= redBoard.position.y + 50 &&
+       basketball.position.y >= redBoard.position.y) {
+           if(frameCount%10 === 0) {
+                redBoard.colour = color(224, 69, 69);
+                score += 2;
+           }
+    }
+    if(basketball.position.x <= blueBoard.position.x + 50 &&
+       basketball.position.x >= blueBoard.position.x &&
+       basketball.position.y <= blueBoard.position.y + 50 &&
+       basketball.position.y >= blueBoard.position.y) {
+           if(frameCount%10 === 0) {
+                blueBoard.colour = color(84, 84, 204);
+                score += 2;
+           }
+    }
+
     basketball.draw();
     if(noMouse === 1) {
         basketball.updatePosition();
     }
+    // // Adds "3D"/distance effect to ball as it travels across canvas
+    // if(basketball.position.x >= 0 && basketball.position.x <= 130) {
+    //     basketball.size = basketball.position.x*0.9;
+    // }
+
     girl.draw();
     // Checks if basketball is within the girl's trumpet
     if(basketball.position.y >= girl.position.y-30 &&
@@ -164,6 +239,8 @@ playState.prototype.execute = function() {
                 basketball.position.set(40, 350);
                 basketball.velocity.set(0, 0);
                 basketball.acceleration.set(0, 0);
+                redBoard.colour = color(255, 0, 0);
+                blueBoard.colour = color(0, 0, 255);
            }
            // bounce off left edge of girl's basket
            if(basketball.position.x+20 > girl.position.x-22 &&
@@ -171,6 +248,35 @@ playState.prototype.execute = function() {
                 basketball.position.x = girl.position.x-42;
                 basketball.velocity.x *= -1;
            }
+    }
+
+    barCounter.draw();
+    // Checks if basketball falls behind the bar counter
+    if(basketball.position.y >= barCounter.position.y &&
+       basketball.position.y <= barCounter.position.y+60) {
+            if(basketball.position.x+20 <= barCounter.position.x+120 && // w/in right edge
+              basketball.position.x-20 >= barCounter.position.x) { // w/in left edge
+                    if(frameCount%30 === 0) {
+                        score += 3;
+                    }
+            }
+            // Bounce ball off left edge
+            if(basketball.position.x+20 >= barCounter.position.x &&
+               basketball.position.x+20 <= barCounter.position.x+10) {
+                    basketball.position.x = barCounter.position.x-20;
+                    basketball.velocity.x *= -1;
+            }
+            // // Bounce w/in counter
+            // if(basketball.position.x+20 >= barCounter.position.x+110 &&
+            //   basketball.position.x+20 <= barCounter.position.x+120) {
+            //       basketball.position.x = barCounter.position.x+100;
+            //       basketball.velocity.x *= -1;
+            // }
+            // if(basketball.position.x-20 >= barCounter.position.x &&
+            //   basketball.position.x-20 <= barCounter.position.x+10) {
+            //       basketball.position.x = barCounter.position.x+20;
+            //       basketball.velocity.x *= -1;
+            // }
     }
 };
 //--------------------------------------------------------

@@ -162,29 +162,73 @@ var counterObj = function(x, y) {
 };
 counterObj.prototype.draw = function() {
     noStroke();
-    fill(112, 77, 25);
+    fill(61, 103, 158);
     rect(this.position.x, this.position.y, 120, 60); //---note this line for hitbox---
-    fill(87, 54, 23);
+    fill(41, 78, 133);
     rect(this.position.x+105, this.position.y, 10, 60);
 
     fill(255, 255, 255);
     arc(this.position.x+60, this.position.y, 120, 20, 0, Math.PI);
-    stroke(87, 57, 14);
+    stroke(15, 38, 87);
     strokeWeight(15);
     arc(this.position.x+60, this.position.y, 105, 20, 0, Math.PI);
     fill(255, 255, 255, 1);
-    stroke(214, 185, 145);
+    stroke(255, 255, 255);
     strokeWeight(4);
     arc(this.position.x+60, this.position.y+20, 110, 20, 0, Math.PI);
     arc(this.position.x+60, this.position.y+30, 110, 20, radians(35), radians(55));
     arc(this.position.x+60, this.position.y+35, 110, 20, radians(35), radians(60));
     arc(this.position.x+60, this.position.y+45, 110, 20, radians(35), radians(60));
-    fill(214, 185, 145);
+    fill(255, 255, 255);
     rect(this.position.x+94, this.position.y+28, 8, 30);
     noStroke();
 };
-var barCounter = new counterObj(width-230, 190);
+var hotTub = new counterObj(width-230, 190);
 /*******************************************************************/
+
+//---------------------------- MISC. ---------------------------------
+// Clouds objects for background--purely for aesthetics--not a functional
+//      game object.
+var cloudObj = function(x, y) {
+    this.position = new PVector(x, y);
+};
+cloudObj.prototype.draw = function() {
+    noStroke();
+    fill(255, 255, 255, 200);
+    ellipse(this.position.x, this.position.y, 50, 30);
+    ellipse(this.position.x-30, this.position.y+10, 40, 7);
+    ellipse(this.position.x+20, this.position.y+3, 40, 12);
+    ellipse(this.position.x-22, this.position.y, 30, 20);
+
+    // this.position.add(wind);
+};
+// var clouds = [new cloudObj(100, 50), new cloudObj(170, 30), new cloudObj(250, 70),
+//               new cloudObj(50, 20), new cloudObj(350, 17), new cloudObj(400, 160),
+//               new cloudObj(20, 200), new cloudObj(60, 150), new cloudObj(200, 130)];
+var clouds = [];
+var cloudBundleObj = function(x, y) {
+    this.position = new PVector(x, y);
+
+    clouds.push(new cloudObj(this.position.x+50, this.position.y+30));
+    clouds.push(new cloudObj(this.position.x+120, this.position.y+10));
+    clouds.push(new cloudObj(this.position.x+200, this.position.y+50));
+
+    clouds.push(new cloudObj(this.position.x, this.position.y));
+    clouds.push(new cloudObj(this.position.x+300, this.position.y+3));
+    clouds.push(new cloudObj(this.position.x+350, this.position.y+140));
+
+    clouds.push(new cloudObj(this.position.x-30, this.position.y+180));
+    clouds.push(new cloudObj(this.position.x+10, this.position.y+130));
+    clouds.push(new cloudObj(this.position.x+150, this.position.y+110));
+};
+cloudBundleObj.prototype.draw = function() {
+    for(var i = 0; i < clouds.length; i++) {
+        clouds[i].draw();
+        clouds[i].position.add(wind);
+    }
+};
+var cloudBundle = new cloudBundleObj(50, 20);
+//--------------------------------------------------------------------
 
 //////////////////////* Game states *//////////////////////
 var menuState = function() {}; // constructor
@@ -228,6 +272,22 @@ menuState.prototype.execute = function(me) {
 var playState = function() {}; // constructor
 playState.prototype.execute = function(me) {
     background(255, 255, 255);
+    // Sky
+    fill(128, 219, 242);
+    rect(0, 0, width, 250);
+    // Clouds
+    // for(var i = 0; i < clouds.length; i++) {
+    //     clouds[i].draw();
+    // }
+    cloudBundle.draw();
+    // Grass
+    fill(41, 179, 41, 255);
+    rect(0, 250, width, 150);
+    // Basketball hoop poles
+    fill(107, 74, 31);
+    rect(redBoard.position.x+15, redBoard.position.y+40, 20, 160);
+    rect(blueBoard.position.x+15, blueBoard.position.y+40, 20, 160);
+
     fill(255, 0, 0);
     textSize(15);
     text("Score: " + score, width-70, height-5);
@@ -237,13 +297,13 @@ playState.prototype.execute = function(me) {
         wind.set(random(-2, 1), random(-1, 1));
         windSpeed = random(0, 0.03);
     }
-    stroke(22, 184, 184);
+    stroke(43, 240, 240);
     line(width-100, height-10, (width-100)+wind.x, (height-20)+wind.y);
     noStroke();
     fill(0, 81, 255);
     ellipse((width-100), (height-10), 5, 5); // center
     textSize(12);
-    fill(23, 156, 163);
+    fill(9, 90, 94);
     text("wind", width-145, height-8);
 
     redBoard.draw();
@@ -320,31 +380,31 @@ playState.prototype.execute = function(me) {
            }
     }
 
-    barCounter.draw();
+    hotTub.draw();
     // Checks if basketball falls behind the bar counter
-    if(basketball.position.y >= barCounter.position.y &&
-       basketball.position.y <= barCounter.position.y+60) {
-            if(basketball.position.x+20 <= barCounter.position.x+120 && // w/in right edge
-              basketball.position.x-20 >= barCounter.position.x) { // w/in left edge
+    if(basketball.position.y >= hotTub.position.y &&
+       basketball.position.y <= hotTub.position.y+60) {
+            if(basketball.position.x+20 <= hotTub.position.x+120 && // w/in right edge
+              basketball.position.x-20 >= hotTub.position.x) { // w/in left edge
                     if(frameCount%30 === 0) {
                         score += 3;
                     }
             }
             // Bounce ball off left edge
-            if(basketball.position.x+20 >= barCounter.position.x &&
-               basketball.position.x+20 <= barCounter.position.x+10) {
-                    basketball.position.x = barCounter.position.x-20;
+            if(basketball.position.x+20 >= hotTub.position.x &&
+               basketball.position.x+20 <= hotTub.position.x+10) {
+                    basketball.position.x = hotTub.position.x-20;
                     basketball.velocity.x *= -1;
             }
             // // Bounce w/in counter
-            // if(basketball.position.x+20 >= barCounter.position.x+110 &&
-            //   basketball.position.x+20 <= barCounter.position.x+120) {
-            //       basketball.position.x = barCounter.position.x+100;
+            // if(basketball.position.x+20 >= hotTub.position.x+110 &&
+            //   basketball.position.x+20 <= hotTub.position.x+120) {
+            //       basketball.position.x = hotTub.position.x+100;
             //       basketball.velocity.x *= -1;
             // }
-            // if(basketball.position.x-20 >= barCounter.position.x &&
-            //   basketball.position.x-20 <= barCounter.position.x+10) {
-            //       basketball.position.x = barCounter.position.x+20;
+            // if(basketball.position.x-20 >= hotTub.position.x &&
+            //   basketball.position.x-20 <= hotTub.position.x+10) {
+            //       basketball.position.x = hotTub.position.x+20;
             //       basketball.velocity.x *= -1;
             // }
     }
@@ -440,6 +500,6 @@ mouseReleased = function() {
 /**********************************************************************/
 
 draw = function() {
-    game.state[game.currState].execute(game);
-    // game.state[3].execute();
+    // game.state[game.currState].execute(game);
+    game.state[1].execute();
 };

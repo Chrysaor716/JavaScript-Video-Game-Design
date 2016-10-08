@@ -24,6 +24,8 @@ var redBoard = new boardObj(130, 50, color(255, 0, 0));
 var blueBoard = new boardObj(220, 50, color(0, 0, 255));
 
 var gravity = new PVector(0, 0.1); // apply graviational force on ball
+var wind = new PVector(1, 0);
+var windSpeed = 0;
 var ballObj = function(x, y) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
@@ -47,8 +49,12 @@ ballObj.prototype.updatePosition = function() {
     var airFriction = PVector.mult(this.velocity, -1);
     airFriction.normalize();
     airFriction.mult(0.08);
-
     this.applyForce(airFriction);
+
+    var windForce = PVector.mult(wind, this.mass);
+    windForce.mult(windSpeed);
+    this.applyForce(windForce);
+
     this.velocity.add(this.acceleration);
     this.position.add(this.velocity);
     // Bottom of canvas is the ground; bounce off the ground
@@ -60,7 +66,6 @@ ballObj.prototype.updatePosition = function() {
         this.position.x = 20;
         this.velocity.x *= -1;
     }
-    this.acceleration.set(0, 0); // reset acceleration each frame
 
     // If ball exceeds right edge of canvas, reset it's position
     if(this.position.x-20 > width) {
@@ -71,6 +76,8 @@ ballObj.prototype.updatePosition = function() {
         redBoard.colour = color(255, 0, 0);
         blueBoard.colour = color(0, 0, 255);
     }
+
+    this.acceleration.set(0, 0); // reset acceleration each frame
 };
 ballObj.prototype.draw = function() {
     noStroke();
@@ -176,7 +183,7 @@ counterObj.prototype.draw = function() {
     rect(this.position.x+94, this.position.y+28, 8, 30);
     noStroke();
 };
-var barCounter = new counterObj(width-130, 190);
+var barCounter = new counterObj(width-230, 190);
 /*******************************************************************/
 
 //////////////////////* Game states *//////////////////////
@@ -195,6 +202,20 @@ playState.prototype.execute = function() {
     fill(255, 0, 0);
     textSize(15);
     text("Score: " + score, width-70, height-5);
+
+    // Change wind every second (60 frames)
+    if(frameCount%60 === 0) {
+        wind.set(random(-2, 1), random(-1, 1));
+        windSpeed = random(0, 0.03);
+    }
+    stroke(22, 184, 184);
+    line(width-100, height-10, (width-100)+wind.x, (height-20)+wind.y);
+    noStroke();
+    fill(0, 81, 255);
+    ellipse((width-100), (height-10), 5, 5); // center
+    textSize(12);
+    fill(23, 156, 163);
+    text("wind", width-145, height-8);
 
     redBoard.draw();
     blueBoard.draw();
@@ -226,6 +247,26 @@ playState.prototype.execute = function() {
     // if(basketball.position.x >= 0 && basketball.position.x <= 130) {
     //     basketball.size = basketball.position.x*0.9;
     // }
+    // Draws a boundary for the ball
+    noStroke();
+    fill(0, 0, 0, 80);
+    rect(0, 150, 155, 250);
+    // Add bounces off the init box
+    if(basketball.thrown !== 2) {
+        if(basketball.position.x+20 >= 155) {
+            basketball.position.x = 135;
+            basketball.velocity.x *= -1;
+            if(basketball.position.x >= 156) {
+                basketball.thrown = 2;
+            }
+        }
+    }
+    // Reset ball's position if it exceeds the canvas position at the right
+    if(basketball.position.x-20 > width) {
+       basketball.position.set(40, 350);
+       basketball.velocity.set(0, 0);
+       basketball.acceleration.set(0, 0);
+    }
 
     girl.draw();
     // Checks if basketball is within the girl's trumpet

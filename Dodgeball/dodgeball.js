@@ -12,7 +12,7 @@ var ballObj = function(x, y) {
     this.acceleration = new PVector(0, 0);
     this.size = 80;
     this.mass = this.size / 5;
-
+    
     this.drag = new PVector(0, 0);
     this.aVelocity = 0; // angular velocity
     this.angle = 0;
@@ -24,40 +24,73 @@ var ballObj = function(x, y) {
 ballObj.prototype.updatePosition = function() {
     // var gravityForce = PVector.mult(gravity, this.mass);
     // this.applyForce(gravityForce);
-
+        
     // var airFriction = PVector.mult(this.velocity, -1);
     // airFriction.normalize();
     // airFriction.mult(0.08);
-
+    
     // this.velocity.add(this.acceleration);
     // this.position.add(this.velocity);
-
+    
     // this.acceleration.set(0, 0); // reset acceleration each frame
-
+    
     this.velocity.add(this.drag);
     this.position.add(this.velocity);
     this.drag.set(this.velocity.x, this.velocity.y);
     this.drag.mult(-0.03);
-    this.aVelocity = this.velocity.mag() * 4; // modify constant 4
-    if (this.velocity.x < 0) {
-        this.aVelocity = -this.aVelocity;
+    this.aVelocity = this.velocity.mag() / 4;
+    if(this.velocity.x < 0) {
+        this.aVelocity = -this.aVelocity; // allow spin in either direction
     }
     this.angle += this.aVelocity;
 };
 ballObj.prototype.draw = function() {
+    this.size = this.position.y / 4.5;
+    if(this.size <= 40) {
+        this.size = 40; // do not allow the ball to be smaller than 40px in diameter
+    }
+    
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-
+    
     noStroke();
-    fill(16, 47, 168);
+    // Draws the base of the Jack-o-lantern
+    fill(224, 138, 33);
     ellipse(0, 0, this.size, this.size);
-    fill(255, 255, 255);
-    ellipse(-(this.size/2/2), 0, this.size/2/2, this.size/2/2);
-
+    
+    // Draws the curved line "dents" on the Jack-o-lantern
+    //      ...which also looks like the lines of a basketball
+    stroke(186, 109, 28);
+    strokeWeight(this.size/70);
+    fill(0, 0, 0, 0); // transparent (don't fill in the arc)
+    arc(0, 0, this.size*0.70, this.size*0.97, -Math.PI/2, Math.PI/2);
+    arc(0, 0, this.size*0.70, this.size*0.97,  Math.PI/2, 3*Math.PI/2);
+    line(0, -this.size/2*0.97, 0, this.size/2*0.97);
+    arc(0, 0, this.size*0.97, this.size*0.97, -Math.PI/2, Math.PI/2);
+    arc(0, 0, this.size*0.97, this.size*0.97,  Math.PI/2, 3*Math.PI/2);
+    
+    // Draws the cut-out's of the Jack-o-lantern
+    noStroke();
+    fill(237, 176, 107);
+    triangle(-(this.size/2/2), -this.size/2/2, -(this.size/3), 0, -this.size/10, 0);
+    triangle((this.size/2/2), -this.size/2/2, (this.size/3), 0, this.size/10, 0);
+    quad(-this.size/3, this.size/10, this.size/3, this.size/10,
+         this.size/6, this.size/3, -this.size/6, this.size/3);
+    // Draws the buck teeth of the Jack-o-lantern, "overlaying" the cut-out's
+    fill(224, 138, 33);
+    rect(-this.size/5, this.size/10, this.size/6, this.size/8);
+    rect(this.size/60, this.size/4, this.size/6, this.size/8);
+    
+    // Draws the stem of the Jack-o-lantern
+    fill(22, 199, 57);
+    rect(-this.size/10-0.90, -this.size+(this.size/3), this.size/5, this.size/5);
+    
     popMatrix();
 };
-var ball = new ballObj(width/2, 350);
+var ballArr = [];
+var currBall = new ballObj(width/2, 360);
+ballArr.push(currBall);
 /*************************************************************************************/
 
 /*********************************** GAME STATES ************************************/
@@ -69,8 +102,10 @@ menuState.prototype.execute = function(me) { // 0
 var playState = function() {}; // constructor
 playState.prototype.execute = function(me) { // 1
     background(255, 255, 255);
-    ball.updatePosition();
-    ball.draw();
+    for(var i = 0; i < ballArr.length; i++) {
+        ballArr[i].updatePosition();
+        ballArr[i].draw();
+    }
 };
 var winState = function() {}; // constructor
 winState.prototype.execute = function() { // 2
@@ -101,15 +136,15 @@ mouseReleased = function() {
     } else if(strength >= 60) {
         strengthLvl = 3;
     }
-
+    
     target.set(mouseX, mouseY);
     // ball.velocity.set(target.x - ball.position.x, target.y - ball.position.y);
-    ball.velocity.set((target.x-ball.position.x)*strengthLvl,
-                      (target.y-ball.position.y)*strengthLvl);
-    ball.velocity.div(30);
-    ball.drag.set(ball.velocity.x, ball.velocity.y);
-    ball.drag.mult(-0.3);
-
+    currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
+                      (target.y-currBall.position.y)*strengthLvl-1);
+    currBall.velocity.div(30);
+    currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
+    currBall.drag.mult(-0.3);
+    
     strength = -1; // reset strength variable when mouse is released & ball is thrown
 };
 
@@ -125,7 +160,7 @@ game.state[1].execute(game);
     // strength = 0; // reset strength variable
     textSize(15);
     fill(53, 51, 196);
-
+    
     text("Strength: " + strength, 300, 370);
     text("Strength lvl: " + strengthLvl, 282, 390);
 };

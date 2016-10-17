@@ -4,37 +4,58 @@ var strength = 0; // strength of the ball throw (depending on how long player ho
 var strengthLvl = 0; // user feedback for strength level (fraction of "strength")
 
 /*********************************** GAME OBJECTS ************************************/
-var gravity = new PVector(0, 0.1);
+// var gravity = new PVector(0, 0.1);
+var target = new PVector(0, 0);
 var ballObj = function(x, y) {
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
     this.acceleration = new PVector(0, 0);
     this.size = 80;
     this.mass = this.size / 5;
+
+    this.drag = new PVector(0, 0);
+    this.aVelocity = 0; // angular velocity
+    this.angle = 0;
 };
-ballObj.prototype.applyForce = function(force) {
-    var f = PVector.div(force, this.mass);
-    this.acceleration.add(f);
-};
+// ballObj.prototype.applyForce = function(force) {
+//     var f = PVector.div(force, this.mass);
+//     this.acceleration.add(f);
+// };
 ballObj.prototype.updatePosition = function() {
-    var gravityForce = PVector.mult(gravity, this.mass);
-    this.applyForce(gravityForce);
+    // var gravityForce = PVector.mult(gravity, this.mass);
+    // this.applyForce(gravityForce);
 
-    var airFriction = PVector.mult(this.velocity, -1);
-    airFriction.normalize();
-    airFriction.mult(0.08);
+    // var airFriction = PVector.mult(this.velocity, -1);
+    // airFriction.normalize();
+    // airFriction.mult(0.08);
 
-    this.velocity.add(this.acceleration);
+    // this.velocity.add(this.acceleration);
+    // this.position.add(this.velocity);
+
+    // this.acceleration.set(0, 0); // reset acceleration each frame
+
+    this.velocity.add(this.drag);
     this.position.add(this.velocity);
-
-    this.acceleration.set(0, 0); // reset acceleration each frame
+    this.drag.set(this.velocity.x, this.velocity.y);
+    this.drag.mult(-0.03);
+    this.aVelocity = this.velocity.mag() * 4; // modify constant 4
+    if (this.velocity.x < 0) {
+        this.aVelocity = -this.aVelocity;
+    }
+    this.angle += this.aVelocity;
 };
 ballObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    rotate(this.angle);
+
     noStroke();
     fill(16, 47, 168);
-    ellipse(this.position.x, this.position.y, this.size, this.size);
+    ellipse(0, 0, this.size, this.size);
     fill(255, 255, 255);
-    ellipse(this.position.x-(this.size/2/2), this.position.y, this.size/2/2, this.size/2/2);
+    ellipse(-(this.size/2/2), 0, this.size/2/2, this.size/2/2);
+
+    popMatrix();
 };
 var ball = new ballObj(width/2, 350);
 /*************************************************************************************/
@@ -48,6 +69,7 @@ menuState.prototype.execute = function(me) { // 0
 var playState = function() {}; // constructor
 playState.prototype.execute = function(me) { // 1
     background(255, 255, 255);
+    ball.updatePosition();
     ball.draw();
 };
 var winState = function() {}; // constructor
@@ -79,6 +101,15 @@ mouseReleased = function() {
     } else if(strength >= 60) {
         strengthLvl = 3;
     }
+
+    target.set(mouseX, mouseY);
+    // ball.velocity.set(target.x - ball.position.x, target.y - ball.position.y);
+    ball.velocity.set((target.x-ball.position.x)*strengthLvl,
+                      (target.y-ball.position.y)*strengthLvl);
+    ball.velocity.div(30);
+    ball.drag.set(ball.velocity.x, ball.velocity.y);
+    ball.drag.mult(-0.3);
+
     strength = -1; // reset strength variable when mouse is released & ball is thrown
 };
 

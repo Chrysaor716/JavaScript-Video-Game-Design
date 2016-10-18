@@ -12,11 +12,11 @@ var ballObj = function(x, y) {
     this.acceleration = new PVector(0, 0);
     this.size = 80;
     this.mass = this.size / 5;
-    
+
     this.drag = new PVector(0, 0);
     this.aVelocity = 0; // angular velocity
     this.angle = 0;
-    
+
     this.inTransit = 0;
 };
 ballObj.prototype.updatePosition = function() {
@@ -35,16 +35,16 @@ ballObj.prototype.draw = function() {
     if(this.size <= 40) {
         this.size = 40; // do not allow the ball to be smaller than 40px in diameter
     }
-    
+
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-    
+
     noStroke();
     // Draws the base of the Jack-o-lantern
     fill(224, 138, 33);
     ellipse(0, 0, this.size, this.size);
-    
+
     // Draws the curved line "dents" on the Jack-o-lantern
     //      ...which also looks like the lines of a basketball
     stroke(186, 109, 28);
@@ -55,7 +55,7 @@ ballObj.prototype.draw = function() {
     line(0, -this.size/2*0.97, 0, this.size/2*0.97);
     arc(0, 0, this.size*0.97, this.size*0.97, -Math.PI/2, Math.PI/2);
     arc(0, 0, this.size*0.97, this.size*0.97,  Math.PI/2, 3*Math.PI/2);
-    
+
     // Draws the cut-out's of the Jack-o-lantern
     noStroke();
     fill(237, 176, 107);
@@ -67,21 +67,25 @@ ballObj.prototype.draw = function() {
     fill(224, 138, 33);
     rect(-this.size/5, this.size/10, this.size/6, this.size/8);
     rect(this.size/60, this.size/4, this.size/6, this.size/8);
-    
+
     // Draws the stem of the Jack-o-lantern
     fill(22, 199, 57);
     rect(-this.size/10-0.90, -this.size+(this.size/3), this.size/5, this.size/5);
-    
+
     popMatrix();
 };
 var ballArr = [];
 var currBall = new ballObj(width/2, 360);
 ballArr.push(currBall);
 
-var npcObj = function(x, y) {
+var npcObj = function(x, y, color, dir) {
+    this.RGB = color;
+    this.direction = dir;
+    this.speed = 2;
+
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    
+
     this.currFrame = frameCount;
     this.snapshot = 0;
     this.angle = 0;
@@ -90,7 +94,7 @@ npcObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-    
+
     noStroke();
     //////// for hitbox ///////////
     // fill(255, 0, 0, 100);
@@ -101,55 +105,30 @@ npcObj.prototype.draw = function() {
     fill(217, 178, 63);
     ellipse(0, -(50/2)+(15/2), 15, 15);
     // Draws the NPC's torso
-    fill(94, 0, 255);
+    fill(this.RGB);
     rect(-7, -(50/2)+(15/2)+(15/2), 15, 20);
     // Draws the arms + legs (an "X")
-    stroke(94, 0, 255);
+    stroke(this.RGB);
     strokeWeight(5);
     line((50/2)*cos(radians(45)), (50/2)*sin(radians(45)),
          (50/2)*cos(radians(225)), (50/2)*sin(radians(225)));
     line((50/2)*cos(radians(135)), (50/2)*sin(radians(135)),
          (50/2)*cos(radians(315)), (50/2)*sin(radians(315)));
-    
-    switch(this.snapshot) {
-        case 0:
-            this.angle = radians(0);
-        break;
-        case 1:
-            this.angle = radians(45);
-        break;
-        case 2:
-            this.angle = radians(90);
-        break;
-        case 3:
-            this.angle = radians(135);
-        break;
-        case 4:
-            this.angle = radians(180);
-        break;
-        case 5:
-            this.angle = radians(225);
-        break;
-        case 6:
-            this.angle = radians(270);
-        break;
-        case 7:
-            this.angle = radians(315);
-        break;
-    }
+
     if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
-        this.snapshot++;
+        if(this.direction === "left") {
+            this.angle--;
+        } else {
+            this.angle++;
+        }
     }
-    if(this.snapshot > 7) {
-        this.snapshot = 0;
-    }
-    
+
     popMatrix();
 };
 var npcArr = [];
-var npc = new npcObj(width/2, 50);
-npcArr.push(npc);
+npcArr.push(new npcObj(width/2, 40, color(94, 0, 255), "left"),
+            new npcObj(width/2, 100, color(232, 28, 38), "right"));
 /*************************************************************************************/
 
 /*********************************** GAME STATES ************************************/
@@ -161,10 +140,13 @@ menuState.prototype.execute = function(me) { // 0
 var playState = function() {}; // constructor
 playState.prototype.execute = function(me) { // 1
     background(255, 255, 255);
+    for(var i = 0; i < npcArr.length; i++) {
+        npcArr[i].draw();
+    }
     for(var i = 0; i < ballArr.length; i++) {
         ballArr[i].updatePosition();
         ballArr[i].draw();
-        
+
         // Remove ball (make it disappear) when it stops moving
         //      (and is not in the initital position);
         if((Math.floor(ballArr[i].velocity.y) === -1) && (ballArr[i].position.y !== 360)) {
@@ -172,9 +154,6 @@ playState.prototype.execute = function(me) { // 1
             // Current ball becomes the last pushed element into ball array
             currBall = ballArr[ballArr.length-1];
         }
-    }
-    for(var i = 0; i < npcArr.length; i++) {
-        npcArr[i].draw();
     }
 };
 var winState = function() {}; // constructor
@@ -206,7 +185,7 @@ mouseReleased = function() {
     } else if(strength >= 60) {
         strengthLvl = 3;
     }
-    
+
     target.set(mouseX, mouseY);
     if(target.y-currBall.position.y <= 0) { // only allows for ball to shoot up the canvas
         currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
@@ -215,7 +194,7 @@ mouseReleased = function() {
     currBall.velocity.div(30);
     currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
     currBall.drag.mult(-0.3);
-    
+
     strength = -1; // reset strength variable when mouse is released & ball is thrown
 };
 
@@ -242,7 +221,7 @@ game.state[1].execute(game);
     // strength = 0; // reset strength variable
     textSize(15);
     fill(53, 51, 196);
-    
+
     text("Strength: " + strength, 300, 370);
     text("Strength lvl: " + strengthLvl, 282, 390);
 };

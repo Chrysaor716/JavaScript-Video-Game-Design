@@ -88,6 +88,7 @@ ballArr.push(currBall);
 var npcObj = function(x, y, color, dir) {
     this.RGB = color;
     this.direction = dir;
+    this.finished = 0; // Boolean for when NPC reaches the other side
     this.speed = 1;
     this.currFrame = frameCount;
     this.angle = 180;
@@ -122,10 +123,12 @@ npcObj.prototype.draw = function() {
 
     if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
-        if(this.direction === "left") {
-            this.angle--;
-        } else {
-            this.angle++;
+        if(this.finished === 0) {
+            if(this.direction === "left") {
+                this.angle--;
+            } else {
+                this.angle++;
+            }
         }
     }
 
@@ -134,8 +137,16 @@ npcObj.prototype.draw = function() {
 npcObj.prototype.move = function() {
     if(this.direction === "left") {
         this.position.x -= this.speed;
+        if(this.position.x <= -10) {
+            this.position.x = -10;
+            this.finished = 1;
+        }
     } else {
         this.position.x += this.speed;
+        if(this.position.x >= width+10) {
+            this.position.x = width+10;
+            this.finished = 1;
+        }
     }
 };
 npcObj.prototype.avoidBall = function() {

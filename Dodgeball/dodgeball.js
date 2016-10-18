@@ -29,6 +29,13 @@ ballObj.prototype.updatePosition = function() {
         this.aVelocity = -this.aVelocity; // allow spin in either direction
     }
     this.angle += this.aVelocity;
+
+    if(this.velocity.mag() < 0.3) {
+        this.inTransit = 0;
+    }
+    else {
+        this.inTransit = 1;
+    }
 };
 ballObj.prototype.draw = function() {
     this.size = this.position.y / 4.5;
@@ -81,14 +88,12 @@ ballArr.push(currBall);
 var npcObj = function(x, y, color, dir) {
     this.RGB = color;
     this.direction = dir;
-    this.speed = 2;
+    this.speed = 1;
+    this.currFrame = frameCount;
+    this.angle = 180;
 
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-
-    this.currFrame = frameCount;
-    this.snapshot = 0;
-    this.angle = 0;
 };
 npcObj.prototype.draw = function() {
     pushMatrix();
@@ -126,11 +131,69 @@ npcObj.prototype.draw = function() {
 
     popMatrix();
 };
+npcObj.prototype.move = function() {
+    if(this.direction === "left") {
+        this.position.x -= this.speed;
+    } else {
+        this.position.x += this.speed;
+    }
+};
+npcObj.prototype.avoidBall = function() {
+    for(var i = 0; i < ballArr.length; i++) {
+        if(ballArr[i].inTransit === 1) {
+            // predict future position
+            var x = ballArr[i].position.x + ballArr[i].velocity.x * 4;
+            var y = ballArr[i].position.y + ballArr[i].velocity.y * 4;
+            this.velocity.set(x - this.position.x, y - this.position.y);
+            this.velocity.normalize();
+            this.velocity.mult(3);
+            // this.position.sub(this.velocity);
+            this.position.x -= this.velocity.x;
+        }
+    }
+};
 var npcArr = [];
-npcArr.push(new npcObj(width/2, 40, color(94, 0, 255), "left"),
-            new npcObj(width/2, 100, color(232, 28, 38), "right"));
+npcArr.push(new npcObj(400, 40, color(94, 0, 255), "left"),
+            new npcObj(0, 100, color(232, 28, 38), "right"));
+var dodgingPlayer = 0;
+var closestPlayer;
 /*************************************************************************************/
+mouseReleased = function() {
+    if(strength > 0 && strength <= 30) {
+        strengthLvl = 1;
+    } else if(strength > 30 && strength < 60) {
+        strengthLvl = 2;
+    } else if(strength >= 60) {
+        strengthLvl = 3;
+    }
 
+    target.set(mouseX, mouseY);
+    if(target.y-currBall.position.y <= 0) { // only allows for ball to shoot up the canvas
+        currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
+                              (target.y-currBall.position.y)*strengthLvl-1);
+    }
+    currBall.velocity.div(30);
+    currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
+    currBall.drag.mult(-0.3);
+
+    strength = -1; // reset strength variable when mouse is released & ball is thrown
+};
+/*************************************************************************************/
+var chooseClosestPlayer = function() {
+    var bestPlayer = 0;
+    var thresholdDist = 500;
+    var d = 0;
+    for(var i = 0; i < npcArr.length; i++) {
+        if(i !== dodgingPlayer) {
+            d = dist(target.x, target.y, npcArr[i].position.x, npcArr[i].position.y);
+            if(d < thresholdDist) {
+                thresholdDist = d;
+                bestPlayer = i;
+            }
+        }
+    }
+    return(bestPlayer);
+};
 /*********************************** GAME STATES ************************************/
 var menuState = function() {}; // constructor
 menuState.prototype.execute = function(me) { // 0
@@ -142,6 +205,7 @@ playState.prototype.execute = function(me) { // 1
     background(255, 255, 255);
     for(var i = 0; i < npcArr.length; i++) {
         npcArr[i].draw();
+        npcArr[i].move();
     }
     for(var i = 0; i < ballArr.length; i++) {
         ballArr[i].updatePosition();
@@ -149,10 +213,19 @@ playState.prototype.execute = function(me) { // 1
 
         // Remove ball (make it disappear) when it stops moving
         //      (and is not in the initital position);
-        if((Math.floor(ballArr[i].velocity.y) === -1) && (ballArr[i].position.y !== 360)) {
+        // if((Math.floor(ballArr[i].velocity.y) === -1) && (ballArr[i].position.y !== 360)) {
+        if(ballArr[i].velocity.mag() < 0.3 && (ballArr[i].position.y !== 360)) {
+
             ballArr.splice(i, 1);
             // Current ball becomes the last pushed element into ball array
             currBall = ballArr[ballArr.length-1];
+        }
+
+        if(ballArr[i].inTransit === 1) {
+            closestPlayer = chooseClosestPlayer();
+            npcArr[closestPlayer].avoidBall();
+        } else {
+            dodgingPlayer = closestPlayer;
         }
     }
 };
@@ -175,29 +248,6 @@ gameObj.prototype.changeStateTo = function(state) {
     this.currState = state;
 };
 var game = new gameObj();
-/*************************************************************************************/
-
-mouseReleased = function() {
-    if(strength > 0 && strength <= 30) {
-        strengthLvl = 1;
-    } else if(strength > 30 && strength < 60) {
-        strengthLvl = 2;
-    } else if(strength >= 60) {
-        strengthLvl = 3;
-    }
-
-    target.set(mouseX, mouseY);
-    if(target.y-currBall.position.y <= 0) { // only allows for ball to shoot up the canvas
-        currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
-                              (target.y-currBall.position.y)*strengthLvl-1);
-    }
-    currBall.velocity.div(30);
-    currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
-    currBall.drag.mult(-0.3);
-
-    strength = -1; // reset strength variable when mouse is released & ball is thrown
-};
-
 /*************************************************************************************/
 
 draw = function() {

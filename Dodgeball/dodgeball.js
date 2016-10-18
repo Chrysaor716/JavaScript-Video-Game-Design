@@ -137,12 +137,19 @@ npcObj.prototype.draw = function() {
 npcObj.prototype.move = function() {
     if(this.direction === "left") {
         this.position.x -= this.speed;
+        // Keep the NPC at the edges
+        if(this.position.x >= 410) {
+            this.position.x = 410;
+        }
         if(this.position.x <= -10) {
             this.position.x = -10;
             this.finished = 1;
         }
     } else {
         this.position.x += this.speed;
+        if(this.position.x <= -10) {
+            this.position.x = -10;
+        }
         if(this.position.x >= width+10) {
             this.position.x = width+10;
             this.finished = 1;
@@ -164,10 +171,39 @@ npcObj.prototype.avoidBall = function() {
     }
 };
 var npcArr = [];
-npcArr.push(new npcObj(400, 40, color(94, 0, 255), "left"),
-            new npcObj(0, 100, color(232, 28, 38), "right"));
+npcArr.push(new npcObj(400, 30, color(94, 0, 255), "left"),
+            new npcObj(0, 90, color(232, 28, 38), "right"),
+            new npcObj(0, 150, color(171, 14, 179), "right"),
+            new npcObj(400, 210, color(7, 138, 18), "left"));
 var dodgingPlayer = 0;
 var closestPlayer;
+
+var graveObj = function(x, y, s) {
+    this.position = new PVector(x, y);
+    this.size = s;
+};
+graveObj.prototype.draw = function() {
+    noStroke();
+    fill(87, 87, 87);
+    ellipse(this.position.x, this.position.y, this.size, this.size);
+    rect(this.position.x-(this.size/2), this.position.y, this.size, this.size/2);
+
+    textSize(this.size/3);
+    fill(0, 0, 0);
+    text("RIP", this.position.x-(this.size/3.5), this.position.y+(this.size/8));
+
+    // Draws cracks on grave stone
+    stroke(59, 58, 59);
+    strokeWeight(2);
+    line(this.position.x-(this.size/2), this.position.y,
+         this.position.x+(this.size/10), this.position.y-(this.size/3));
+    line(this.position.x+(this.size/3), this.position.y-(this.size/10),
+         this.position.x, this.position.y-(this.size/4));
+    line(this.position.x+(this.size/2), this.position.y+(this.size/5),
+         this.position.x+(this.size/6), this.position.y+(this.size/4));
+};
+var graveArr = [new graveObj(100, 50, 30), new graveObj(170, 160, 50),
+                new graveObj(330, 160, 50)];
 /*************************************************************************************/
 mouseReleased = function() {
     if(strength > 0 && strength <= 30) {
@@ -186,6 +222,9 @@ mouseReleased = function() {
     currBall.velocity.div(30);
     currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
     currBall.drag.mult(-0.3);
+
+    // Current ball becomes the last pushed element into ball array
+    // currBall = ballArr[ballArr.length-1];
 
     strength = -1; // reset strength variable when mouse is released & ball is thrown
 };
@@ -214,9 +253,16 @@ menuState.prototype.execute = function(me) { // 0
 var playState = function() {}; // constructor
 playState.prototype.execute = function(me) { // 1
     background(255, 255, 255);
+    // Draws base color for ground
+    fill(89, 28, 110);
+    rect(0, 0, width, height);
+
     for(var i = 0; i < npcArr.length; i++) {
         npcArr[i].draw();
         npcArr[i].move();
+    }
+    for(var i = 0; i < graveArr.length; i++) {
+        graveArr[i].draw();
     }
     for(var i = 0; i < ballArr.length; i++) {
         ballArr[i].updatePosition();
@@ -226,10 +272,7 @@ playState.prototype.execute = function(me) { // 1
         //      (and is not in the initital position);
         // if((Math.floor(ballArr[i].velocity.y) === -1) && (ballArr[i].position.y !== 360)) {
         if(ballArr[i].velocity.mag() < 0.3 && (ballArr[i].position.y !== 360)) {
-
             ballArr.splice(i, 1);
-            // Current ball becomes the last pushed element into ball array
-            currBall = ballArr[ballArr.length-1];
         }
 
         if(ballArr[i].inTransit === 1) {
@@ -270,8 +313,8 @@ game.state[1].execute(game);
     // Spawn a new ball at the bottom (after a certain period of time)
     //      once the previous ball has left its init position
     if(currBall.position.y !== 360) {
-        if(frameCount % 30 === 0) {
-            var currBall = new ballObj(width/2, 360);
+        if(frameCount % 10 === 0) {
+            currBall = new ballObj(width/2, 360);
             ballArr.push(currBall);
         }
     }

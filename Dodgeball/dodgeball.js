@@ -12,28 +12,12 @@ var ballObj = function(x, y) {
     this.acceleration = new PVector(0, 0);
     this.size = 80;
     this.mass = this.size / 5;
-    
+
     this.drag = new PVector(0, 0);
     this.aVelocity = 0; // angular velocity
     this.angle = 0;
 };
-// ballObj.prototype.applyForce = function(force) {
-//     var f = PVector.div(force, this.mass);
-//     this.acceleration.add(f);
-// };
 ballObj.prototype.updatePosition = function() {
-    // var gravityForce = PVector.mult(gravity, this.mass);
-    // this.applyForce(gravityForce);
-        
-    // var airFriction = PVector.mult(this.velocity, -1);
-    // airFriction.normalize();
-    // airFriction.mult(0.08);
-    
-    // this.velocity.add(this.acceleration);
-    // this.position.add(this.velocity);
-    
-    // this.acceleration.set(0, 0); // reset acceleration each frame
-    
     this.velocity.add(this.drag);
     this.position.add(this.velocity);
     this.drag.set(this.velocity.x, this.velocity.y);
@@ -49,16 +33,16 @@ ballObj.prototype.draw = function() {
     if(this.size <= 40) {
         this.size = 40; // do not allow the ball to be smaller than 40px in diameter
     }
-    
+
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-    
+
     noStroke();
     // Draws the base of the Jack-o-lantern
     fill(224, 138, 33);
     ellipse(0, 0, this.size, this.size);
-    
+
     // Draws the curved line "dents" on the Jack-o-lantern
     //      ...which also looks like the lines of a basketball
     stroke(186, 109, 28);
@@ -69,7 +53,7 @@ ballObj.prototype.draw = function() {
     line(0, -this.size/2*0.97, 0, this.size/2*0.97);
     arc(0, 0, this.size*0.97, this.size*0.97, -Math.PI/2, Math.PI/2);
     arc(0, 0, this.size*0.97, this.size*0.97,  Math.PI/2, 3*Math.PI/2);
-    
+
     // Draws the cut-out's of the Jack-o-lantern
     noStroke();
     fill(237, 176, 107);
@@ -81,11 +65,11 @@ ballObj.prototype.draw = function() {
     fill(224, 138, 33);
     rect(-this.size/5, this.size/10, this.size/6, this.size/8);
     rect(this.size/60, this.size/4, this.size/6, this.size/8);
-    
+
     // Draws the stem of the Jack-o-lantern
     fill(22, 199, 57);
     rect(-this.size/10-0.90, -this.size+(this.size/3), this.size/5, this.size/5);
-    
+
     popMatrix();
 };
 var ballArr = [];
@@ -105,6 +89,14 @@ playState.prototype.execute = function(me) { // 1
     for(var i = 0; i < ballArr.length; i++) {
         ballArr[i].updatePosition();
         ballArr[i].draw();
+
+        // Remove ball (make it disappear) when it stops moving
+        //      (and is not in the initital position);
+        if((Math.floor(ballArr[i].velocity.y) === -1) && (ballArr[i].position.y !== 360)) {
+            ballArr.splice(i, 1);
+            // Current ball becomes the last pushed element into ball array
+            currBall = ballArr[ballArr.length-1];
+        }
     }
 };
 var winState = function() {}; // constructor
@@ -136,15 +128,16 @@ mouseReleased = function() {
     } else if(strength >= 60) {
         strengthLvl = 3;
     }
-    
+
     target.set(mouseX, mouseY);
-    // ball.velocity.set(target.x - ball.position.x, target.y - ball.position.y);
-    currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
-                      (target.y-currBall.position.y)*strengthLvl-1);
+    if(target.y-currBall.position.y <= 0) { // only allows for ball to shoot up the canvas
+        currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
+                              (target.y-currBall.position.y)*strengthLvl-1);
+    }
     currBall.velocity.div(30);
     currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
     currBall.drag.mult(-0.3);
-    
+
     strength = -1; // reset strength variable when mouse is released & ball is thrown
 };
 
@@ -152,7 +145,18 @@ mouseReleased = function() {
 
 draw = function() {
     // game.state[game.currState].execute(game);
+//////////////////////////////////////////////////////////////////
 game.state[1].execute(game);
+//////////////////////////////////////////////////////////////////
+
+    // Spawn a new ball at the bottom (after a certain period of time)
+    //      once the previous ball has left its init position
+    if(currBall.position.y !== 360) {
+        if(frameCount % 30 === 0) {
+            var currBall = new ballObj(width/2, 360);
+            ballArr.push(currBall);
+        }
+    }
 
     if(mouseIsPressed) {
         strength++;
@@ -160,7 +164,7 @@ game.state[1].execute(game);
     // strength = 0; // reset strength variable
     textSize(15);
     fill(53, 51, 196);
-    
+
     text("Strength: " + strength, 300, 370);
     text("Strength lvl: " + strengthLvl, 282, 390);
 };

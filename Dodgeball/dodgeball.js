@@ -2,6 +2,7 @@ angleMode = "radians";
 
 var strength = 0; // strength of the ball throw (depending on how long player holds mouse)
 var strengthLvl = 0; // user feedback for strength level (fraction of "strength")
+var placements = []; // Place NPCs in order of when they finish
 
 /*********************************** GAME OBJECTS ************************************/
 // var gravity = new PVector(0, 0.1);
@@ -12,11 +13,11 @@ var ballObj = function(x, y) {
     this.acceleration = new PVector(0, 0);
     this.size = 80;
     this.mass = this.size / 5;
-
+    
     this.drag = new PVector(0, 0);
     this.aVelocity = 0; // angular velocity
     this.angle = 0;
-
+    
     this.inTransit = 0;
 };
 ballObj.prototype.updatePosition = function() {
@@ -29,7 +30,7 @@ ballObj.prototype.updatePosition = function() {
         this.aVelocity = -this.aVelocity; // allow spin in either direction
     }
     this.angle += this.aVelocity;
-
+    
     if(this.velocity.mag() < 0.3) {
         this.inTransit = 0;
     }
@@ -42,16 +43,16 @@ ballObj.prototype.draw = function() {
     if(this.size <= 40) {
         this.size = 40; // do not allow the ball to be smaller than 40px in diameter
     }
-
+    
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-
+    
     noStroke();
     // Draws the base of the Jack-o-lantern
     fill(224, 138, 33);
     ellipse(0, 0, this.size, this.size);
-
+    
     // Draws the curved line "dents" on the Jack-o-lantern
     //      ...which also looks like the lines of a basketball
     stroke(186, 109, 28);
@@ -62,7 +63,7 @@ ballObj.prototype.draw = function() {
     line(0, -this.size/2*0.97, 0, this.size/2*0.97);
     arc(0, 0, this.size*0.97, this.size*0.97, -Math.PI/2, Math.PI/2);
     arc(0, 0, this.size*0.97, this.size*0.97,  Math.PI/2, 3*Math.PI/2);
-
+    
     // Draws the cut-out's of the Jack-o-lantern
     noStroke();
     fill(237, 176, 107);
@@ -74,11 +75,11 @@ ballObj.prototype.draw = function() {
     fill(224, 138, 33);
     rect(-this.size/5, this.size/10, this.size/6, this.size/8);
     rect(this.size/60, this.size/4, this.size/6, this.size/8);
-
+    
     // Draws the stem of the Jack-o-lantern
     fill(22, 199, 57);
     rect(-this.size/10-0.90, -this.size+(this.size/3), this.size/5, this.size/5);
-
+    
     popMatrix();
 };
 var ballArr = [];
@@ -89,10 +90,10 @@ var npcObj = function(x, y, color, dir) {
     this.RGB = color;
     this.direction = dir;
     this.finished = 0; // Boolean for when NPC reaches the other side
-    this.speed = 1;
+    this.speed = 0.5;
     this.currFrame = frameCount;
     this.angle = 180;
-
+    
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
 };
@@ -100,7 +101,7 @@ npcObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
     rotate(this.angle);
-
+    
     noStroke();
     //////// for hitbox ///////////
     // fill(255, 0, 0, 100);
@@ -120,7 +121,7 @@ npcObj.prototype.draw = function() {
          (50/2)*cos(radians(225)), (50/2)*sin(radians(225)));
     line((50/2)*cos(radians(135)), (50/2)*sin(radians(135)),
          (50/2)*cos(radians(315)), (50/2)*sin(radians(315)));
-
+    
     if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
         if(this.finished === 0) {
@@ -131,7 +132,7 @@ npcObj.prototype.draw = function() {
             }
         }
     }
-
+    
     popMatrix();
 };
 npcObj.prototype.move = function() {
@@ -142,8 +143,10 @@ npcObj.prototype.move = function() {
             this.position.x = 410;
         }
         if(this.position.x <= -10) {
-            this.position.x = -10;
+            this.position.x = -9;
+            this.speed = 0;
             this.finished = 1;
+            placements.push(this.RGB);
         }
     } else {
         this.position.x += this.speed;
@@ -151,22 +154,26 @@ npcObj.prototype.move = function() {
             this.position.x = -10;
         }
         if(this.position.x >= width+10) {
-            this.position.x = width+10;
+            this.position.x = width+9;
+            this.speed = 0;
             this.finished = 1;
+            placements.push(this.RGB);
         }
     }
 };
 npcObj.prototype.avoidBall = function() {
-    for(var i = 0; i < ballArr.length; i++) {
-        if(ballArr[i].inTransit === 1) {
-            // predict future position
-            var x = ballArr[i].position.x + ballArr[i].velocity.x * 4;
-            var y = ballArr[i].position.y + ballArr[i].velocity.y * 4;
-            this.velocity.set(x - this.position.x, y - this.position.y);
-            this.velocity.normalize();
-            this.velocity.mult(3);
-            // this.position.sub(this.velocity);
-            this.position.x -= this.velocity.x;
+    if(this.finished === 0) {
+        for(var i = 0; i < ballArr.length; i++) {
+            if(ballArr[i].inTransit === 1) {
+                // predict future position
+                var x = ballArr[i].position.x + ballArr[i].velocity.x * 4;
+                var y = ballArr[i].position.y + ballArr[i].velocity.y * 4;
+                this.velocity.set(x - this.position.x, y - this.position.y);
+                this.velocity.normalize();
+                this.velocity.mult(3);
+                // this.position.sub(this.velocity);
+                this.position.x -= this.velocity.x;
+            }
         }
     }
 };
@@ -187,11 +194,11 @@ graveObj.prototype.draw = function() {
     fill(87, 87, 87);
     ellipse(this.position.x, this.position.y, this.size, this.size);
     rect(this.position.x-(this.size/2), this.position.y, this.size, this.size/2);
-
+    
     textSize(this.size/3);
     fill(0, 0, 0);
     text("RIP", this.position.x-(this.size/3.5), this.position.y+(this.size/8));
-
+    
     // Draws cracks on grave stone
     stroke(59, 58, 59);
     strokeWeight(2);
@@ -203,18 +210,32 @@ graveObj.prototype.draw = function() {
          this.position.x+(this.size/6), this.position.y+(this.size/4));
 };
 var graveArr = [new graveObj(100, 50, 30), new graveObj(170, 160, 50),
-                new graveObj(330, 160, 50)];
+                new graveObj(330, 160, 50), new graveObj(200, 100, 40),
+                new graveObj(60, 210, 60, 60)];
 /*************************************************************************************/
 mouseReleased = function() {
-    if(strength > 0 && strength <= 30) {
+    if(strength > 0 && strength <= 20) {
         strengthLvl = 1;
-    } else if(strength > 30 && strength < 60) {
+    } else if(strength > 20 && strength < 50) {
         strengthLvl = 2;
-    } else if(strength >= 60) {
+    } else if(strength >= 50 && strength < 80) {
         strengthLvl = 3;
+    } else if(strength >= 80) {
+        strengthLvl = 4;
     }
-
-    target.set(mouseX, mouseY);
+    
+    // target.set(mouseX, mouseY);
+    if(strengthLvl === 0) {
+        target.set(mouseX, 210);
+    } else if(strengthLvl === 1) {
+        target.set(mouseX, 150);
+    } else if(strengthLvl === 2) {
+        target.set(mouseX, 90);
+    } else if(strengthLvl === 3) {
+        target.set(mouseX, 30);
+    } else {
+        target.set(mouseX, mouseY);
+    }
     if(target.y-currBall.position.y <= 0) { // only allows for ball to shoot up the canvas
         currBall.velocity.set((target.x-currBall.position.x)*strengthLvl-1,
                               (target.y-currBall.position.y)*strengthLvl-1);
@@ -222,16 +243,16 @@ mouseReleased = function() {
     currBall.velocity.div(30);
     currBall.drag.set(currBall.velocity.x, currBall.velocity.y);
     currBall.drag.mult(-0.3);
-
+    
     // Current ball becomes the last pushed element into ball array
     // currBall = ballArr[ballArr.length-1];
-
+    
     strength = -1; // reset strength variable when mouse is released & ball is thrown
 };
 /*************************************************************************************/
 var chooseClosestPlayer = function() {
     var bestPlayer = 0;
-    var thresholdDist = 500;
+    var thresholdDist = 200;
     var d = 0;
     for(var i = 0; i < npcArr.length; i++) {
         if(i !== dodgingPlayer) {
@@ -247,8 +268,22 @@ var chooseClosestPlayer = function() {
 /*********************************** GAME STATES ************************************/
 var menuState = function() {}; // constructor
 menuState.prototype.execute = function(me) { // 0
-    fill(0, 0, 0); textSize(30);
-    text("menu state", 130, height/2);
+    background(0, 0, 0);
+    fill(255, 255, 255);
+    textSize(35);
+    text("Dodgeball", 120, 40);
+    fill(255, 147, 23);
+    textSize(17);
+    text("Halloween edition", 130, 65);
+    fill(255, 255, 255);
+    textSize(15);
+    text("Hello, spooky peeps! The game is simple.\n"+
+         "Click and hold the mouse to shoot the\n" +
+         "Jack-o'-lantern at the bottom of the screen.\n\n\n\n\n\n\n\n" +
+         "The power of your shot is determined by\n" +
+         "these \"powerful\" numbers down at the\n" +
+         "bottom right hand corner here!\n\n" +
+         "               Click anywhere to play!", 50, 100);
 };
 var playState = function() {}; // constructor
 playState.prototype.execute = function(me) { // 1
@@ -256,10 +291,23 @@ playState.prototype.execute = function(me) { // 1
     // Draws base color for ground
     fill(89, 28, 110);
     rect(0, 0, width, height);
-
+    
     for(var i = 0; i < npcArr.length; i++) {
         npcArr[i].draw();
         npcArr[i].move();
+        // Collision condition
+        for(var j = 0; j < ballArr.length; j++) {
+            if(ballArr[j].inTransit === 1 && npcArr[i].finished === 0) {
+                if(dist(ballArr[j].position.x, ballArr[j].position.y, npcArr[i].position.x, npcArr[i].position.y) <= 20) {
+                    // Restart their position if they are hit by ball
+                    if(npcArr[i].direction === "left") {
+                        npcArr[i].position.x = 400;
+                    } else {
+                        npcArr[i].position.x = 0;
+                    }
+                }
+            }
+        }
     }
     for(var i = 0; i < graveArr.length; i++) {
         graveArr[i].draw();
@@ -267,14 +315,14 @@ playState.prototype.execute = function(me) { // 1
     for(var i = 0; i < ballArr.length; i++) {
         ballArr[i].updatePosition();
         ballArr[i].draw();
-
+        
         // Remove ball (make it disappear) when it stops moving
         //      (and is not in the initital position);
         // if((Math.floor(ballArr[i].velocity.y) === -1) && (ballArr[i].position.y !== 360)) {
         if(ballArr[i].velocity.mag() < 0.3 && (ballArr[i].position.y !== 360)) {
             ballArr.splice(i, 1);
         }
-
+        
         if(ballArr[i].inTransit === 1) {
             closestPlayer = chooseClosestPlayer();
             npcArr[closestPlayer].avoidBall();
@@ -282,32 +330,49 @@ playState.prototype.execute = function(me) { // 1
             dodgingPlayer = closestPlayer;
         }
     }
+
+    if(placements.length >= 4) {
+        me.changeStateTo(2);
+    }
 };
-var winState = function() {}; // constructor
-winState.prototype.execute = function() { // 2
-    fill(0, 0, 0); textSize(30);
-    text("win state", 130, height/2);
-};
-var loseState = function() {}; // constructor
-loseState.prototype.execute = function() { // 3
-    fill(0, 0, 0); textSize(30);
-    text("lose state", 130, height/2);
+var doneState = function() {}; // constructor
+doneState.prototype.execute = function() { // 2
+    background(255, 255, 255);
+    fill(0, 0, 0);
+    textSize(30);
+    text("NPC Placements:", 90, 90);
+    textSize(20);
+    text("1. \n\n" + "2. \n\n" + "3. \n\n" + "4. \n\n", 110, 150);
+    fill(placements[0]);
+    rect(150, 125, 100, 30);
+    fill(placements[1]);
+    rect(150, 170, 100, 30);
+    fill(placements[2]);
+    rect(150, 215, 100, 30);
+    fill(placements[3]);
+    rect(150, 260, 100, 30);
 };
 //-----------------------------------------------------------------------------------
 var gameObj = function() {
-    this.state = [new menuState(), new playState(), new winState(), new loseState()];
+    this.state = [new menuState(), new playState(), new doneState()];
     this.currState = 0; // index 0 (menuState)
 };
 gameObj.prototype.changeStateTo = function(state) {
     this.currState = state;
 };
 var game = new gameObj();
+//---------------------------------------------------
+mouseClicked = function() {
+    if(game.currState === 0) { // If user clicks on screen during menu state
+        game.changeStateTo(1); //   change to play state
+    }
+};
 /*************************************************************************************/
 
 draw = function() {
-    // game.state[game.currState].execute(game);
+    game.state[game.currState].execute(game);
 //////////////////////////////////////////////////////////////////
-game.state[1].execute(game);
+// game.state[2].execute(game);
 //////////////////////////////////////////////////////////////////
 
     // Spawn a new ball at the bottom (after a certain period of time)
@@ -325,7 +390,7 @@ game.state[1].execute(game);
     // strength = 0; // reset strength variable
     textSize(15);
     fill(53, 51, 196);
-
+    
     text("Strength: " + strength, 300, 370);
     text("Strength lvl: " + strengthLvl, 282, 390);
 };

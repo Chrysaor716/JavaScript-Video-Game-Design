@@ -60,7 +60,8 @@ var fishObj = function(x, y) {
     // this.fishColor = color(this.rRand, this.gRand, this.bRand, random(200, 255));
     this.fishColor = color(this.rRand, this.gRand, this.bRand);
     
-    this.tailSize = random(40, 60);
+    this.tailSize = random(20, 40);
+    this.tailLength = random(30, 50);
     this.baseX = 0;
     this.baseY = 0; // point that the tail branches off the body of fish
     // Bezier variables
@@ -73,8 +74,19 @@ var fishObj = function(x, y) {
     this.x2 = 0;
     this.y2 = 0;
     
-    this.cx1Dir = 2;
-    this.cx2Dir = -1;
+    this.cx1Dir = random(-1, 1);
+    this.cx2Dir = random(-1, 1);
+    // Re-generate random number for x deltas (of fish tails) until non-zero
+    //      We want the middle two points on the Bezier curve to move
+    //      horizontally always (non-zero).
+    while(this.cx1Dir === 0 || this.cx2Dir === 0) {
+        this.cx1Dir = random(-1, 1);
+        this.cx2Dir = random(-1, 1);
+    }
+    this.xDeltaMin1 = random(15, 30);
+    this.xDeltaMin2 = random(15, 30);
+    this.xDeltaMax1 = random(50, 85);
+    this.xDeltaMax2 = random(50, 85);
 };
 fishObj.prototype.randomize = function() {
     pushMatrix();
@@ -110,11 +122,11 @@ fishObj.prototype.randomize = function() {
     
     // Initialize Bezier variables
     if(this.facing >= 0) { // facing left
-        this.x1 = this.baseX+this.tailSize;
+        this.x1 = this.baseX+this.tailLength;
         this.cx1 = this.x1 + 35;
         this.cx2 = this.x1 + 20;
     } else {
-        this.x1 = -this.baseX-this.tailSize;
+        this.x1 = -this.baseX-this.tailLength;
         this.cx1 = this.x1 - 35;
         this.cx2 = this.x1 - 20;
     }
@@ -150,13 +162,13 @@ fishObj.prototype.draw = function() {
     // Draws tail
     if(this.facing >= 0) { // facing left
         // Draw base of tail
-        triangle(this.baseX, 0, this.baseX+this.tailSize, -this.tailSize,
-                 this.baseX+this.tailSize, this.tailSize);
+        triangle(this.baseX, 0, this.baseX+this.tailLength+1, -this.tailSize,
+                 this.baseX+this.tailLength+1, this.tailSize);
         // Animate end of tail using bezier
         //
     } else {
-        triangle(-this.baseX, 0, -this.baseX-this.tailSize, -this.tailSize,
-                 -this.baseX-this.tailSize, this.tailSize); 
+        triangle(-this.baseX, 0, -this.baseX-this.tailLength-1, -this.tailSize,
+                 -this.baseX-this.tailLength-1, this.tailSize); 
     }
 ////////////////////////  TODO  ////////////////////////////////////   
     // Draws an animated tail using bezier
@@ -165,17 +177,18 @@ fishObj.prototype.draw = function() {
     this.cx1 += this.cx1Dir;
     this.cx2 += this.cx2Dir;
     if(this.facing >= 0) {
-        if((this.cx1 < this.x1+10) || (this.cx1 > this.x1+70)) {
+        // Sets threshold xPos deltas for the tail
+        if((this.cx1 < this.x1+this.xDeltaMin1) || (this.cx1 > this.x1+this.xDeltaMax1)) {
             this.cx1Dir = -this.cx1Dir;
         }
-        if((this.cx2 < this.x2+10) || (this.cx2 > this.x2+70)) {
+        if((this.cx2 < this.x2+this.xDeltaMin2) || (this.cx2 > this.x2+this.xDeltaMax2)) {
             this.cx2Dir = -this.cx2Dir;
         }
     } else {
-        if((this.cx1 > this.x1-10) || (this.cx1 < this.x1-70)) {
+        if((this.cx1 > this.x1-this.xDeltaMin1) || (this.cx1 < this.x1-this.xDeltaMax1)) {
             this.cx1Dir = -this.cx1Dir;
         }
-        if((this.cx2 > this.x2-10) || (this.cx2 < this.x2-70)) {
+        if((this.cx2 > this.x2-this.xDeltaMin2) || (this.cx2 < this.x2-this.xDeltaMax2)) {
             this.cx2Dir = -this.cx2Dir;
         }
     }
@@ -198,13 +211,13 @@ fishObj.prototype.move = function() {
         if(this.facing >= 0) { // facing left
             // this.position.x -= random(0, 5);
             this.position.x -= random(0, 0.7);
-            if(this.position.x <= -100) {
+            if(this.position.x <= -150) {
                 this.position.x = 500;
             }
         } else {
             // this.position.x += random(0, 5);
             this.position.x += random(0, 0.5);
-            if(this.position.x >= 500) {
+            if(this.position.x >= 550) {
                 this.position.x = -100;
             }
         }

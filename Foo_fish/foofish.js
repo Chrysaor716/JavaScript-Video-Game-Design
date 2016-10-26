@@ -44,39 +44,6 @@ var subdivide = function(me) {
 };
 //---------------------------------------------------------------------------------//
 /*
- *  Parabolic computation for arbitray fish shape.
- *     Used for testing and visualization.
- */
-//---------------------------------------------------------------------------------//
-var tPoints = [];
-var tPointsTop = [];
-var numTPoints = 50;
-var computeTPoints = function(me) {
-    var t = 0;
-    var stepSize = 1/numTPoints;
-    var q = new PVector(0, 0);
-    var r = new PVector(0, 0);
-    for(var i = 0; i < numTPoints + 1; i++) {
-        q.set(t*me.pointsArr[1].x+(1-t)*me.pointsArr[0].x,
-              t*me.pointsArr[1].y+(1-t)*me.pointsArr[0].y);
-        r.set(t*me.pointsArr[2].x+(1-t)*me.pointsArr[1].x,
-              t*me.pointsArr[2].y+(1-t)*me.pointsArr[1].y);
-        tPoints.push(new PVector(t*r.x+(1-t)*q.x, t*r.y+(1-t)*q.y));
-        t += stepSize;
-    }
-};
-// This function is not necessary--mostly there for testing and visualization
-var drawArc = function() {
-    stroke(0, 112, 0);
-    for(var i = 0; i < numTPoints; i++) {
-        line(tPoints[i].x, tPoints[i].y, tPoints[i+1].x, tPoints[i+1].y);
-    }
-    for(var i = 0; i < numTPoints; i++) {
-        line(tPointsTop[i].x, tPointsTop[i].y, tPointsTop[i+1].x, tPointsTop[i+1].y);
-    }
-};
-//---------------------------------------------------------------------------------//
-/*
  *  Draws arbitrarily shaped fishes from the subdivision algorithm
  */
 var fishObj = function(x, y) {
@@ -91,6 +58,10 @@ var fishObj = function(x, y) {
     this.gRand = random(0, 255);
     this.bRand = random(0, 255);
     this.fishColor = color(this.rRand, this.gRand, this.bRand, random(200, 255));
+
+    this.tailSize = random(50, 70);
+    this.baseX = 0;
+    this.baseY = 0; // point that the tail branches off the body of fish
 };
 fishObj.prototype.randomize = function() {
     pushMatrix();
@@ -100,7 +71,7 @@ fishObj.prototype.randomize = function() {
     var midX = random(30, 90);
     var deltaX = random(30, 90);
     var midY = random(20, 60);
-    // push midway points
+    this.baseX = midX+random(10, 30);
     if(this.facing >= 0) { // facing left
         this.pointsArr.push(new PVector(midX, midY));
         // push top and bottom
@@ -137,9 +108,6 @@ fishObj.prototype.draw = function() {
     fill(this.fishColor);
     noStroke();
 
-    // computeTPoints(this);
-    // drawArc();
-
     beginShape();
     for(var i = 0; i < this.pointsArr.length; i++) {
         // vertex(this.pointsArr[i].x, this.pointsArr[i].y);
@@ -148,6 +116,32 @@ fishObj.prototype.draw = function() {
     curveVertex(this.pointsArr[0].x, this.pointsArr[0].y);
     // vertex(this.pointsArr[0].x, this.pointsArr[0].y);
     endShape();
+
+    // Draws base of tail
+    if(this.facing >= 0) { // facing left
+       triangle(this.baseX, 0, this.baseX+this.tailSize, -this.tailSize,
+                this.baseX+this.tailSize, this.tailSize);
+    } else {
+        triangle(-this.baseX, 0, -this.baseX-this.tailSize, -this.tailSize,
+                 -this.baseX-this.tailSize, this.tailSize);
+    }
+////////////////////////  TODO  ////////////////////////////////////
+    // Draws an animated tail using bezier
+    // var x1 = 0;
+    // var y1 = 0;
+    // var cx1;
+    // var cy1, cx2, cy2, x2, y2;
+    // bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+    // cx1 += cx1Dir;
+    // if ((cx1 > x2) || (cx1 < x1)) {cx1Dir = -cx1Dir;
+    // }
+    // cx2 += cx2Dir;
+    // if ((cx2 < x1) || (cx2 > x2)) {cx2Dir = -cx2Dir;
+    // }
+    // x2 += x2Dir;
+    // if ((abs(x1 - x2) > 200) || (x2 < x1)) {x2Dir = -x2Dir;
+    // }
+////////////////////////////////////////////////////////////////////
 
     // Draws the eyes
     var xEye;
@@ -165,7 +159,7 @@ fishObj.prototype.move = function() {
     // if(frameCount%20 === 0) {
         if(this.facing >= 0) { // facing left
             // this.position.x -= random(0, 5);
-            this.position.x -= random(0, 0.5);
+            this.position.x -= random(0, 0.7);
             if(this.position.x <= -100) {
                 this.position.x = 500;
             }
@@ -198,8 +192,9 @@ var regularBubbleObj = function(x, y) {
     this.size = random(15, 80);
 
     // this.shinePos = random(-1/4, 1/4)*this.size;
-    this.shinePos = this.size / 4;
-    this.shineSize = this.size/random(3, 7);
+    this.shinePos = this.size / 6;
+    // this.shineSize = this.size/random(3, 7);
+    this.shineSize = this.size/4;
 };
 regularBubbleObj.prototype.draw = function() {
     pushMatrix();
@@ -235,7 +230,7 @@ var draw = function() {
         }
     }
     // Occassionally spawn new bubbles beyond the bottom of the screen
-    if(frameCount % (Math.floor(Math.random()*60) + 50) === 0) {
+    if(frameCount % (Math.floor(Math.random()*200) + 60) === 0) {
         regBubbleArr.push(new regularBubbleObj(random(5, 395), random(400, 550)));
     }
 };

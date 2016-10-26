@@ -162,19 +162,21 @@ fishObj.prototype.draw = function() {
     popMatrix();
 };
 fishObj.prototype.move = function() {
-    if(frameCount%20 === 0) {
+    // if(frameCount%20 === 0) {
         if(this.facing >= 0) { // facing left
-            this.position.x -= random(0, 5);
+            // this.position.x -= random(0, 5);
+            this.position.x -= random(0, 0.5);
             if(this.position.x <= -100) {
                 this.position.x = 500;
             }
         } else {
-            this.position.x += random(0, 5);
+            // this.position.x += random(0, 5);
+            this.position.x += random(0, 0.5);
             if(this.position.x >= 500) {
                 this.position.x = -100;
             }
         }
-    }
+    // }
 };
 var fishArr = [];
 // Randomize fishes arbitrarily between 1 and 5
@@ -186,10 +188,54 @@ for(var i = 0; i < fishArr.length; i++) {
     fishArr[i].randomize();
 }
 //---------------------------------------------------------------------------------//
+/*
+ *  Draws bubbles
+ */
+//---------------------------------------------------------------------------------//
+// Basic bubbles overlaying fishes under the sea
+var regularBubbleObj = function(x, y) {
+    this.position = new PVector(x, y);
+    this.size = random(15, 80);
+
+    // this.shinePos = random(-1/4, 1/4)*this.size;
+    this.shinePos = this.size / 4;
+    this.shineSize = this.size/random(3, 7);
+};
+regularBubbleObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+
+    fill(255, 255, 255, 180);
+    ellipse(0, 0, this.size, this.size);
+    ellipse(this.shinePos, -this.shinePos, this.shineSize, this.shineSize);
+
+    popMatrix();
+};
+regularBubbleObj.prototype.move = function() {
+    this.position.y -= random(0, 0.7);
+    this.position.x += random(-0.25, 0.25);
+};
+var regBubbleArr = [];
+for(var i = 0; i < Math.floor(Math.random()*20) + 10; i++) {
+    regBubbleArr.push(new regularBubbleObj(random(10, 390), random(10, 390)));
+}
+//---------------------------------------------------------------------------------//
 var draw = function() {
-    background(255, 255, 255);
+    background(16, 104, 166, 200);
     for(var i = 0; i < fishArr.length; i++) {
         fishArr[i].draw();
         fishArr[i].move();
+    }
+    for(var i = 0; i < regBubbleArr.length; i++) {
+        regBubbleArr[i].draw();
+        regBubbleArr[i].move();
+        // Delete bubble from array once it gets past the top of the canvas limit
+        if(regBubbleArr[i].position.y < -100) {
+            regBubbleArr.splice(i, 1);
+        }
+    }
+    // Occassionally spawn new bubbles beyond the bottom of the screen
+    if(frameCount % (Math.floor(Math.random()*60) + 50) === 0) {
+        regBubbleArr.push(new regularBubbleObj(random(5, 395), random(400, 550)));
     }
 };

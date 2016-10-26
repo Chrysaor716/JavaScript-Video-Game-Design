@@ -1,14 +1,8 @@
-// The title because fish is foo--I mean, not to be eaten... ;)
-
 angleMode = "radians";
-
 /*
  *  Subdivision implementation to draw smooth, arbitrary shapes
  */
 //---------------------------------------------------------------------------------//
-// var pointsArr = [];
-// var p2 = []; // the doubled array for the points array, when split
-
 // The number of splits; double number of points per iteration
 //      Larger iterations make smoother shapes
 var iterations = 0;
@@ -50,12 +44,44 @@ var subdivide = function(me) {
 };
 //---------------------------------------------------------------------------------//
 /*
+ *  Parabolic computation for arbitray fish shape.
+ *     Used for testing and visualization.
+ */
+//---------------------------------------------------------------------------------//
+var tPoints = [];
+var tPointsTop = [];
+var numTPoints = 50;
+var computeTPoints = function(me) {
+    var t = 0;
+    var stepSize = 1/numTPoints;
+    var q = new PVector(0, 0);
+    var r = new PVector(0, 0);
+    for(var i = 0; i < numTPoints + 1; i++) {
+        q.set(t*me.pointsArr[1].x+(1-t)*me.pointsArr[0].x,
+              t*me.pointsArr[1].y+(1-t)*me.pointsArr[0].y);
+        r.set(t*me.pointsArr[2].x+(1-t)*me.pointsArr[1].x,
+              t*me.pointsArr[2].y+(1-t)*me.pointsArr[1].y);
+        tPoints.push(new PVector(t*r.x+(1-t)*q.x, t*r.y+(1-t)*q.y));
+        t += stepSize;
+    }
+};
+// This function is not necessary--mostly there for testing and visualization
+var drawArc = function() {
+    stroke(0, 112, 0);
+    for(var i = 0; i < numTPoints; i++) {
+        line(tPoints[i].x, tPoints[i].y, tPoints[i+1].x, tPoints[i+1].y);
+    }
+    for(var i = 0; i < numTPoints; i++) {
+        line(tPointsTop[i].x, tPointsTop[i].y, tPointsTop[i+1].x, tPointsTop[i+1].y);
+    }
+};
+//---------------------------------------------------------------------------------//
+/*
  *  Draws arbitrarily shaped fishes from the subdivision algorithm
  */
 var fishObj = function(x, y) {
     this.position = new PVector(x, y); // intesection point between body and tail
-    this.deltaX = 0;
-    this.deltaY = 0;
+    this.facing = random(-50, 50); // negative val = facing right, positive = left
 
     this.pointsArr = [];
     this.p2 = []; // the doubled array for the points array, when split
@@ -64,72 +90,32 @@ var fishObj = function(x, y) {
     this.rRand = random(0, 255);
     this.gRand = random(0, 255);
     this.bRand = random(0, 255);
-    this.fishColor = color(this.rRand, this.gRand, this.bRand);
+    this.fishColor = color(this.rRand, this.gRand, this.bRand, random(200, 255));
 };
 fishObj.prototype.randomize = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
 
-    // Push first, base point (which is zero since the matrix translated to starting
-    //      intersecting point position--that is, the body will be drawn from where
-    //      it intersects with the tail)
-    this.pointsArr.push(new PVector(0, 0));
-//------------------parabolic function testing------------------------
-    // for(var i = 0; i < Math.floor(Math.random() * 25) + 10; i++) {
-    //     this.deltaX -= random(0.01, 5);
-    //     this.pointsArr.push(new PVector(this.deltaX,
-    //                         -0.1*Math.pow(this.deltaX, 2) - random(5, 20)));
-    // }
-//--------------------------------------------------------------------
-    // Loop through each "quadrant" of the fish an arbitrary number of times
-    for(var i = 0; i < Math.floor(Math.random() * 5) + 3; i++) {
-        // Push arbitrary, decrementing points
-        // Going counter-clockwise, the fish's body is being drawn from the intersecting
-        //      point (where the tail attaches) upwards
-        // X values are already negative since the "intersecting point" of the fish
-        //      is at (0, 0) due to the translate
-        this.deltaX += random(3, 15);
-        this.deltaY += random(3, 10);
-        this.pointsArr.push(new PVector(-this.deltaX, -this.deltaY));
+    this.pointsArr.push(new PVector(0, 0)); // push origin point
+    var midX = random(30, 90);
+    var deltaX = random(30, 90);
+    var midY = random(20, 60);
+    // push midway points
+    if(this.facing >= 0) { // facing left
+        this.pointsArr.push(new PVector(midX, midY));
+        // push top and bottom
+        this.pointsArr.push(new PVector(midX + deltaX, 0));
+        this.pointsArr.push(new PVector(midX, -midY));
+    } else { // facing right
+        this.pointsArr.push(new PVector(-midX, midY));
+        // push top and bottom
+        this.pointsArr.push(new PVector(-midX -deltaX, 0));
+        this.pointsArr.push(new PVector(-midX, -midY));
     }
-    for(var i = 0; i < Math.floor(Math.random() * 5) + 3; i++) {
-        // Draws from top of fish downwards and left
-        this.deltaX += random(3, 15);
-        this.deltaY -= random(3, 5);
-        if(-this.deltaY >= 0) { // Ensures the change in y doesn't go below 0 (at this quad)
-            this.deltaY = 0;
-            i = 12; // Stop looping (we don't want to keep changing x while y is constant)
-        }
-        this.pointsArr.push(new PVector(-this.deltaX, -this.deltaY));
-    }
-    // Compute halfway point of the fish
-    var halfway = this.deltaX / 2;
-    for(var i = 0; i < Math.floor(Math.random() * 5) + 3; i++) {
-        // Draws from leftmost part of the fish downwards to draw bottom half of fish body
-        this.deltaX -= random(3, 10);
-        // stop this current "quadrant" drawing if xPos goes past the halfway point of fish
-        if(-this.deltaX >= -halfway) {
-            this.deltaX = halfway;
-            i = 12;  // exit loop
-        }
-        this.deltaY += random(3, 5);
-        this.pointsArr.push(new PVector(-this.deltaX, this.deltaY));
-    }
-    for(var i = 0; i < Math.floor(Math.random() * 5) + 3; i++) {
-        // Starts drawing upwards and towards the right to finish off the fish's body
-        this.deltaX -= random(3, 15); // disallow xPos to go past "intersection point"/origin
-        if(-this.deltaX >= 0) {
-            this.deltaX = 0;
-            i = 12;
-        }
-        this.deltaY -= random(3, 5);
-        this.pointsArr.push(new PVector(-this.deltaX, this.deltaY));
-    }
-
 /////////////////////////////////////////////////////////////////////////////////////
-// // Draws ellipses at points for testing
+// Draws ellipses at points for testing
 // for(var i = 0; i < this.pointsArr.length; i++) {
-//     fill(255, 0, 0);
+//     fill(255, 0, 0, 150);
 //     ellipse(this.pointsArr[i].x, this.pointsArr[i].y, 10, 10);
 //     fill(0, 0, 0);
 //     textSize(10);
@@ -143,12 +129,17 @@ fishObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
 
-    if(iterations < 6) {
+    if(iterations < 10) {
         subdivide(this);
         iterations++;
     }
 
     fill(this.fishColor);
+    noStroke();
+
+    // computeTPoints(this);
+    // drawArc();
+
     beginShape();
     for(var i = 0; i < this.pointsArr.length; i++) {
         // vertex(this.pointsArr[i].x, this.pointsArr[i].y);
@@ -158,12 +149,32 @@ fishObj.prototype.draw = function() {
     // vertex(this.pointsArr[0].x, this.pointsArr[0].y);
     endShape();
 
-    // if(iterations < 6) {
-    //     subdivide(this);
-    //     iterations++;
-    // }
+    // Draws the eyes
+    var xEye;
+    if(this.facing >= 0) { // facing left
+        xEye = (this.pointsArr[1].x + this.pointsArr[2].x) / 2;
+    } else { // facing right
+        xEye = (this.pointsArr[1].x + this.pointsArr[2].x) / 2;
+    }
+    fill(0, 0, 0);
+    ellipse(xEye, -5, 10, 10);
 
     popMatrix();
+};
+fishObj.prototype.move = function() {
+    if(frameCount%20 === 0) {
+        if(this.facing >= 0) { // facing left
+            this.position.x -= random(0, 5);
+            if(this.position.x <= -100) {
+                this.position.x = 500;
+            }
+        } else {
+            this.position.x += random(0, 5);
+            if(this.position.x >= 500) {
+                this.position.x = -100;
+            }
+        }
+    }
 };
 var fishArr = [];
 // Randomize fishes arbitrarily between 1 and 5
@@ -176,8 +187,9 @@ for(var i = 0; i < fishArr.length; i++) {
 }
 //---------------------------------------------------------------------------------//
 var draw = function() {
-    // background(255, 255, 255);
+    background(255, 255, 255);
     for(var i = 0; i < fishArr.length; i++) {
         fishArr[i].draw();
+        fishArr[i].move();
     }
 };

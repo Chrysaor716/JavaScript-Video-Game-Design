@@ -59,6 +59,12 @@ var fishObj = function(x, y) {
 
     this.pointsArr = [];
     this.p2 = []; // the doubled array for the points array, when split
+
+    // Colors
+    this.rRand = random(0, 255);
+    this.gRand = random(0, 255);
+    this.bRand = random(0, 255);
+    this.fishColor = color(this.rRand, this.gRand, this.bRand);
 };
 fishObj.prototype.randomize = function() {
     pushMatrix();
@@ -98,11 +104,9 @@ fishObj.prototype.randomize = function() {
     }
     // Compute halfway point of the fish
     var halfway = this.deltaX / 2;
-// println("HALFWAY: " + halfway);
     for(var i = 0; i < Math.floor(Math.random() * 5) + 3; i++) {
         // Draws from leftmost part of the fish downwards to draw bottom half of fish body
         this.deltaX -= random(3, 10);
-// println(this.deltaX);
         // stop this current "quadrant" drawing if xPos goes past the halfway point of fish
         if(-this.deltaX >= -halfway) {
             this.deltaX = halfway;
@@ -124,13 +128,13 @@ fishObj.prototype.randomize = function() {
 
 /////////////////////////////////////////////////////////////////////////////////////
 // // Draws ellipses at points for testing
-for(var i = 0; i < this.pointsArr.length; i++) {
-    fill(255, 0, 0);
-    ellipse(this.pointsArr[i].x, this.pointsArr[i].y, 10, 10);
-    fill(0, 0, 0);
-    textSize(10);
-    text(i, this.pointsArr[i].x-3, this.pointsArr[i].y-5);
-}
+// for(var i = 0; i < this.pointsArr.length; i++) {
+//     fill(255, 0, 0);
+//     ellipse(this.pointsArr[i].x, this.pointsArr[i].y, 10, 10);
+//     fill(0, 0, 0);
+//     textSize(10);
+//     text(i, this.pointsArr[i].x-3, this.pointsArr[i].y-5);
+// }
 /////////////////////////////////////////////////////////////////////////////////////
 
     popMatrix();
@@ -139,7 +143,12 @@ fishObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
 
-    noFill();
+    if(iterations < 6) {
+        subdivide(this);
+        iterations++;
+    }
+
+    fill(this.fishColor);
     beginShape();
     for(var i = 0; i < this.pointsArr.length; i++) {
         // vertex(this.pointsArr[i].x, this.pointsArr[i].y);
@@ -148,16 +157,20 @@ fishObj.prototype.draw = function() {
     curveVertex(this.pointsArr[0].x, this.pointsArr[0].y);
     // vertex(this.pointsArr[0].x, this.pointsArr[0].y);
     endShape();
-    if(iterations < 5) {
-        subdivide(this);
-        iterations++;
-    }
+
+    // if(iterations < 6) {
+    //     subdivide(this);
+    //     iterations++;
+    // }
 
     popMatrix();
 };
-// TODO: randomize position in a for loop arbitrarily between 1 and 5
-// var fishArr = [new fishObj(50, 50), new fishObj(width/2, height/2)];
-var fishArr = [new fishObj(300, height/2)];
+var fishArr = [];
+// Randomize fishes arbitrarily between 1 and 5
+for(var i = 0; i < Math.floor(Math.random()*5) + 1; i++) {
+    // var fishArr = [new fishObj(350, 350), new fishObj(width/2, height/2)];
+    fishArr.push(new fishObj(random(100, 300), random(100, 300)));
+}
 for(var i = 0; i < fishArr.length; i++) {
     fishArr[i].randomize();
 }

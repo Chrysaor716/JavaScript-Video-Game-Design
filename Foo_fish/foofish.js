@@ -59,6 +59,11 @@ var fishObj = function(x, y) {
     this.bRand = random(0, 255);
     // this.fishColor = color(this.rRand, this.gRand, this.bRand, random(200, 255));
     this.fishColor = color(this.rRand, this.gRand, this.bRand);
+    // Re-randomize
+    this.rRand = random(0, 255);
+    this.gRand = random(0, 255);
+    this.bRand = random(0, 255);
+    this.tailOutline = color(this.rRand, this.gRand, this.bRand, random(200, 255));
     
     this.tailSize = random(20, 40);
     this.tailLength = random(30, 50);
@@ -83,10 +88,10 @@ var fishObj = function(x, y) {
         this.cx1Dir = random(-1, 1);
         this.cx2Dir = random(-1, 1);
     }
-    this.xDeltaMin1 = random(15, 30);
-    this.xDeltaMin2 = random(15, 30);
-    this.xDeltaMax1 = random(50, 85);
-    this.xDeltaMax2 = random(50, 85);
+    this.xDeltaMin1 = random(25, 45);
+    this.xDeltaMin2 = random(25, 45);
+    this.xDeltaMax1 = random(50, 80);
+    this.xDeltaMax2 = random(50, 80);
 };
 fishObj.prototype.randomize = function() {
     pushMatrix();
@@ -124,15 +129,15 @@ fishObj.prototype.randomize = function() {
     if(this.facing >= 0) { // facing left
         this.x1 = this.baseX+this.tailLength;
         this.cx1 = this.x1 + 35;
-        this.cx2 = this.x1 + 20;
+        this.cx2 = this.cx1;
     } else {
         this.x1 = -this.baseX-this.tailLength;
         this.cx1 = this.x1 - 35;
-        this.cx2 = this.x1 - 20;
+        this.cx2 = this.cx1;
     }
     this.y1 = -this.tailSize;
-    this.cy1 = -this.tailSize/4;
-    this.cy2 = this.tailSize/4;
+    this.cy1 = -this.tailSize;
+    this.cy2 = this.tailSize;
     this.x2 = this.x1;
     this.y2 = this.tailSize;
     
@@ -169,30 +174,29 @@ fishObj.prototype.draw = function() {
     } else {
         triangle(-this.baseX, 0, -this.baseX-this.tailLength-1, -this.tailSize,
                  -this.baseX-this.tailLength-1, this.tailSize); 
-    }
-////////////////////////  TODO  ////////////////////////////////////   
+    } 
     // Draws an animated tail using bezier
-    bezier(this.x1, this.y1, this.cx1, this.cy1,
-           this.cx2, this.cy2, this.x2, this.y2);
+    strokeWeight(3);
+    stroke(this.tailOutline);
+    bezier(this.x1, this.y1, this.cx1, this.cy1, this.cx2, this.cy2, this.x2, this.y2);
     this.cx1 += this.cx1Dir;
     this.cx2 += this.cx2Dir;
     if(this.facing >= 0) {
         // Sets threshold xPos deltas for the tail
-        if((this.cx1 < this.x1+this.xDeltaMin1) || (this.cx1 > this.x1+this.xDeltaMax1)) {
+        if((this.cx1 < this.x1-this.xDeltaMin1) || (this.cx1 > this.x1+this.xDeltaMax1)) {
             this.cx1Dir = -this.cx1Dir;
         }
-        if((this.cx2 < this.x2+this.xDeltaMin2) || (this.cx2 > this.x2+this.xDeltaMax2)) {
+        if((this.cx2 < this.x2-this.xDeltaMin2) || (this.cx2 > this.x2+this.xDeltaMax2)) {
             this.cx2Dir = -this.cx2Dir;
         }
     } else {
-        if((this.cx1 > this.x1-this.xDeltaMin1) || (this.cx1 < this.x1-this.xDeltaMax1)) {
+        if((this.cx1 > this.x1+this.xDeltaMin1) || (this.cx1 < this.x1-this.xDeltaMax1)) {
             this.cx1Dir = -this.cx1Dir;
         }
-        if((this.cx2 > this.x2-this.xDeltaMin2) || (this.cx2 < this.x2-this.xDeltaMax2)) {
+        if((this.cx2 > this.x2+this.xDeltaMin2) || (this.cx2 < this.x2-this.xDeltaMax2)) {
             this.cx2Dir = -this.cx2Dir;
         }
     }
-////////////////////////////////////////////////////////////////////
     
     // Draws the eyes
     var xEye;
@@ -251,6 +255,7 @@ regularBubbleObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
     
+    noStroke();
     fill(255, 255, 255, 180);
     ellipse(0, 0, this.size, this.size);
     ellipse(this.shinePos, -this.shinePos, this.shineSize, this.shineSize);

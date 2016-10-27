@@ -229,7 +229,7 @@ fishObj.prototype.move = function() {
 };
 var fishArr = [];
 // Randomize fishes arbitrarily between 1 and 5
-for(var i = 0; i < Math.floor(Math.random()*5) + 1; i++) {
+for(var i = 0; i < Math.floor(Math.random()*6) + 1; i++) {
     // var fishArr = [new fishObj(350, 350), new fishObj(width/2, height/2)];
     fishArr.push(new fishObj(random(100, 300), random(100, 300)));
 }
@@ -244,11 +244,11 @@ var seaweedObj = function(x, y) {
     // Start with bottom of curve; base
     this.x2 = 0;
     this.y2 = 0;
-    this.cx2 = random(-50, 50); // Go upwards
+    this.cx2 = random(-40, 40); // Go upwards
     this.cy2 = this.y2 + random(-25, -60);
-    this.cx1 = random(-50, 50);
+    this.cx1 = random(-40, 40);
     this.cy1 = this.cy2 + random(-25, -60);
-    this.x1 = random(-50, 50);
+    this.x1 = random(-40, 40);
     this.y1 = this.cy1 + random(-25, -60);
 
     this.cx1Dir = random(-1, 1);
@@ -260,7 +260,7 @@ var seaweedObj = function(x, y) {
         this.cx2Dir = random(-1, 1);
         this.x1Dir = random(-1, 1);
     }
-    this.xDeltaMax = random(60, 70);
+    this.xDeltaMax = random(50, 60);
 
     // Seaweed can be in bundles (this draws up to 2 extra)
     this.numSeaweed = Math.floor(Math.random()*3) + 0;
@@ -274,6 +274,8 @@ seaweedObj.prototype.draw = function() {
     fill(43, 128, 36);
 
     bezier(this.x1, this.y1, this.cx1, this.cy1, this.cx2, this.cy2, this.x2, this.y2);
+    // Draws opposite half of seaweed
+    bezier(this.x1, this.y1, -this.cx1, this.cy1, -this.cx2, this.cy2, this.x2, this.y2);
     this.cx1 += this.cx1Dir;
     this.cx2 += this.cx2Dir;
     this.x1 += this.x1Dir;
@@ -338,11 +340,13 @@ for(var i = 0; i < Math.floor(Math.random()*20) + 10; i++) {
 //---------------------------------------------------------------------------------//
 var draw = function() {
     background(16, 104, 166, 200);
-    for(var i = 0; i < fishArr.length; i++) {
+    // Draws ~half of the fishes first
+    for(var i = 0; i < Math.floor(fishArr.length/2); i++) {
         fishArr[i].draw();
         fishArr[i].move();
     }
-    for(var i = 0; i < seaweedArr.length; i++) {
+    // Do the same for drawing seaweed
+    for(var i = 0; i < Math.floor(seaweedArr.length/2); i++) {
         seaweedArr[i].draw();
     }
     for(var i = 0; i < regBubbleArr.length; i++) {
@@ -352,6 +356,15 @@ var draw = function() {
         if(regBubbleArr[i].position.y < -100) {
             regBubbleArr.splice(i, 1);
         }
+    }
+
+    // Draws remaining ~half of fishes (so some could be in front of bubbles and seaweed)
+    for(var i = Math.floor(fishArr.length/2); i < fishArr.length; i++) {
+        fishArr[i].draw();
+        fishArr[i].move();
+    }
+    for(var i = Math.floor(seaweedArr.length/2); i < seaweedArr.length; i++) {
+        seaweedArr[i].draw();
     }
 
     // Occassionally spawn new bubbles beyond the bottom of the screen

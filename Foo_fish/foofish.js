@@ -313,9 +313,7 @@ var regularBubbleObj = function(x, y) {
     this.position = new PVector(x, y);
     this.size = random(15, 80);
 
-    // this.shinePos = random(-1/4, 1/4)*this.size;
     this.shinePos = this.size / 6;
-    // this.shineSize = this.size/random(3, 7);
     this.shineSize = this.size/4;
 };
 regularBubbleObj.prototype.draw = function() {
@@ -337,6 +335,37 @@ var regBubbleArr = [];
 for(var i = 0; i < Math.floor(Math.random()*20) + 10; i++) {
     regBubbleArr.push(new regularBubbleObj(random(10, 390), random(10, 390)));
 }
+
+// Bursting particle bubbles upon mouse click
+var burstObj = function() {
+    this.position = new PVector(0, 0);
+    this.direction = new PVector(0, 0);
+    this.size = random(1, 5);
+    // this.timer = 0; // leave this here or nah? Maybe just disappear after a while
+};
+burstObj.prototype.draw = function() {
+    noStroke();
+    fill(random(240, 255), random(240, 255), random(240, 255));
+    ellipse(this.position.x, this.position.y, this.size, this.size);
+    this.position.x += this.direction.y*cos(this.direction.x);
+    this.position.y += this.direction.y*sin(this.direction.x);
+    // this.position.y -= (90/(this.timer + 100)); // flow upwards
+    // this.timer--;
+};
+var burstArr = [];
+for(var i = 0; i < Math.floor(random(50, 200)); i++) {
+    burstArr.push(new burstObj());
+}
+
+var xBurst = 0;
+var yBurst = 0;
+mouseClicked = function() {
+    xBurst = mouseX;
+    yBurst = mouseY;
+    for(var i = 0; i < burstArr.length; i++) {
+        burstArr[i].position.set(xBurst, yBurst); // burst from mouse position
+    }
+};
 //---------------------------------------------------------------------------------//
 var draw = function() {
     background(16, 104, 166, 200);
@@ -370,5 +399,15 @@ var draw = function() {
     // Occassionally spawn new bubbles beyond the bottom of the screen
     if(frameCount % (Math.floor(Math.random()*200) + 60) === 0) {
         regBubbleArr.push(new regularBubbleObj(random(5, 395), random(400, 550)));
+    }
+
+    // Draws bubble bursts on mouse clicks
+    for(var i = 0; i < burstArr.length; i++) {
+        // burst in random upwards directions (x)
+        //      in N range of magnitudes (y)
+        // burstArr[i].direction.set(random(-Math.PI/4, -3*Math.PI/4), random(0, 1));
+        burstArr[i].direction.set(random(-45, -135), random(0, 1));
+        // burstArr[i].timer = 400;
+        burstArr[i].draw();
     }
 };

@@ -50,6 +50,8 @@ var subdivide = function(me) {
 var fishObj = function(x, y) {
     this.position = new PVector(x, y); // intesection point between body and tail
     this.facing = random(-50, 50); // negative val = facing right, positive = left
+    this.yDelta = random(-0.6, 0.6);
+    this.yDeltaTime = random(60, 200); // time to travel the y delta before changing
 
     this.pointsArr = [];
     this.p2 = []; // the doubled array for the points array, when split
@@ -212,8 +214,10 @@ fishObj.prototype.draw = function() {
     popMatrix();
 };
 fishObj.prototype.move = function() {
+    // X movement based on which direction fishes are facing (to swim forward)
     if(this.facing >= 0) { // facing left
         this.position.x -= random(0, 0.7);
+        // Keeps fishes within x bounds
         if(this.position.x <= -150) {
             this.position.x = 500;
         }
@@ -224,7 +228,19 @@ fishObj.prototype.move = function() {
         }
     }
     // Random vertical movement
-    // this.position.y += random(-0.7, 0.7);
+    this.position.y += this.yDelta;
+    if(frameCount % this.yDeltaTime === 0) {
+        // Re-generate random direction at random time
+        this.yDelta = random(-0.6, 0.6);
+        this.yDeltaTime = random(60, 200);
+    }
+    // Keeps fishes within y bounds
+    if(this.position.y >= 500) {
+        this.position.y = -100;
+    }
+    if(this.position.y <= -100) {
+        this.position.y = 500;
+    }
 };
 var fishArr = [];
 // Randomize fishes arbitrarily between 1 and 5

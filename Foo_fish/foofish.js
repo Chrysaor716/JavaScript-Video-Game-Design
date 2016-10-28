@@ -44,7 +44,8 @@ var subdivide = function(me) {
 };
 //---------------------------------------------------------------------------------//
 /*
- *  Draws arbitrarily shaped fishes from the subdivision algorithm
+ *  Draws arbitrarily shaped fishes from the subdivision algorithm & animates their
+ *      tail using bezier
  */
 var fishObj = function(x, y) {
     this.position = new PVector(x, y); // intesection point between body and tail
@@ -152,8 +153,8 @@ fishObj.prototype.draw = function() {
         iterations++;
     }
 
-    fill(this.fishColor);
     noStroke();
+    fill(this.fishColor);
 
     beginShape();
     for(var i = 0; i < this.pointsArr.length; i++) {
@@ -212,20 +213,18 @@ fishObj.prototype.draw = function() {
 };
 fishObj.prototype.move = function() {
     if(this.facing >= 0) { // facing left
-        // this.position.x -= random(0, 5);
         this.position.x -= random(0, 0.7);
         if(this.position.x <= -150) {
             this.position.x = 500;
         }
     } else {
-        // this.position.x += random(0, 5);
         this.position.x += random(0, 0.7);
         if(this.position.x >= 550) {
             this.position.x = -100;
         }
     }
     // Random vertical movement
-    // this.position.y += random(-1, 1);
+    // this.position.y += random(-0.7, 0.7);
 };
 var fishArr = [];
 // Randomize fishes arbitrarily between 1 and 5
@@ -340,34 +339,47 @@ for(var i = 0; i < Math.floor(Math.random()*20) + 10; i++) {
 var burstObj = function() {
     this.position = new PVector(0, 0);
     this.direction = new PVector(0, 0);
-    this.size = random(1, 5);
-    // this.timer = 0; // leave this here or nah? Maybe just disappear after a while
+    this.size = random(1, 10);
+    this.timer = random(50, 130); // countdown to "pop" bubbles
 };
 burstObj.prototype.draw = function() {
     noStroke();
-    fill(random(240, 255), random(240, 255), random(240, 255));
+    fill(random(240, 255), random(240, 255), random(240, 255), random(100, 255));
     ellipse(this.position.x, this.position.y, this.size, this.size);
-    this.position.x += this.direction.y*cos(this.direction.x);
-    this.position.y += this.direction.y*sin(this.direction.x);
-    // this.position.y -= (90/(this.timer + 100)); // flow upwards
-    // this.timer--;
+    this.position.x += this.direction.y*cos(this.direction.x)/2;
+    this.position.y += this.direction.y*sin(this.direction.x)/2;
+    this.timer--;
 };
-var burstArr = [];
-for(var i = 0; i < Math.floor(random(50, 200)); i++) {
-    burstArr.push(new burstObj());
-}
-
-var xBurst = 0;
-var yBurst = 0;
-mouseClicked = function() {
-    xBurst = mouseX;
-    yBurst = mouseY;
-    for(var i = 0; i < burstArr.length; i++) {
-        burstArr[i].position.set(xBurst, yBurst); // burst from mouse position
+// Creates an array of paricle bundles
+var particleBundles = function(x, y) {
+    this.burstArr = [];
+    for(var i = 0; i < Math.floor(random(50, 130)); i++) {
+        this.burstArr.push(new burstObj()); // pushes individual particles into array
+    }
+    // Set particle starting position
+    for(var i = 0; i < this.burstArr.length; i++) {
+        this.burstArr[i].position.set(x, y); // burst from mouse position
     }
 };
+particleBundles.prototype.draw = function() {
+    for(var i = 0; i < this.burstArr.length; i++) {
+        // burst in random upwards directions (x)
+        //      in N range of magnitudes (y)
+        this.burstArr[i].direction.set(random(-Math.PI/4, -3*Math.PI/4), random(0, 9));
+        this.burstArr[i].draw();
+        // After arbitrary times for each particle/bubble, pop
+        if(this.burstArr[i].timer <= 0) {
+            this.burstArr.splice(i, 1);
+        }
+    }
+};
+var bundleArr = [];
+
+mouseClicked = function() {
+    bundleArr.push(new particleBundles(mouseX, mouseY));
+};
 //---------------------------------------------------------------------------------//
-var draw = function() {
+draw = function() {
     background(16, 104, 166, 200);
     // Draws ~half of the fishes first
     for(var i = 0; i < Math.floor(fishArr.length/2); i++) {
@@ -402,12 +414,11 @@ var draw = function() {
     }
 
     // Draws bubble bursts on mouse clicks
-    for(var i = 0; i < burstArr.length; i++) {
-        // burst in random upwards directions (x)
-        //      in N range of magnitudes (y)
-        // burstArr[i].direction.set(random(-Math.PI/4, -3*Math.PI/4), random(0, 1));
-        burstArr[i].direction.set(random(-45, -135), random(0, 1));
-        // burstArr[i].timer = 400;
-        burstArr[i].draw();
+    for(var i = 0 ; i < bundleArr.length; i++) {
+        bundleArr[i].draw();
+        // Remove instance of bubble/particle bundle when all the bubbles have "popped"
+        if(bundleArr[i].burstArr.length <= 0) {
+            bundleArr.splice(i, 1);
+        }
     }
 };

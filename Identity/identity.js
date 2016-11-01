@@ -15,43 +15,54 @@ var child = function(x, y, charType) {
     this.facing = 1; // default: character is facing right
 };
 child.prototype.draw = function() {
-    pushMatrix();
-    translate(this.position.x, this.position.y);
-    
-    ///////////////////////////////////////////
-    // Collision box for child
-    stroke(0, 0, 0);
-    line(-this.size/2, -this.size/2, this.size/2, -this.size/2);
-    line(-this.size/2, this.size/2, this.size/2, this.size/2);
-    line(-this.size/2, -this.size/2, -this.size/2, this.size/2);
-    line(this.size/2, -this.size/2, this.size/2, this.size/2);
-    fill(0, 136, 255, 100);
-    noStroke();
-    ellipse(0, 0, this.size, this.size);
-    ///////////////////////////////////////////
-    
-    noStroke();
-    fill(222, 187, 104);
-    ellipse(0, -this.size/4, this.size/2, this.size/2);
-    // ellipse(0, -this.size/3, this.size/3, this.size/3);
-    ellipse(this.size/4 * this.facing, -this.size/4, this.size/6, this.size/8); //nose
-    fill(0, 0, 0);
-    arc(0, -this.size/3, this.size/1.5, this.size/1.5, -Math.PI, 0); //hair (top)
-    if(this.facing === 1) { // facing right
-        arc(0, -this.size/3, this.size/1.5, this.size/1.5, Math.PI/2, 3*Math.PI/2); //hair(back)
-        ellipse(this.size/6, -this.size/4, this.size/12, this.size/6); //eye
-    } else {
-        arc(0, -this.size/3, this.size/1.5, this.size/1.5, -Math.PI/2, Math.PI/2); //hair(back)
-        ellipse(-this.size/6, -this.size/4, this.size/12, this.size/6); //eye
-    }
-    fill(222, 187, 104);
-    ellipse(0, -this.size/4, this.size/6, this.size/5); // ear
-    
-    fill(54, 64, 255);
-    rect(-this.size/4, 0, this.size/2, this.size/3);
-    // rect(-this.size/4, -this.size/6, this.size/2, this.size/2);
-    
-    popMatrix();
+	pushMatrix();
+	translate(this.position.x, this.position.y);
+
+	///////////////////////////////////////////
+	// Collision box for child
+	stroke(0, 0, 0);
+	strokeWeight(1);
+	line(-this.size/2, -this.size/2, this.size/2, -this.size/2);
+	line(-this.size/2, this.size/2, this.size/2, this.size/2);
+	line(-this.size/2, -this.size/2, -this.size/2, this.size/2);
+	line(this.size/2, -this.size/2, this.size/2, this.size/2);
+	fill(0, 136, 255, 100);
+	noStroke();
+	ellipse(0, 0, this.size, this.size);
+	///////////////////////////////////////////
+
+	noStroke();
+	fill(222, 187, 104);
+	ellipse(0, -this.size/4, this.size/2, this.size/2); //head
+	ellipse(this.size/4 * this.facing, -this.size/4, this.size/6, this.size/8); //nose
+	fill(0, 0, 0);
+	arc(0, -this.size/3, this.size/1.5, this.size/1.5, -Math.PI, 0); //hair (top)
+	if(this.facing === 1) { // facing right
+			arc(0, -this.size/3, this.size/1.5, this.size/1.5, Math.PI/2, 3*Math.PI/2); //hair(back)
+	} else {
+			arc(0, -this.size/3, this.size/1.5, this.size/1.5, -Math.PI/2, Math.PI/2); //hair(back)
+	}
+	ellipse(this.size/6 * this.facing, -this.size/4, this.size/12, this.size/6); //eye
+	fill(222, 187, 104);
+	ellipse(0, -this.size/4, this.size/6, this.size/5); //ear
+
+	////////////////////////  TODO animate limbs ////////////////////////////////
+	stroke(222, 187, 104);
+	strokeWeight(this.size/8);
+	line(0, 0, -this.size/4 * this.facing, this.size/4); //arms (back)
+	line(0, this.size/3, this.size/4 * this.facing, this.size/2); //leg (front)
+
+	noStroke();
+	fill(54, 64, 255);
+	ellipse(0, this.size/5, this.size/2, this.size/2); //torso
+
+	stroke(222, 187, 104);
+	strokeWeight(this.size/8);
+	line(0, 0, this.size/4 * this.facing, this.size/4); //arms (front)
+	line(0, this.size/3, -this.size/4 * this.facing, this.size/2); //leg (front)
+	/////////////////////////////////////////////////////////////////////////////
+
+	popMatrix();
 };
 var boy = new child(width/2, height/2);
 // TODO: make shadow

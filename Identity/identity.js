@@ -2,19 +2,61 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 
 size(600, 400); // canvas size
 frameRate(60);
-angleMode = "radians";
 
 /*
  *  Characters
  */
-/////////////////////////  TODO  /////////////////////////
-var child = function(x, y, color) {
+//////////////  TODO  ////////////////
+var child = function(x, y, charType) {
     this.position = new PVector(x, y);
+    // Indicates whether the character is the original, its shadow, or its reflection
+    this.charType = charType;
+    this.size = 40; // default
+    this.facing = 1; // default: character is facing right
 };
 child.prototype.draw = function() {
-    //
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
+    ///////////////////////////////////////////
+    // Collision box for child
+    stroke(0, 0, 0);
+    line(-this.size/2, -this.size/2, this.size/2, -this.size/2);
+    line(-this.size/2, this.size/2, this.size/2, this.size/2);
+    line(-this.size/2, -this.size/2, -this.size/2, this.size/2);
+    line(this.size/2, -this.size/2, this.size/2, this.size/2);
+    fill(0, 136, 255, 100);
+    noStroke();
+    ellipse(0, 0, this.size, this.size);
+    ///////////////////////////////////////////
+    
+    noStroke();
+    fill(222, 187, 104);
+    ellipse(0, -this.size/4, this.size/2, this.size/2);
+    // ellipse(0, -this.size/3, this.size/3, this.size/3);
+    ellipse(this.size/4 * this.facing, -this.size/4, this.size/6, this.size/8); //nose
+    fill(0, 0, 0);
+    arc(0, -this.size/3, this.size/1.5, this.size/1.5, -Math.PI, 0); //hair (top)
+    if(this.facing === 1) { // facing right
+        arc(0, -this.size/3, this.size/1.5, this.size/1.5, Math.PI/2, 3*Math.PI/2); //hair(back)
+        ellipse(this.size/6, -this.size/4, this.size/12, this.size/6); //eye
+    } else {
+        arc(0, -this.size/3, this.size/1.5, this.size/1.5, -Math.PI/2, Math.PI/2); //hair(back)
+        ellipse(-this.size/6, -this.size/4, this.size/12, this.size/6); //eye
+    }
+    fill(222, 187, 104);
+    ellipse(0, -this.size/4, this.size/6, this.size/5); // ear
+    
+    fill(54, 64, 255);
+    rect(-this.size/4, 0, this.size/2, this.size/3);
+    // rect(-this.size/4, -this.size/6, this.size/2, this.size/2);
+    
+    popMatrix();
 };
-//////////////////////////////////////////////////////////
+var boy = new child(width/2, height/2);
+// TODO: make shadow
+// TODO: make reflection
+////////////////////////////////////
 
 /*
  *	Tilemaps
@@ -42,9 +84,9 @@ var rockArr = [];
 // 40x20 tile array --> 800x400 pixel
 var rockTilemap = ["r------------rr----rr------------rr----r",
                    "r------------rr----rr------------rr----r",
-            	   "r------------------rr------------------r",
- 	               "-------------------rrrrrrrr------------r",
-    	           "rrrrrrr-----rrrr---rrrrrrrr-----rrrr---r",
+                   "r------------------rr------------------r",
+                   "-------------------rrrrrrrr------------r",
+                   "rrrrrrr-----rrrr---rrrrrrrr-----rrrr---r",
                    "rrr---------rrrr---rrrr---------rrrr---r",
                    "rrr-------------------------------------",
                    "r-----rrrr--rr-----rrrr---------rrrr---r",
@@ -59,7 +101,7 @@ var rockTilemap = ["r------------rr----rr------------rr----r",
                    "rrr-----rrrr-------rrrr---------rrrr---r",
                    "r-------rrrr-------rrrr---------rrrr---r",
                    "r---------rrrrrr---rrrr---------rrrr---r",
-                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"]; // @ ~400 pixels down from top
+                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"]; // @ ~400 pixels down
 var initRockTilemap = function() {
     for(var i = 0; i < rockTilemap.length; i++) {
         for(var j = 0; j < rockTilemap[i].length; j++) {
@@ -85,7 +127,9 @@ menuPage1.prototype.execute = function(obj) {
 	background(255, 255, 255);
 	fill(0, 0, 0);
 	textSize(20);
-	text("Menu page 1.", width/2-70, height/2);
+	text("Menu page 1.", width/2-70, height/2-100);
+
+	boy.draw();
 };
 var menuPage2 = function() {};
 menuPage2.prototype.execute = function(obj) {

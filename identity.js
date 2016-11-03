@@ -185,7 +185,7 @@ childObj.prototype.draw = function() {
 
     popMatrix();
 };
-var boy = new childObj(width/2, height/2 ,1);
+var boy = new childObj(width/2, height/2, 1);
 // TODO: make shadow
 // TODO: make reflection
 ////////////////////////////////////
@@ -193,16 +193,20 @@ var boy = new childObj(width/2, height/2 ,1);
 /*
  *  Draws mountains in the background using Perlin noise
  */
-var mountainObj = function() {};
+var mountainObj = function(colour) {
+    this.colour = colour;
+};
 mountainObj.prototype.draw = function() {
-    stroke(222, 222, 222);
+    stroke(this.colour, this.colour, this.colour);
     var step = 0.01;
-    for(var t = 0; t < step*width; t += step) {
-        var y = map(noise(t), 2, 1, 0, height/3);
+    for(var t = 0; t < step * width; t += step) {
+        var n = noise(t + this.colour * 20);
+        var y = map(n, 0, 1, 0, height/2);
         rect(t*100, height-y, 1, y);
     }
 };
-var mountains = new mountainObj();
+var mountainsBack = new mountainObj(150);
+var moutainsFront = new mountainObj(25);
 
 /*
  *	Tilemaps
@@ -268,10 +272,11 @@ initRockTilemap();
 /*
  *	Game States
  */
-var menuPage1 = function() {}; // constructor
-menuPage1.prototype.execute = function(obj) {
+var mainMenu = function() {}; // constructor
+mainMenu.prototype.execute = function(obj) {
 	background(255, 255, 255);
-    mountains.draw();
+    mountainsBack.draw();
+    moutainsFront.draw();
 
 	fill(30, 0, 222);
 	textSize(40);
@@ -283,34 +288,78 @@ menuPage1.prototype.execute = function(obj) {
 	text("Child, where is your imagination going today? Who will\n" +
 	"  you be? What will you do? Where will you venture?", 60, 100);
 
-    boy.position.set(width/2, height/2+50);
+    boy.position.set(width/2, height/2-40);
 	boy.draw();
 
-	fill(0, 0, 0);
-	text("Click to advance...", 230, 350);
+	fill(63, 122, 217);
+	text("About", width-120, 170);
+	text("Controls", width-120, 200);
+	text("Play", width-120, 230);
+	strokeWeight(1);
+	stroke(110, 110, 110);
+	// Underline selection when mouse hovers above it
+	//      for visual feedback
+	if(mouseX >= width-130 && mouseX <= width-40) {
+	    if(mouseY > 150 && mouseY < 180) {
+	        line(width-120, 175, width-90, 175);
+	    }
+	    if(mouseY > 180 && mouseY < 210) {
+	        line(width-120, 205, width-90, 205);
+	    }
+	    if(mouseY > 210 && mouseY < 240) {
+	        line(width-120, 235, width-90, 235);
+	    }
+	}
 };
-var menuPage2 = function() {};
-menuPage2.prototype.execute = function(obj) {
-	background(255, 255, 255);
-    mountains.draw();
-
-	fill(0, 0, 0);
-	textSize(15);
+var about = function() {};
+about.prototype.execute = function(obj) {
+    background(0, 0, 0);
+    fill(255, 255, 255);
+	textSize(30);
 	textFont(createFont("monospace"));
-	text("You are what you make yourself out to be, child. Use the\n" +
-	"arrow keys to advance. Your alternate ego is with you...", 60, 60);
+	text("About", width/2-50, 60);
+
+    textSize(15);
+    text("You are what you make yourself out to be, child. Your\n              alternate ego is with you...", 60, 90);
+
+    text("\"Identity\" is a game where you play as an imaginative\n" +
+    "child. Your shadows and your reflections act as your\n" +
+    "imagined self, having abilities beyond what your physical,\n" +
+    "moral self can do. Since they branch off of you, they are\n" +
+    "restricted to your physical bodies. Venture off and let\n" +
+    "that imagination go wild!", 60, 150);
 
 	fill(0, 30, 255);
 	textSize(20);
-	text("Identity", width/2-50, 300);
-	fill(0, 0, 0);
+	text("Identity", width/2-50, 290);
+	fill(255, 255, 255);
 	textSize(12);
-	text("Christina Nguyen", width/2-60, 320);
+	text("Christina Nguyen", width/2-60, 310);
+
+	textSize(10);
+	text("Click anywhere on the screen to return to main menu", 150, 340);
+};
+var controls = function() {}; // constructor
+controls.prototype.execute = function(obj) {
+	background(255, 255, 255);
+    mountainsBack.draw();
+    moutainsFront.draw();
+
+	fill(0, 0, 0);
+	textSize(30);
+	textFont(createFont("monospace"));
+	text("Controls", width/2-60, 60);
+
+	textSize(20);
+	text("Left/Right arrow keys: move", 150, 100);
+	text("Up key: jump", 230, 130);
+
+	textSize(10);
+	text("Click anywhere on the screen to return to main menu", 150, 200);
 };
 
-/////////////////////////  TODO  /////////////////////////
-var gameState = function() {}; // constructor
-gameState.prototype.execute = function(obj) {
+var play = function() {}; // constructor
+play.prototype.execute = function(obj) {
 	background(255, 255, 255);
 	fill(0, 0, 0);
 	textSize(20);
@@ -320,11 +369,11 @@ gameState.prototype.execute = function(obj) {
 		rockArr[i].draw();
 	}
 };
-//////////////////////////////////////////////////////////
 //--------------------------------------------------------
 var gameObj = function() {
-	this.state = [new menuPage1(), new menuPage2(), new gameState()]; //TODO add states here as you create them
-	this.currState = 0; // Initialize to state in first index (menuPage1)
+	this.state = [new mainMenu(), new about(), new controls(),
+	              new play()];
+	this.currState = 0; // Initialize to state in first index (main menu)
 };
 gameObj.prototype.changeStateTo = function(state) {
 	this.currState = state;
@@ -335,9 +384,25 @@ var game = new gameObj();
  *	Mouse interactions.
  */
 mouseClicked = function() {
-	if(game.currState === 0 || game.currState === 1) {
-//		game.changeStateTo(0);
-		game.currState++;
+	if(game.currState === 0) { // Main menu screen
+	    if(mouseX >= width-130 && mouseX <= width-40) {
+	        // Mouse hovered over the "About" option
+	        if(mouseY > 150 && mouseY < 180) {
+	            game.changeStateTo(1); // "About" screen
+	        }
+	        if(mouseY > 180 && mouseY < 210) {
+	            game.changeStateTo(2); // "Controls" screen
+	        }
+	        if(mouseY > 210 && mouseY < 240) {
+	            game.changeStateTo(3); // "Play" state
+	        }
+	    }
+	} else if(game.currState === 1) { // "About" screen
+	    game.changeStateTo(0); // main menu
+	} else if(game.currState === 2) { // "Controls" screen
+	    game.changeStateTo(0); // main menu
+	} else if(game.currState === 3) { // "Play" state; gameplay
+	    //
 	}
 };
 

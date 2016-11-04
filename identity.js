@@ -8,7 +8,7 @@ frameRate(60);
  */
 var childObj = function(x, y, charType) {
     this.position = new PVector(x, y);
-    // Indicates whether the character is the original, its shadow, or its reflection
+    // Indicates whether the character is the original (1), its shadow (0), or its reflection (2)
     this.charType = charType;
     this.size = 40; // default
     this.facing = 1; // default: character is facing right
@@ -17,6 +17,11 @@ var childObj = function(x, y, charType) {
     this.snapshot = 0;
     this.currFrame = frameCount;
     this.dir = 1; // direction of frame iterations for animation
+
+    // Keep track of feet position to connect characters
+    //      (e.g. shadow attached to original char)
+    this.backFoot = new PVector(0, 0);
+    this.frontFoot = new PVector(0, 0);
 };
 childObj.prototype.draw = function() {
     pushMatrix();
@@ -37,6 +42,9 @@ childObj.prototype.draw = function() {
 
     noStroke();
     fill(222, 187, 104);
+    if(this.charType === 0) { // shadow
+        fill(0, 0, 0);
+    }
     ellipse(0, -this.size/4, this.size/2, this.size/2); //head
     ellipse(this.size/4 * this.facing, -this.size/4, this.size/6, this.size/8); //nose
     fill(0, 0, 0);
@@ -48,120 +56,200 @@ childObj.prototype.draw = function() {
     }
     ellipse(this.size/6 * this.facing, -this.size/4, this.size/12, this.size/6); //eye
     fill(222, 187, 104);
+    if(this.charType === 0) {
+        fill(0, 0, 0);
+    }
     ellipse(0, -this.size/4, this.size/6, this.size/5); //ear
 
     ////////////////////////  TODO jump animations ////////////////////////////////
     switch(this.snapshot) {
         case 0:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, -this.size/4 * this.facing, this.size/4); //arms (back)
             line(0, this.size/3, this.size/4 * this.facing, this.size/2); //leg (back)
+            this.backFoot.set(this.size/4 * this.facing, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, this.size/4 * this.facing, this.size/4); //arms (front)
             line(0, this.size/3, -this.size/4 * this.facing, this.size/2); //leg (front)
+            this.frontFoot.set(-this.size/4 * this.facing, this.size/2);
         break;
 
         case 1:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, -this.size/6 * this.facing, this.size/4); //arms (back)
             line(0, this.size/3, this.size/6 * this.facing, this.size/2); //leg (back)
+            this.backFoot.set(this.size/6 * this.facing, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, this.size/6 * this.facing, this.size/4); //arms (front)
             line(0, this.size/3, -this.size/6 * this.facing, this.size/2); //leg (front)
+            this.frontFoot.set(-this.size/6 * this.facing, this.size/2);
         break;
 
         case 2:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, -this.size/8 * this.facing, this.size/4); //arms (back)
             line(0, this.size/3, this.size/8 * this.facing, this.size/2); //leg (back)
+            this.backFoot.set(this.size/8 * this.facing, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, this.size/8 * this.facing, this.size/4); //arms (front)
             line(0, this.size/3, -this.size/8 * this.facing, this.size/2); //leg (front)
+            this.frontFoot.set(-this.size/8 * this.facing, this.size/2);
         break;
 
         case 3:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, 0, this.size/4); //arms (back)
             line(0, this.size/3, 0, this.size/2); //leg (back)
+            this.backFoot.set(0, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, 0, this.size/4); //arms (front)
             line(0, this.size/3, 0, this.size/2); //leg (front)
+            this.frontFoot.set(0, this.size/2);
         break;
 
         case 4:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, -this.size/-8 * this.facing, this.size/4); //arms (back)
             line(0, this.size/3, this.size/-8 * this.facing, this.size/2); //leg (back)
+            this.backFoot.set(this.size/-8 * this.facing, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, this.size/-8 * this.facing, this.size/4); //arms (front)
             line(0, this.size/3, -this.size/-8 * this.facing, this.size/2); //leg (front)
+            this.frontFoot.set(-this.size/-8 * this.facing, this.size/2);
         break;
 
         case 5:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, -this.size/-6 * this.facing, this.size/4); //arms (back)
             line(0, this.size/3, this.size/-6 * this.facing, this.size/2); //leg (back)
+            this.backFoot.set(this.size/-6 * this.facing, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, this.size/-6 * this.facing, this.size/4); //arms (front)
             line(0, this.size/3, -this.size/-6 * this.facing, this.size/2); //leg (front)
+            this.frontFoot.set(-this.size/-6 * this.facing, this.size/2);
         break;
 
         case 6:
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, -this.size/-4 * this.facing, this.size/4); //arms (back)
             line(0, this.size/3, this.size/-4 * this.facing, this.size/2); //leg (back)
+            this.backFoot.set(this.size/-4 * this.facing, this.size/2);
 
             noStroke();
             fill(54, 64, 255);
+            if(this.charType === 0) {
+                fill(0, 0, 0);
+            }
             ellipse(0, this.size/5, this.size/2, this.size/2); //torso
 
             stroke(222, 187, 104);
+            if(this.charType === 0) {
+                stroke(0, 0, 0);
+            }
             strokeWeight(this.size/8);
             line(0, 0, this.size/-4 * this.facing, this.size/4); //arms (front)
             line(0, this.size/3, -this.size/-4 * this.facing, this.size/2); //leg (front)
+            this.frontFoot.set(-this.size/-4 * this.facing, this.size/2);
         break;
 
         default:
@@ -181,11 +269,12 @@ childObj.prototype.draw = function() {
         this.snapshot = 1;
         this.dir = -this.dir;
     }
-    // println(this.snapshot);
 
     popMatrix();
 };
 var boy = new childObj(width/2, height/2, 1);
+var shadow = new childObj((width/2)-100, height/2, 0);
+shadow.size = 60;
 // TODO: make shadow
 // TODO: make reflection
 ////////////////////////////////////
@@ -288,8 +377,26 @@ mainMenu.prototype.execute = function(obj) {
 	text("Child, where is your imagination going today? Who will\n" +
 	"  you be? What will you do? Where will you venture?", 60, 100);
 
-    boy.position.set(width/2, height/2-40);
+    // Draw the boy's shadow first
+    shadow.size = 60;
+    shadow.position.set((width/2)-100, (height/2)-40);
+    shadow.draw();
+    // Connects the shadow to the boy
+	stroke(0, 0, 0);
+	strokeWeight(7);
+	line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
+	     shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
+	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
+	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
+	strokeWeight(1); // reset stroke weight back to normal
+	// Draws the boy on top of shadow
+    boy.position.set(width/2, height/2+20);
 	boy.draw();
+// 	//////////////////////////////////////////////////////////
+// 	noStroke();
+// 	fill(255, 0, 0);
+// 	ellipse(boy.backFoot.x, boy.frontFoot.y, 10, 10);
+// 	//////////////////////////////////////////////////////////
 
 	fill(63, 122, 217);
 	text("About", width-120, 170);
@@ -354,8 +461,12 @@ controls.prototype.execute = function(obj) {
 	text("Left/Right arrow keys: move", 150, 100);
 	text("Up key: jump", 230, 130);
 
+	shadow.size = 40;
+	shadow.position.set(width/2, height/2+30);
+    shadow.draw();
+
 	textSize(10);
-	text("Click anywhere on the screen to return to main menu", 150, 200);
+	text("Click anywhere on the screen to return to main menu", 150, 260);
 };
 
 var play = function() {}; // constructor

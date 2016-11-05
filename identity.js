@@ -22,6 +22,12 @@ var childObj = function(x, y, charType) {
     //      (e.g. shadow attached to original char)
     this.backFoot = new PVector(0, 0);
     this.frontFoot = new PVector(0, 0);
+
+    // PHYSICS
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(0, 0);
+    this.acceleration = new PVector(0, 0);
+    this.jump = 0;
 };
 childObj.prototype.draw = function() {
     pushMatrix();
@@ -275,9 +281,63 @@ childObj.prototype.draw = function() {
 var boy = new childObj(width/2, height/2, 1);
 var shadow = new childObj((width/2)-100, height/2, 0);
 shadow.size = 60;
-// TODO: make shadow
 // TODO: make reflection
-////////////////////////////////////
+// PHYSICS
+var gravity = new PVector(0, 0.1);
+var rightForceApplied = 0;
+var leftForceApplied = 0;
+var f = new PVector(0, 0);
+var jumpForce = new PVector(0, -4);
+childObj.prototype.applyForce = function(force) {
+    this.acceleration.add(force);
+};
+childObj.prototype.update = function() {
+    this.acceleration.set(0, 0);
+    if(rightForceApplied === 1) {
+        f.set(0.01, 0);
+    }
+    if(leftForceApplied === 1) {
+        f.set(-0.01, 0);
+    }
+    this.applyForce(f);
+    if(this.jump === 2) {
+        this.applyForce(jumpForce);
+        this.jump = 1;
+    }
+    if(this.jump > 0) {
+        this.applyForce(gravity);
+    }
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+    this.acceleration.set(0, 0); // reset acceleration
+};
+////////////////////////////////////////
+var keys = [];
+var keyPressed = function() {
+    if(keyCode === RIGHT) {
+        boy.facing = 1;
+        shadow.facing = 1;
+        rightForceApplied = 1;
+    } else if(keyCode === LEFT) {
+        boy.facing = -1;
+        shadow.facing = -1;
+        leftForceApplied = 1;
+    }
+    if((keyCode === UP) && (boy.jump === 0)) {
+        boy.jump = 2;
+    }
+    if((keyCode === UP) && (shadow.jump === 0)) {
+        shadow.jump = 2;
+    }
+};
+var keyReleased = function() {
+    if(keyCode === RIGHT) {
+        rightForceApplied = 0;
+    } else if (keyCode === LEFT) {
+        leftForceApplied = 0;
+    }
+};
+////////////////////////////////////////
 
 /*
  *  Draws mountains in the background using Perlin noise
@@ -379,7 +439,7 @@ mainMenu.prototype.execute = function(obj) {
 
     // Draw the boy's shadow first
     shadow.size = 60;
-    shadow.position.set((width/2)-100, (height/2)-40);
+    shadow.position.set((width/2)-100, (height/2)-30);
     shadow.draw();
     // Connects the shadow to the boy
 	stroke(0, 0, 0);
@@ -392,11 +452,6 @@ mainMenu.prototype.execute = function(obj) {
 	// Draws the boy on top of shadow
     boy.position.set(width/2, height/2+20);
 	boy.draw();
-// 	//////////////////////////////////////////////////////////
-// 	noStroke();
-// 	fill(255, 0, 0);
-// 	ellipse(boy.backFoot.x, boy.frontFoot.y, 10, 10);
-// 	//////////////////////////////////////////////////////////
 
 	fill(63, 122, 217);
 	text("About", width-120, 170);
@@ -461,9 +516,29 @@ controls.prototype.execute = function(obj) {
 	text("Left/Right arrow keys: move", 150, 100);
 	text("Up key: jump", 230, 130);
 
+	textSize(12);
+	text("(Give it a try!)", 250, 150);
+
 	shadow.size = 40;
-	shadow.position.set(width/2, height/2+30);
     shadow.draw();
+    shadow.update();
+    // Adds a ground in the controls menu
+    if(shadow.position.y >= height/2+30) {
+        shadow.position.y = height/2+30;
+        shadow.velocity.y = 0;
+        shadow.jump = 0;
+    }
+    // X bounds
+    if(shadow.position.x > width-50) {
+        shadow.position.x = width-50;
+        shadow.velocity.x = 0;
+    }
+    if(shadow.position.x < 50) {
+        shadow.position.x = 50;
+        shadow.velocity.x = 0;
+    }
+
+    //TODO add ground friction coefficient
 
 	textSize(10);
 	text("Click anywhere on the screen to return to main menu", 150, 260);
@@ -502,6 +577,9 @@ mouseClicked = function() {
 	            game.changeStateTo(1); // "About" screen
 	        }
 	        if(mouseY > 180 && mouseY < 210) {
+	            shadow.position.set(width/2, height/2+30);
+	            shadow.velocity.set(0, 0);
+	            shadow.acceleration.set(0, 0);
 	            game.changeStateTo(2); // "Controls" screen
 	        }
 	        if(mouseY > 210 && mouseY < 240) {

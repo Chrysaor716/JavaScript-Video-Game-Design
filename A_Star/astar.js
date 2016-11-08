@@ -72,10 +72,23 @@ turkeyObj.prototype.generateShapes = function() {
     this.torsoPointsArr.push(new PVector(0, 10));
     this.torsoPointsArr.push(new PVector(0, 20));
     this.torsoPointsArr.push(new PVector(15, 20));
-    // this.torsoPointsArr.push(new PVector(20*(5/8), 5));
-    // this.torsoPointsArr.push(new PVector(15, 5));
     this.torsoPointsArr.push(new PVector(20*(5/8), 6));
     this.torsoPointsArr.push(new PVector(20, 10));
+    // turkey tail
+    this.tailPointsArr.push(new PVector(5, 15));
+    this.tailPointsArr.push(new PVector(7, 10-(10/3)));
+    this.tailPointsArr.push(new PVector(10, 10-(20/3)));
+    this.tailPointsArr.push(new PVector(5, 0));
+    this.tailPointsArr.push(new PVector(0, 10-(20/3)));
+    this.tailPointsArr.push(new PVector(2, 10-(10/3)));
+    // sunglasses
+    this.shadesPointsArr.push(new PVector(10, 0));
+    this.shadesPointsArr.push(new PVector(20, 0));
+    this.shadesPointsArr.push(new PVector(20, 5));
+    this.shadesPointsArr.push(new PVector(15, 5));
+    this.shadesPointsArr.push(new PVector(10+(10/2), 5));
+    this.shadesPointsArr.push(new PVector(10+(10/2), 2));
+    this.shadesPointsArr.push(new PVector(10, 2));
     
     popMatrix();
 };
@@ -85,17 +98,34 @@ turkeyObj.prototype.draw = function() {
     
     if(iterations < 5) {
         subdivide(this.torsoPointsArr, this.torsoP2);
+        subdivide(this.tailPointsArr, this.tailP2);
+        subdivide(this.shadesPointsArr, this.shadesP2);
         iterations++;
     }
     noStroke();
-    fill(232, 159, 49);
+    
     beginShape();
+    fill(232, 159, 49);
     for(var i = 0; i < this.torsoPointsArr.length; i++) {
-        // vertex(this.torsoPointsArr[i].x, this.torsoPointsArr[i].y);
         curveVertex(this.torsoPointsArr[i].x, this.torsoPointsArr[i].y);
     }
-    // vertex(this.torsoPointsArr[0].x, this.torsoPointsArr[0].y);
     curveVertex(this.torsoPointsArr[0].x, this.torsoPointsArr[0].y);
+    endShape();
+    
+    beginShape();
+    fill(140, 99, 38);
+    for(var i = 0; i < this.tailPointsArr.length; i++) {
+        curveVertex(this.tailPointsArr[i].x, this.tailPointsArr[i].y);
+    }
+    curveVertex(this.tailPointsArr[0].x, this.tailPointsArr[0].y);
+    endShape();
+    
+    beginShape();
+    fill(0, 0, 0);
+    for(var i = 0; i < this.shadesPointsArr.length; i++) {
+        curveVertex(this.shadesPointsArr[i].x, this.shadesPointsArr[i].y);
+    }
+    curveVertex(this.shadesPointsArr[0].x, this.shadesPointsArr[0].y);
     endShape();
     
     noStroke();

@@ -2,6 +2,35 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 size(400, 400); 
 frameRate(60);
 
+var iterations = 0; // to draw characters using subdivision
+var splitPoints = function(arr, p2) {
+    p2.splice(0, p2.length); // clear array
+    for(var i = 0; i < arr.length - 1; i++) {
+        p2.push(new PVector(arr[i].x, arr[i].y));
+        p2.push(new PVector((arr[i].x + arr[i+1].x)/2, (arr[i].y + arr[i+1].y)/2));
+    }
+    p2.push(new PVector(arr[i].x, arr[i].y));
+    p2.push(new PVector((arr[0].x + arr[i].x)/2, (arr[0].y + arr[i].y)/2));
+};
+// "Smooths" out shape
+var average = function(arr, p2) {
+    for(var i = 0; i < p2.length - 1; i++) {
+        var x = (p2[i].x + p2[i+1].x)/2;
+        var y = (p2[i].y + p2[i+1].y)/2;
+        p2[i].set(x, y); 
+    }
+    var x = (p2[i].x + arr[0].x)/2;
+    var y = (p2[i].y + arr[0].y)/2;
+    arr.splice(0, arr.length); // clear the points array
+    for(i = 0; i < p2.length; i++) {
+        arr.push(new PVector(p2[i].x, p2[i].y));
+    }
+};
+var subdivide = function(arr, p2) {
+    splitPoints(arr, p2);
+    average(arr, p2);
+};
+
 /*
  *     Tilemap & objects
  */
@@ -15,6 +44,68 @@ wallObj.prototype.draw = function() {
     rect(this.x, this.y, 20, 20);
 };
 var wallArr = [];
+
+var turkeyObj = function(x, y) {
+    this.position = new PVector(x, y);
+    // this.state = [new haltState(), new turnState(), new chaseState()];
+    // this.currState = 0;
+    // this.angle = 0;
+    // this.whisker1 = new PVector(0, 0);
+    // this.whisker2 = new PVector(0, 0);
+    
+    // Arrays to draw a turkey wearing sunglasses using subdivision
+    this.torsoPointsArr = [];
+    this.torsoP2 = []; // the doubled array for the points array, when split
+    this.tailPointsArr = [];
+    this.tailP2 = [];
+    this.shadesPointsArr = [];
+    this.shadesP2 = [];
+};
+turkeyObj.prototype.generateShapes = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
+    // initialize turkey torso
+    this.torsoPointsArr.push(new PVector(20, 0));
+    this.torsoPointsArr.push(new PVector(10, 0));
+    this.torsoPointsArr.push(new PVector(10, 10));
+    this.torsoPointsArr.push(new PVector(0, 10));
+    this.torsoPointsArr.push(new PVector(0, 20));
+    this.torsoPointsArr.push(new PVector(15, 20));
+    // this.torsoPointsArr.push(new PVector(20*(5/8), 5));
+    // this.torsoPointsArr.push(new PVector(15, 5));
+    this.torsoPointsArr.push(new PVector(20*(5/8), 6));
+    this.torsoPointsArr.push(new PVector(20, 10));
+    
+    popMatrix();
+};
+turkeyObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.position.x, this.position.y);
+    
+    if(iterations < 5) {
+        subdivide(this.torsoPointsArr, this.torsoP2);
+        iterations++;
+    }
+    noStroke();
+    fill(232, 159, 49);
+    beginShape();
+    for(var i = 0; i < this.torsoPointsArr.length; i++) {
+        // vertex(this.torsoPointsArr[i].x, this.torsoPointsArr[i].y);
+        curveVertex(this.torsoPointsArr[i].x, this.torsoPointsArr[i].y);
+    }
+    // vertex(this.torsoPointsArr[0].x, this.torsoPointsArr[0].y);
+    curveVertex(this.torsoPointsArr[0].x, this.torsoPointsArr[0].y);
+    endShape();
+    
+    noStroke();
+    fill(133, 133, 133, 100);
+    rect(0, 0, 20, 20);
+    
+    popMatrix();
+};
+var turkey = new turkeyObj(width/2, height/2);
+turkey.generateShapes();
 //--------------------------------------------------------------
 // 20x20
 var tilemap = ["wwwwwwwwwwwwwwwwwwww",
@@ -50,11 +141,6 @@ var initTilemap = function() {
                     // TODO add weight of 0 to graph
                 break;
             } // end switch/case
-            
-            // if(tilemap[i][j] === 'w') {
-            //     wallArr.push(new wallObj(j*20, i*20));
-            // }
-            
         } // end inner for loop
     } // end outer for loop
 };
@@ -68,6 +154,7 @@ initTilemap();
 draw = function() {
     background(255, 255, 255);
     displayTilemap();
+    turkey.draw();
 };
 
 }};

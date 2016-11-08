@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html> 
+ <head>
+    <title>Template</title>
+ </head>
+
+ <body>
+    <p align="center"> 
+	<!--This draws the Canvas on the webpage -->
+      <canvas id="mycanvas"></canvas> 
+    </p>
+ </body>
+
+ <!-- run all the JavaScript stuff -->
+ <!-- Include the processing.js library -->
+ <script src="processing-1.4.8.min.js"></script> 
+ 
+ <!-- The name of the Program Source Code goes here -->
+ <script src="astar.js"></script> 
+ 
+ <script type="application/javascript">
+  //get the canvas that Processing-js will use
+  var canvas = document.getElementById("mycanvas"); 
+  //pass the function sketchProc (defined in myCode.js) to Processing's constructor.
+  var processingInstance = new Processing(canvas, sketchProc); 
+ </script>
+
+</html>

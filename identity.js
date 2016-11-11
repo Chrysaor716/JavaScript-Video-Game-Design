@@ -294,12 +294,14 @@ childObj.prototype.applyForce = function(force) {
 childObj.prototype.update = function() {
     this.acceleration.set(0, 0);
     if(rightForceApplied === 1) {
-        f.set(0.01, 0);
+        // f.set(0.01, 0);
+        this.position.x++;
     }
     if(leftForceApplied === 1) {
-        f.set(-0.01, 0);
+        // f.set(-0.01, 0);
+        this.position.x--;
     }
-    this.applyForce(f);
+    // this.applyForce(f);
     if(this.jump === 2) {
         this.applyForce(jumpForce);
         this.jump = 1;
@@ -440,6 +442,7 @@ mainMenu.prototype.execute = function(obj) {
     // Draw the boy's shadow first
     shadow.size = 60;
     shadow.position.set((width/2)-100, (height/2)-30);
+    shadow.snapshot = boy.snapshot;
     shadow.draw();
     // Connects the shadow to the boy
 	stroke(0, 0, 0);

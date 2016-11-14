@@ -3,6 +3,9 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 size(600, 400); // canvas size
 frameRate(60);
 
+angleMode = "radians";
+frameRate(60);
+
 /*
  *  Characters
  */
@@ -348,16 +351,23 @@ var mountainObj = function(colour) {
     this.colour = colour;
 };
 mountainObj.prototype.draw = function() {
-    stroke(this.colour, this.colour, this.colour);
+    stroke(this.colour, this.colour, this.colour, 170);
+    // fill(this.colour, this.colour, this.colour, 150);
     var step = 0.01;
-    for(var t = 0; t < step * width; t += step) {
+    for(var t = 0; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
-        var y = map(n, 0, 1, 0, height/2);
-        rect(t*100, height-y, 1, y);
+        var m = map(n, 0, 1, 0, width/2);
+        rect(t*100, 200, 1, m/(t+0.5));
+    }
+    // Draw tip/edge of mountain
+    for(var t = step*width/3; t < step * width/2.43; t += step) {
+        var n = noise(t + this.colour * 70);
+        var mTip = map(n, 0, 1, 0, 140);
+        rect(241, t*100, mTip/3, 1);
     }
 };
 var mountainsBack = new mountainObj(150);
-var moutainsFront = new mountainObj(25);
+var mountainsFront = new mountainObj(25);
 
 /*
  *	Tilemaps
@@ -427,7 +437,7 @@ var mainMenu = function() {}; // constructor
 mainMenu.prototype.execute = function(obj) {
 	background(255, 255, 255);
     mountainsBack.draw();
-    moutainsFront.draw();
+    mountainsFront.draw();
 
 	fill(30, 0, 222);
 	textSize(40);
@@ -507,8 +517,6 @@ about.prototype.execute = function(obj) {
 var controls = function() {}; // constructor
 controls.prototype.execute = function(obj) {
 	background(255, 255, 255);
-    mountainsBack.draw();
-    moutainsFront.draw();
 
 	fill(0, 0, 0);
 	textSize(30);

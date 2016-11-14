@@ -3,9 +3,6 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 size(600, 400); // canvas size
 frameRate(60);
 
-angleMode = "radians";
-frameRate(60);
-
 /*
  *  Characters
  */
@@ -351,19 +348,21 @@ var mountainObj = function(colour) {
     this.colour = colour;
 };
 mountainObj.prototype.draw = function() {
-    stroke(this.colour, this.colour, this.colour, 170);
-    // fill(this.colour, this.colour, this.colour, 150);
     var step = 0.01;
-    for(var t = 0; t < step * width/2.5; t += step) {
+    fill(this.colour, this.colour, this.colour, 100);
+
+    stroke(this.colour, this.colour, this.colour+30, 160);
+    // Draws mountains in the back
+    for(var t = 0; t < width; t += step) {
+        var n = noise(t + this.colour*10);
+        var m = map(n, 0, 1, 0, height/3);
+        rect(t*100, height, 1, -m);
+    }
+    stroke(this.colour, this.colour, this.colour, 170);
+    for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
         var m = map(n, 0, 1, 0, width/2);
-        rect(t*100, 200, 1, m/(t+0.5));
-    }
-    // Draw tip/edge of mountain
-    for(var t = step*width/3; t < step * width/2.43; t += step) {
-        var n = noise(t + this.colour * 70);
-        var mTip = map(n, 0, 1, 0, 140);
-        rect(241, t*100, mTip/3, 1);
+        rect(t*100, 250, 1, m/(t+0.5));
     }
 };
 var mountainsBack = new mountainObj(150);
@@ -433,9 +432,27 @@ initRockTilemap();
 /*
  *	Game States
  */
-var mainMenu = function() {}; // constructor
+var mainMenu = function() {
+    this.rockArr = [];
+    this.starArr = [];
+    for(var i = 0; i < 30; i++) {
+        this.rockArr.push(new rockObj(i*20, height-20));
+    }
+    for(var i = 0; i < random(80, 120); i++) {
+        this.starArr.push(new PVector(random(0, width), random(0, height)));
+    }
+}; // constructor
 mainMenu.prototype.execute = function(obj) {
-	background(255, 255, 255);
+	background(67, 67, 145);
+	// Draws stars in sky
+	stroke(255, 255, 255);
+	for(var i = 0; i < this.starArr.length; i++) {
+	    point(this.starArr[i].x, this.starArr[i].y);
+	    noStroke();
+	    fill(255, 249, 158, random(100, 200));
+	    var r = random(3, 5);
+	    ellipse(this.starArr[i].x, this.starArr[i].y, r, r);
+	}
     mountainsBack.draw();
     mountainsFront.draw();
 
@@ -451,7 +468,7 @@ mainMenu.prototype.execute = function(obj) {
 
     // Draw the boy's shadow first
     shadow.size = 60;
-    shadow.position.set((width/2)-100, (height/2)-30);
+    shadow.position.set(200, 220);
     shadow.snapshot = boy.snapshot;
     shadow.draw();
     // Connects the shadow to the boy
@@ -463,10 +480,37 @@ mainMenu.prototype.execute = function(obj) {
 	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
 	strokeWeight(1); // reset stroke weight back to normal
 	// Draws the boy on top of shadow
-    boy.position.set(width/2, height/2+20);
+    boy.position.set(350, 356);
 	boy.draw();
 
-	fill(63, 122, 217);
+	// Draws edge between floor and wall
+	stroke(0, 0, 0);
+	strokeWeight(3);
+	line(0, 250, width, 250);
+
+	// Draws "outside" of house (bricks)
+	noStroke();
+	fill(173, 29, 29, 190);
+	rect(width-40, 0, 40, height);
+	rect(0, 0, 40, height);
+	stroke(255, 255, 255);
+	strokeWeight(2);
+	for(var i = 0; i < height/20; i++) {
+	    // Draws horizontal lines of the brick wall on either side
+	    line(width-40, i*20, width, i*20);
+	    line(0, i*20, 38, i*20);
+	    // Draws the vertical line patterns of brick wall on either side
+	    if(i%2 === 0) {
+	        line(width-20, i*20, width-20, i*20+19);
+	        line(20, i*20, 20, i*20+19);
+	    }
+	}
+	// Draws rock ground
+	for(var i = 0; i < this.rockArr.length; i++) {
+	    this.rockArr[i].draw();
+	}
+
+	fill(89, 150, 247);
 	text("About", width-120, 170);
 	text("Controls", width-120, 200);
 	text("Play", width-120, 230);

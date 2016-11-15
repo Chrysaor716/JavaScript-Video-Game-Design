@@ -340,6 +340,35 @@ var keyReleased = function() {
     }
 };
 ////////////////////////////////////////
+/*
+ *  Draws a starry sky
+ */
+var nightSkyObj = function() {
+    this.starArr = [];
+    this.t = 0; // "time" variable for sin function
+};
+nightSkyObj.prototype.initialize = function() {
+    for(var i = 0; i < random(80, 120); i++) {
+        this.starArr.push(new PVector(random(0, width), random(0, height)));
+    }
+};
+nightSkyObj.prototype.draw = function() {
+    // Draws stars in sky
+	for(var i = 0; i < this.starArr.length; i++) {
+	    // Use sin to slow the "twinkling" increment
+	    stroke(255, 255, 255, 255*abs(sin(Math.PI*i*this.t/7200)));
+        strokeWeight(1);
+        point(this.starArr[i].x, this.starArr[i].y);
+        stroke(255, 255, 255, 100*abs(sin(Math.PI*i*this.t/7200)));
+        point(this.starArr[i].x-1, this.starArr[i].y);
+        point(this.starArr[i].x+1, this.starArr[i].y);
+        point(this.starArr[i].x, this.starArr[i].y-1);
+        point(this.starArr[i].x, this.starArr[i].y+1);
+	}
+	this.t++;
+};
+var nightSky = new nightSkyObj();
+nightSky.initialize();
 
 /*
  *  Draws mountains in the background using Perlin noise
@@ -353,11 +382,11 @@ mountainObj.prototype.draw = function() {
 
     stroke(this.colour, this.colour, this.colour+30, 160);
     // Draws mountains in the back
-    for(var t = 0; t < width; t += step) {
-        var n = noise(t + this.colour*10);
-        var m = map(n, 0, 1, 0, height/3);
-        rect(t*100, height, 1, -m);
-    }
+    // for(var t = 0; t < width; t += step) {
+    //     var n = noise(t + this.colour*10);
+    //     var m = map(n, 0, 1, 0, height/3);
+    //     rect(t*100, height, 1, -m);
+    // }
     stroke(this.colour, this.colour, this.colour, 170);
     for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
@@ -434,25 +463,13 @@ initRockTilemap();
  */
 var mainMenu = function() {
     this.rockArr = [];
-    this.starArr = [];
     for(var i = 0; i < 30; i++) {
         this.rockArr.push(new rockObj(i*20, height-20));
     }
-    for(var i = 0; i < random(80, 120); i++) {
-        this.starArr.push(new PVector(random(0, width), random(0, height)));
-    }
 }; // constructor
 mainMenu.prototype.execute = function(obj) {
-	background(67, 67, 145);
-	// Draws stars in sky
-	stroke(255, 255, 255);
-	for(var i = 0; i < this.starArr.length; i++) {
-	    point(this.starArr[i].x, this.starArr[i].y);
-	    noStroke();
-	    fill(255, 249, 158, random(100, 200));
-	    var r = random(3, 5);
-	    ellipse(this.starArr[i].x, this.starArr[i].y, r, r);
-	}
+	background(72, 72, 122);
+	nightSky.draw();
     mountainsBack.draw();
     mountainsFront.draw();
 

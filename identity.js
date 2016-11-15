@@ -349,17 +349,17 @@ var nightSkyObj = function() {
 };
 nightSkyObj.prototype.initialize = function() {
     for(var i = 0; i < random(80, 120); i++) {
-        this.starArr.push(new PVector(random(0, width), random(0, height)));
+        this.starArr.push(new PVector(random(0, width), random(0, 250)));
     }
 };
 nightSkyObj.prototype.draw = function() {
     // Draws stars in sky
 	for(var i = 0; i < this.starArr.length; i++) {
 	    // Use sin to slow the "twinkling" increment
+	    // Scales the rate of transparency change over time
 	    stroke(255, 255, 255, 255*abs(sin(Math.PI*i*this.t/7200)));
-        strokeWeight(1);
         point(this.starArr[i].x, this.starArr[i].y);
-        stroke(255, 255, 255, 100*abs(sin(Math.PI*i*this.t/7200)));
+        // Make "plus" sign ("star" shape)
         point(this.starArr[i].x-1, this.starArr[i].y);
         point(this.starArr[i].x+1, this.starArr[i].y);
         point(this.starArr[i].x, this.starArr[i].y-1);
@@ -380,13 +380,6 @@ mountainObj.prototype.draw = function() {
     var step = 0.01;
     fill(this.colour, this.colour, this.colour, 100);
 
-    stroke(this.colour, this.colour, this.colour+30, 160);
-    // Draws mountains in the back
-    // for(var t = 0; t < width; t += step) {
-    //     var n = noise(t + this.colour*10);
-    //     var m = map(n, 0, 1, 0, height/3);
-    //     rect(t*100, height, 1, -m);
-    // }
     stroke(this.colour, this.colour, this.colour, 170);
     for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
@@ -421,26 +414,26 @@ rockObj.prototype.draw = function() {
 var rockArr = [];
 // 600x400 pixel canvas size, each tile 20x20 pixels
 // 40x20 tile array --> 800x400 pixel
-var rockTilemap = ["r------------rr----rr------------rr----r",
-                   "r------------rr----rr------------rr----r",
-                   "r------------------rr------------------r",
-                   "-------------------rrrrrrrr------------r",
-                   "rrrrrrr-----rrrr---rrrrrrrr-----rrrr---r",
-                   "rrr---------rrrr---rrrr---------rrrr---r",
-                   "rrr-------------------------------------",
-                   "r-----rrrr--rr-----rrrr---------rrrr---r",
-                   "r-----rrrr---------rrrr---------rrrr---r",
-                   "rr------------------------------rrrr---r",
-                   "rrrrr---------rrr---------------rrrr---r",
-                   "rrrrrr-------------rrrr---------rrrr---r",
-                   "rrrr----------------------------rrrr---r",
-                   "r-------rrrrrrrrrrrrrrr---------rrrr---r",
-                   "r-------rr------rrrrrrr---------rrrr---r",
-                   "rrr-----rr------rrrrrrr---------rrrr---r",
-                   "rrr-----rrrr-------rrrr---------rrrr---r",
-                   "r-------rrrr-------rrrr---------rrrr---r",
-                   "r---------rrrrrr---rrrr---------rrrr---r",
-                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"]; // @ ~400 pixels down
+var rockTilemap = ["r------------------rr------rrrrrrrrrrrrrr------------rr----rr------------------r",
+                   "r------------------rr------------------rr------------rr----rr------------------r",
+                   "r------------------rr------------------rr------------rr----rr------------------r",
+                   "r------------------rrrrrr----------------------------rr----rr------------------r",
+                   "r------------------rrrrrr----------------------------rr----rr------------------r",
+                   "r------------------rrrrrrrr--------------------------rr----rr------------------r",
+                   "r------------------rrrrrrrrrr------------------------rr----rr------------------r",
+                   "r-------------------------------rrrr-----------------rr----rr------------------r",
+                   "r-------------------------------rr-------------------rr----rr------------------r",
+                   "r-------------------------------rr-------------------rr----rr------------------r",
+                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr-------rr----rr------------rr----r",
+                   "r----------------------------------------------------rr----rr------------rr----r", // start of original's relm
+                   "r----------------------------------------------------rr----rr------------rr----r",
+                   "r----------------------------------------------------rr----rr------------rr----r",
+                   "r----------------------rrrrrrrrrrrrr---rr------------rr----rr------------rr-----",
+                   "r----------------------rr--------------rr------------rr----rr------------rr-----",
+                   "r----------rrrrrrrr----rr--------------rr------------rr----rr------------rr-----",
+                   "r---------rrrrrrrrr----------------rrrrrr------------rr----rr------------rr-----",
+                   "r--------rrrrrrrrrr---------------rrrrrrr------------rr----rr------------rr----r",
+                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr------------rr----rr------------rrrrrrr"]; // @ ~400 pixels down
 var initRockTilemap = function() {
     for(var i = 0; i < rockTilemap.length; i++) {
         for(var j = 0; j < rockTilemap[i].length; j++) {
@@ -470,6 +463,9 @@ var mainMenu = function() {
 mainMenu.prototype.execute = function(obj) {
 	background(72, 72, 122);
 	nightSky.draw();
+	// Draws "floor" below the sky
+	fill(130, 98, 74);
+	rect(0, 250, width, 250);
     mountainsBack.draw();
     mountainsFront.draw();
 
@@ -610,8 +606,6 @@ controls.prototype.execute = function(obj) {
         shadow.velocity.x = 0;
     }
 
-    //TODO add ground friction coefficient
-
 	textSize(10);
 	text("Click anywhere on the screen to return to main menu", 150, 260);
 };
@@ -619,7 +613,11 @@ controls.prototype.execute = function(obj) {
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
 	background(255, 255, 255);
+	// Draws "divider" between original char and the shadow
 	fill(0, 0, 0);
+	stroke(0, 0, 0);
+	line(0, 220, width*4, 220);
+
 	textSize(20);
 	text("Game state (in progress)", width/2-100, height/2);
 
@@ -668,7 +666,10 @@ mouseClicked = function() {
 };
 
 draw = function() {
-	game.state[game.currState].execute(game);
+// 	game.state[game.currState].execute(game);
+////////////////////// DEBUGGING //////////////////////
+game.state[3].execute(game);
+///////////////////////////////////////////////////////
 };
 
 }};

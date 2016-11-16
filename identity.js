@@ -6,6 +6,7 @@ frameRate(60);
 /*
  *  Characters
  */
+var rockArr = []; // Rock object created later in code; needed here to check collision with it
 var childObj = function(x, y, charType) {
     this.position = new PVector(x, y);
     // Indicates whether the character is the original (1), its shadow (0), or its reflection (2)
@@ -32,19 +33,6 @@ var childObj = function(x, y, charType) {
 childObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-
-    ///////////////////////////////////////////
-    // // Collision box for child
-    // stroke(0, 0, 0);
-    // strokeWeight(1);
-    // line(-this.size/2, -this.size/2, this.size/2, -this.size/2);
-    // line(-this.size/2, this.size/2, this.size/2, this.size/2);
-    // line(-this.size/2, -this.size/2, -this.size/2, this.size/2);
-    // line(this.size/2, -this.size/2, this.size/2, this.size/2);
-    // fill(0, 136, 255, 100);
-    // noStroke();
-    // ellipse(0, 0, this.size, this.size);
-    ///////////////////////////////////////////
 
     noStroke();
     fill(222, 187, 104);
@@ -278,6 +266,15 @@ childObj.prototype.draw = function() {
 
     popMatrix();
 };
+childObj.prototype.checkCollision = function() {
+    for(var i = 0; i < rockArr.length; i++) {
+        if(dist(this.position.x, this.position.y,
+                rockArr[i].x, rockArr[i].y) < 40) {
+            this.velocity = 0;
+            this.jump = 0;
+        }
+    }
+};
 var boy = new childObj(width/2, height/2, 1);
 var shadow = new childObj((width/2)-100, height/2, 0);
 shadow.size = 60;
@@ -411,7 +408,6 @@ rockObj.prototype.draw = function() {
     rect(this.x+5, this.y+3, 13, 2);
     rect(this.x+17, this.y+3, 3, 12);
 };
-var rockArr = [];
 // 600x400 pixel canvas size, each tile 20x20 pixels
 // 40x20 tile array --> 800x400 pixel
 var rockTilemap = ["r------------------rr------rrrrrrrrrrrrrr------------rr----rr------------------r",
@@ -609,7 +605,13 @@ controls.prototype.execute = function(obj) {
 	textSize(10);
 	text("Click anywhere on the screen to return to main menu", 150, 260);
 };
-
+/////////////////////TODO REMOVE THIS LATER////////////////////
+// this position is set when user clicks "Play" with their mouse
+// from the main menu
+// for now, with debugging and keeping it in play state, the boy's
+// position is initialized here
+boy.position.set(40, 350);
+///////////////////////////////////////////////////////////
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
 	background(255, 255, 255);
@@ -618,8 +620,56 @@ play.prototype.execute = function(obj) {
 	stroke(0, 0, 0);
 	line(0, 220, width*4, 220);
 
-	textSize(20);
-	text("Game state (in progress)", width/2-100, height/2);
+// 	shadow.size = 40;
+//     shadow.draw();
+//     shadow.update();
+//     // Adds a ground in the controls menu
+//     if(shadow.position.y >= height/2+30) {
+//         shadow.position.y = height/2+30;
+//         shadow.velocity.y = 0;
+//         shadow.jump = 0;
+//     }
+//     // X bounds
+//     if(shadow.position.x > width-50) {
+//         shadow.position.x = width-50;
+//         shadow.velocity.x = 0;
+//     }
+//     if(shadow.position.x < 50) {
+//         shadow.position.x = 50;
+//         shadow.velocity.x = 0;
+//     }
+
+	boy.draw();
+	boy.update();
+/////////////TEMP; USE COLLISION DETECTION//////////////////////
+// Adds a ground in the controls menu
+    if(boy.position.y >= height-20) {
+        boy.position.y = height-20;
+        boy.velocity.y = 0;
+        boy.jump = 0;
+    }
+/////////////////////////////////////////////////////////
+// 	println(boy.position.x);
+// 	boy.checkCollision();
+
+	/*
+	// Draw the boy's shadow first
+    shadow.size = 60;
+    shadow.position.set(200, 220);
+    shadow.snapshot = boy.snapshot;
+    shadow.draw();
+    // Connects the shadow to the boy
+	stroke(0, 0, 0);
+	strokeWeight(7);
+	line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
+	     shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
+	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
+	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
+	strokeWeight(1); // reset stroke weight back to normal
+	// Draws the boy on top of shadow
+    boy.position.set(350, 356);
+	boy.draw();
+	*/
 
 	for(var i = 0; i < rockArr.length; i++) {
 		rockArr[i].draw();
@@ -653,6 +703,7 @@ mouseClicked = function() {
 	            game.changeStateTo(2); // "Controls" screen
 	        }
 	        if(mouseY > 210 && mouseY < 240) {
+	            boy.position.set(40, 350);
 	            game.changeStateTo(3); // "Play" state
 	        }
 	    }

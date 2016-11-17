@@ -266,15 +266,6 @@ childObj.prototype.draw = function() {
 
     popMatrix();
 };
-childObj.prototype.checkCollision = function() {
-    for(var i = 0; i < rockArr.length; i++) {
-        if(dist(this.position.x, this.position.y,
-                rockArr[i].x, rockArr[i].y) < 40) {
-            this.velocity = 0;
-            this.jump = 0;
-        }
-    }
-};
 var boy = new childObj(width/2, height/2, 1);
 var shadow = new childObj((width/2)-100, height/2, 0);
 shadow.size = 60;
@@ -283,19 +274,18 @@ shadow.size = 60;
 var gravity = new PVector(0, 0.1);
 var rightForceApplied = 0;
 var leftForceApplied = 0;
-var f = new PVector(0, 0);
+// var f = new PVector(0, 0);
 var jumpForce = new PVector(0, -4);
 childObj.prototype.applyForce = function(force) {
     this.acceleration.add(force);
 };
 childObj.prototype.update = function() {
-    this.acceleration.set(0, 0);
     if(rightForceApplied === 1) {
-        // f.set(0.01, 0);
+        // f.set(0.1, 0);
         this.position.x++;
     }
     if(leftForceApplied === 1) {
-        // f.set(-0.01, 0);
+        // f.set(-0.1, 0);
         this.position.x--;
     }
     // this.applyForce(f);
@@ -309,6 +299,33 @@ childObj.prototype.update = function() {
     this.velocity.add(this.acceleration);
     this.position.add(this.velocity);
     this.acceleration.set(0, 0); // reset acceleration
+};
+childObj.prototype.checkCollision = function() {
+    for(var i = 0; i < rockArr.length; i++) {
+        var distance = dist(this.position.x, this.position.y,
+          rockArr[i].x+10, rockArr[i].y+10);
+        if(distance < (this.size/2)+10) {
+        //     this.velocity.set(0, 0);
+        //     this.jump = 0;
+            
+            // If bottom of character exceeds top of rocks
+            if(this.position.y+(this.size/2) > rockArr[i].y) {
+                this.position.y = rockArr[i].y-(this.size/2);
+                this.velocity.y = 0;
+                this.jump = 0;
+            }
+            // TODO check for collision at top of head
+            if(this.position.x-(this.size/2) < rockArr[i].x+20) {
+                // this.position.x++;
+                leftForceApplied = 0;
+            }
+            if(this.position.x+(this.size/2) > rockArr[i].x) {
+                // this.position.x--;
+                rightForceApplied = 0;
+            }
+            
+        }
+    }
 };
 ////////////////////////////////////////
 var keys = [];
@@ -376,7 +393,7 @@ var mountainObj = function(colour) {
 mountainObj.prototype.draw = function() {
     var step = 0.01;
     fill(this.colour, this.colour, this.colour, 100);
-
+    
     stroke(this.colour, this.colour, this.colour, 170);
     for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
@@ -491,12 +508,12 @@ mainMenu.prototype.execute = function(obj) {
 	// Draws the boy on top of shadow
     boy.position.set(350, 356);
 	boy.draw();
-
+	
 	// Draws edge between floor and wall
 	stroke(0, 0, 0);
 	strokeWeight(3);
 	line(0, 250, width, 250);
-
+	
 	// Draws "outside" of house (bricks)
 	noStroke();
 	fill(173, 29, 29, 190);
@@ -610,7 +627,9 @@ controls.prototype.execute = function(obj) {
 // from the main menu
 // for now, with debugging and keeping it in play state, the boy's
 // position is initialized here
-boy.position.set(40, 350);
+boy.position.set(50, 350);
+boy.size = 40;
+// shadow.position.set(40, 150);
 ///////////////////////////////////////////////////////////
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
@@ -619,39 +638,25 @@ play.prototype.execute = function(obj) {
 	fill(0, 0, 0);
 	stroke(0, 0, 0);
 	line(0, 220, width*4, 220);
-
+	
+	boy.checkCollision();
+	boy.update();
+	boy.draw();
+	
 // 	shadow.size = 40;
 //     shadow.draw();
 //     shadow.update();
-//     // Adds a ground in the controls menu
-//     if(shadow.position.y >= height/2+30) {
-//         shadow.position.y = height/2+30;
-//         shadow.velocity.y = 0;
-//         shadow.jump = 0;
-//     }
-//     // X bounds
-//     if(shadow.position.x > width-50) {
-//         shadow.position.x = width-50;
-//         shadow.velocity.x = 0;
-//     }
-//     if(shadow.position.x < 50) {
-//         shadow.position.x = 50;
-//         shadow.velocity.x = 0;
-//     }
 
-	boy.draw();
-	boy.update();
 /////////////TEMP; USE COLLISION DETECTION//////////////////////
 // Adds a ground in the controls menu
-    if(boy.position.y >= height-20) {
-        boy.position.y = height-20;
-        boy.velocity.y = 0;
-        boy.jump = 0;
-    }
+    // if(boy.position.y >= height-20) {
+    //     boy.position.y = height-20;
+    //     boy.velocity.y = 0;
+    //     boy.jump = 0;
+    // }
 /////////////////////////////////////////////////////////
-// 	println(boy.position.x);
 // 	boy.checkCollision();
-
+	
 	/*
 	// Draw the boy's shadow first
     shadow.size = 60;
@@ -717,9 +722,9 @@ mouseClicked = function() {
 };
 
 draw = function() {
-// 	game.state[game.currState].execute(game);
+	game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
-game.state[3].execute(game);
+// game.state[3].execute(game);
 ///////////////////////////////////////////////////////
 };
 

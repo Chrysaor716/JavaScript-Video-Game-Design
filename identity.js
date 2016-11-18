@@ -302,29 +302,69 @@ childObj.prototype.update = function() {
 };
 childObj.prototype.checkCollision = function() {
     for(var i = 0; i < rockArr.length; i++) {
-        var distance = dist(this.position.x, this.position.y,
-          rockArr[i].x+10, rockArr[i].y+10);
-        if(distance < (this.size/2)+10) {
-        //     this.velocity.set(0, 0);
-        //     this.jump = 0;
-            
-            // If bottom of character exceeds top of rocks
-            if(this.position.y+(this.size/2) > rockArr[i].y) {
-                this.position.y = rockArr[i].y-(this.size/2);
-                this.velocity.y = 0;
-                this.jump = 0;
+        // Reference:
+        //    http://gamedev.stackexchange.com/questions/29786/a-simple-2d-rectangle-collision-algorithm-that-also-determines-which-sides-that
+        // Half of (width of character + width of rock)
+        var w = (this.size + 20) / 2;
+        // Half of (height of character + height of rock)
+        var h = (this.size + 20) / 2;
+        // Center of character - center of rock
+        var dx = (this.position.x - (rockArr[i].x+10));
+        var dy = (this.position.y - (rockArr[i].y+10));
+        // Collision occurs of deltas are less than the halves
+        if(abs(dx) <= w && abs(dy) <= h) {
+            var wy = w * dy;
+            var hx = h * dx;
+            if(wy > hx) {
+                if(wy > -hx) {
+                    // Collision at top edge
+                    this.velocity.y = 0;
+                    this.applyForce(gravity);
+                } else {
+                    // Collision at right edge
+                    rightForceApplied = 0;
+                    this.jump = 1;
+                }
+            } else {
+                if(wy > -hx) {
+                    // Collision on left edge
+                    leftForceApplied = 0;
+                    this.jump = 1;
+                } else {
+                    // Collision on bottom edge
+                    if(this.position.y >= rockArr[i].y-2 - this.size/2) {
+                        boy.position.y = rockArr[i].y-2 - this.size/2;
+                        this.jump = 0;
+                    }
+                    this.velocity.y = 0;
+                }
             }
-            // TODO check for collision at top of head
-            if(this.position.x-(this.size/2) < rockArr[i].x+20) {
-                // this.position.x++;
-                leftForceApplied = 0;
-            }
-            if(this.position.x+(this.size/2) > rockArr[i].x) {
-                // this.position.x--;
-                rightForceApplied = 0;
-            }
-            
         }
+        // TODO: fix "floating" bug; gravity only applies when jumping or hitting right & left edges
+
+        // var distance = dist(this.position.x, this.position.y,
+        //   rockArr[i].x+10, rockArr[i].y+10);
+        // if(distance < (this.size/2)+10) {
+        // //     this.velocity.set(0, 0);
+        // //     this.jump = 0;
+
+        //     // If bottom of character exceeds top of rocks
+        //     if(this.position.y+(this.size/2) > rockArr[i].y) {
+        //         this.position.y = rockArr[i].y-(this.size/2);
+        //         this.velocity.y = 0;
+        //         this.jump = 0;
+        //     }
+        //     // TODO check for collision at top of head
+        //     if(this.position.x-(this.size/2) < rockArr[i].x+20) {
+        //         // this.position.x++;
+        //         leftForceApplied = 0;
+        //     }
+        //     if(this.position.x+(this.size/2) > rockArr[i].x) {
+        //         // this.position.x--;
+        //         rightForceApplied = 0;
+        //     }
+
+        // }
     }
 };
 ////////////////////////////////////////
@@ -393,7 +433,7 @@ var mountainObj = function(colour) {
 mountainObj.prototype.draw = function() {
     var step = 0.01;
     fill(this.colour, this.colour, this.colour, 100);
-    
+
     stroke(this.colour, this.colour, this.colour, 170);
     for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
@@ -508,12 +548,12 @@ mainMenu.prototype.execute = function(obj) {
 	// Draws the boy on top of shadow
     boy.position.set(350, 356);
 	boy.draw();
-	
+
 	// Draws edge between floor and wall
 	stroke(0, 0, 0);
 	strokeWeight(3);
 	line(0, 250, width, 250);
-	
+
 	// Draws "outside" of house (bricks)
 	noStroke();
 	fill(173, 29, 29, 190);
@@ -633,16 +673,16 @@ boy.size = 40;
 ///////////////////////////////////////////////////////////
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
-	background(255, 255, 255);
+	background(245, 245, 245);
 	// Draws "divider" between original char and the shadow
 	fill(0, 0, 0);
 	stroke(0, 0, 0);
 	line(0, 220, width*4, 220);
-	
+
 	boy.checkCollision();
 	boy.update();
 	boy.draw();
-	
+
 // 	shadow.size = 40;
 //     shadow.draw();
 //     shadow.update();
@@ -656,7 +696,7 @@ play.prototype.execute = function(obj) {
     // }
 /////////////////////////////////////////////////////////
 // 	boy.checkCollision();
-	
+
 	/*
 	// Draw the boy's shadow first
     shadow.size = 60;
@@ -722,9 +762,9 @@ mouseClicked = function() {
 };
 
 draw = function() {
-	game.state[game.currState].execute(game);
+// 	game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
-// game.state[3].execute(game);
+game.state[3].execute(game);
 ///////////////////////////////////////////////////////
 };
 

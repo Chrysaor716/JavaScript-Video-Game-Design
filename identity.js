@@ -29,6 +29,8 @@ var childObj = function(x, y, charType) {
     this.velocity = new PVector(0, 0);
     this.acceleration = new PVector(0, 0);
     this.jump = 0;
+    this.rightForceApplied = 0;
+    this.leftForceApplied = 0;
 };
 childObj.prototype.draw = function() {
     pushMatrix();
@@ -272,19 +274,17 @@ shadow.size = 60;
 // TODO: make reflection
 // PHYSICS
 var gravity = new PVector(0, 0.1);
-var rightForceApplied = 0;
-var leftForceApplied = 0;
 // var f = new PVector(0, 0);
 var jumpForce = new PVector(0, -4);
 childObj.prototype.applyForce = function(force) {
     this.acceleration.add(force);
 };
 childObj.prototype.update = function() {
-    if(rightForceApplied === 1) {
+    if(this.rightForceApplied === 1) {
         // f.set(0.1, 0);
         this.position.x++;
     }
-    if(leftForceApplied === 1) {
+    if(this.leftForceApplied === 1) {
         // f.set(-0.1, 0);
         this.position.x--;
     }
@@ -322,25 +322,26 @@ childObj.prototype.checkCollision = function() {
                     this.applyForce(gravity);
                 } else {
                     // Collision at right edge
-                    rightForceApplied = 0;
+                    this.rightForceApplied = 0;
                     this.jump = 1;
                 }
             } else {
                 if(wy > -hx) {
                     // Collision on left edge
-                    leftForceApplied = 0;
+                    this.leftForceApplied = 0;
                     this.jump = 1;
                 } else {
                     // Collision on bottom edge
-                    if(this.position.y >= rockArr[i].y-2 - this.size/2) {
-                        boy.position.y = rockArr[i].y-2 - this.size/2;
+                    if(this.position.y >= rockArr[i].y-1 - this.size/2) {
+                        this.position.y = rockArr[i].y-1 - this.size/2;
                         this.jump = 0;
                     }
                     this.velocity.y = 0;
                 }
             }
+        // TODO: fix the "floating down" bug
+        this.applyForce(gravity); // when no collision
         }
-        // TODO: fix "floating" bug; gravity only applies when jumping or hitting right & left edges
 
         // var distance = dist(this.position.x, this.position.y,
         //   rockArr[i].x+10, rockArr[i].y+10);
@@ -373,11 +374,11 @@ var keyPressed = function() {
     if(keyCode === RIGHT) {
         boy.facing = 1;
         shadow.facing = 1;
-        rightForceApplied = 1;
+        boy.rightForceApplied = 1;
     } else if(keyCode === LEFT) {
         boy.facing = -1;
         shadow.facing = -1;
-        leftForceApplied = 1;
+        boy.leftForceApplied = 1;
     }
     if((keyCode === UP) && (boy.jump === 0)) {
         boy.jump = 2;
@@ -388,9 +389,9 @@ var keyPressed = function() {
 };
 var keyReleased = function() {
     if(keyCode === RIGHT) {
-        rightForceApplied = 0;
+        boy.rightForceApplied = 0;
     } else if (keyCode === LEFT) {
-        leftForceApplied = 0;
+        boy.leftForceApplied = 0;
     }
 };
 ////////////////////////////////////////
@@ -477,15 +478,15 @@ var rockTilemap = ["r------------------rr------rrrrrrrrrrrrrr------------rr----r
                    "r-------------------------------rrrr-----------------rr----rr------------------r",
                    "r-------------------------------rr-------------------rr----rr------------------r",
                    "r-------------------------------rr-------------------rr----rr------------------r",
-                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr-------rr----rr------------rr----r",
+                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr----rr------------rr----r",
                    "r----------------------------------------------------rr----rr------------rr----r", // start of original's relm
                    "r----------------------------------------------------rr----rr------------rr----r",
                    "r----------------------------------------------------rr----rr------------rr----r",
-                   "r----------------------rrrrrrrrrrrrr---rr------------rr----rr------------rr-----",
+                   "r----------------------rrrrrrrrrrr-----rr------------rr----rr------------rr-----",
                    "r----------------------rr--------------rr------------rr----rr------------rr-----",
-                   "r----------rrrrrrrr----rr--------------rr------------rr----rr------------rr-----",
-                   "r---------rrrrrrrrr----------------rrrrrr------------rr----rr------------rr-----",
-                   "r--------rrrrrrrrrr---------------rrrrrrr------------rr----rr------------rr----r",
+                   "r----------rrrrrrrrr-------------------rr------------rr----rr------------rr-----",
+                   "r---------rrrrrrrrrr----------------rrrrr------------rr----rr------------rr-----",
+                   "r--------rrrrrrrrrrr---------------rrrrrr------------rr----rr------------rr----r",
                    "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr------------rr----rr------------rrrrrrr"]; // @ ~400 pixels down
 var initRockTilemap = function() {
     for(var i = 0; i < rockTilemap.length; i++) {
@@ -643,6 +644,8 @@ controls.prototype.execute = function(obj) {
 	shadow.size = 40;
     shadow.draw();
     shadow.update();
+    shadow.leftForceApplied = boy.leftForceApplied;
+    shadow.rightForceApplied = boy.rightForceApplied;
     // Adds a ground in the controls menu
     if(shadow.position.y >= height/2+30) {
         shadow.position.y = height/2+30;
@@ -667,42 +670,39 @@ controls.prototype.execute = function(obj) {
 // from the main menu
 // for now, with debugging and keeping it in play state, the boy's
 // position is initialized here
-boy.position.set(50, 350);
+boy.position.set(60, 350);
 boy.size = 40;
-// shadow.position.set(40, 150);
+shadow.position.set(40, 170);
+shadow.size = 50;
 ///////////////////////////////////////////////////////////
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
+    // Scrolling
+    // NOTE: translating x=-50 shifts screen to the RIGHT
+    //                   x=50  shifts screen to the LEFT
+    // WHY IS IT INVERTED
+    translate(-((boy.position.x+shadow.position.x)/2)+100, 0);
 	background(245, 245, 245);
+	noStroke();
+	fill(72, 72, 122);
+	rect(0, 0, 600*6, 220);
 	// Draws "divider" between original char and the shadow
 	fill(0, 0, 0);
 	stroke(0, 0, 0);
 	line(0, 220, width*4, 220);
 
-	boy.checkCollision();
-	boy.update();
-	boy.draw();
-
-// 	shadow.size = 40;
-//     shadow.draw();
-//     shadow.update();
-
-/////////////TEMP; USE COLLISION DETECTION//////////////////////
-// Adds a ground in the controls menu
-    // if(boy.position.y >= height-20) {
-    //     boy.position.y = height-20;
-    //     boy.velocity.y = 0;
-    //     boy.jump = 0;
-    // }
-/////////////////////////////////////////////////////////
-// 	boy.checkCollision();
-
-	/*
-	// Draw the boy's shadow first
-    shadow.size = 60;
-    shadow.position.set(200, 220);
-    shadow.snapshot = boy.snapshot;
+	shadow.checkCollision();
     shadow.draw();
+    shadow.update();
+    // Synchronize the shadow with the original
+    shadow.snapshot = boy.snapshot;
+    shadow.leftForceApplied = boy.leftForceApplied;
+    shadow.rightForceApplied = boy.rightForceApplied;
+
+    for(var i = 0; i < rockArr.length; i++) {
+		rockArr[i].draw();
+	}
+
     // Connects the shadow to the boy
 	stroke(0, 0, 0);
 	strokeWeight(7);
@@ -711,14 +711,10 @@ play.prototype.execute = function(obj) {
 	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
 	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
 	strokeWeight(1); // reset stroke weight back to normal
-	// Draws the boy on top of shadow
-    boy.position.set(350, 356);
-	boy.draw();
-	*/
 
-	for(var i = 0; i < rockArr.length; i++) {
-		rockArr[i].draw();
-	}
+	boy.checkCollision();
+	boy.update();
+	boy.draw();
 };
 //--------------------------------------------------------
 var gameObj = function() {
@@ -748,7 +744,10 @@ mouseClicked = function() {
 	            game.changeStateTo(2); // "Controls" screen
 	        }
 	        if(mouseY > 210 && mouseY < 240) {
-	            boy.position.set(40, 350);
+	            boy.position.set(60, 350);
+                boy.size = 40;
+                shadow.position.set(40, 170);
+                shadow.size = 50;
 	            game.changeStateTo(3); // "Play" state
 	        }
 	    }
@@ -762,9 +761,9 @@ mouseClicked = function() {
 };
 
 draw = function() {
-// 	game.state[game.currState].execute(game);
+	game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
-game.state[3].execute(game);
+// game.state[3].execute(game);
 ///////////////////////////////////////////////////////
 };
 

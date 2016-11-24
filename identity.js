@@ -368,6 +368,79 @@ childObj.prototype.checkCollision = function() {
         // }
     }
 };
+
+var batWingObj = function(x, y, size, side) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.side = side;
+    // animation variables
+    if(this.side === "left") {
+        this.snapshot = 2;
+    } else {
+        this.snapshot = 0;
+    }
+    this.currFrame = frameCount;
+};
+batWingObj.prototype.draw = function() {
+    pushMatrix();
+    translate(this.x, this.y);
+
+    // Animate wings
+    switch(this.snapshot) {
+        case 0:
+            rotate(Math.PI/4);
+        break;
+
+        case 1:
+            rotate(0);
+        break;
+
+        case 2:
+            rotate(7*Math.PI/4);
+        break;
+
+        default:
+            rotate(0);
+        break;
+    }
+
+    if(this.side === "left") {
+        line(-this.size/2, 0,
+             -(this.size/2)-this.size/1.5, 0);
+    } else {
+        line(this.size/2, 0,
+             (this.size/2)+this.size/1.5, 0);
+    }
+
+    if(this.currFrame < (frameCount - 20)) {
+        this.currFrame = frameCount;
+        this.snapshot++;
+    }
+    if(this.snapshot > 3) {
+        this.snapshot = 0;
+    }
+
+    popMatrix();
+};
+var batEnemyObj = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = 30;
+
+    this.leftWing = new batWingObj(this.x, this.y, this.size, "left");
+    this.rightWing = new batWingObj(this.x, this.y, this.size, "right");
+};
+batEnemyObj.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0);
+    ellipse(this.x, this.y, this.size+10, this.size); //body
+    stroke(0, 0, 0);
+    this.leftWing.draw();
+    this.rightWing.draw();
+};
+var batArr = [];
+batArr.push(new batEnemyObj(150, 100));
 ////////////////////////////////////////
 var keys = [];
 var keyPressed = function() {
@@ -699,6 +772,11 @@ play.prototype.execute = function(obj) {
     shadow.leftForceApplied = boy.leftForceApplied;
     shadow.rightForceApplied = boy.rightForceApplied;
 
+    // Draws bat enemy
+    for(var i = 0; i < batArr.length; i++) {
+        batArr[i].draw();
+    }
+
     for(var i = 0; i < rockArr.length; i++) {
 		rockArr[i].draw();
 	}
@@ -761,9 +839,9 @@ mouseClicked = function() {
 };
 
 draw = function() {
-	game.state[game.currState].execute(game);
+// 	game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
-// game.state[3].execute(game);
+game.state[3].execute(game);
 ///////////////////////////////////////////////////////
 };
 

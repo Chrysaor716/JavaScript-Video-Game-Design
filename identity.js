@@ -3,6 +3,14 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 size(600, 400); // canvas size
 frameRate(60);
 
+var keys = [];
+var keyPressed = function() {
+    keys[keyCode] = true;
+};
+var keyReleased = function(){
+    keys[keyCode] = false;
+};
+
 /*
  *  Characters
  */
@@ -27,10 +35,12 @@ var childObj = function(x, y, charType) {
     // PHYSICS
     this.position = new PVector(x, y);
     this.velocity = new PVector(0, 0);
-    this.acceleration = new PVector(0, 0);
-    this.jump = 0;
-    this.rightForceApplied = 0;
-    this.leftForceApplied = 0;
+    this.inFlight = true;
+    this.gravity = 0.4;
+    this.speed = 0.1;
+    this.maxSpeed = 2;
+    this.jumpVel = 8;
+    this.terminalVelocity = 10;
 };
 childObj.prototype.draw = function() {
     pushMatrix();
@@ -57,7 +67,7 @@ childObj.prototype.draw = function() {
     }
     ellipse(0, -this.size/4, this.size/6, this.size/5); //ear
 
-    ////////////////////////  TODO jump animations ////////////////////////////////
+    // TODO jump animations
     switch(this.snapshot) {
         case 0:
             stroke(222, 187, 104);
@@ -270,35 +280,49 @@ childObj.prototype.draw = function() {
 };
 var boy = new childObj(width/2, height/2, 1);
 var shadow = new childObj((width/2)-100, height/2, 0);
-shadow.size = 60;
+shadow.size = 60; // init
 // TODO: make reflection
-// PHYSICS
-var gravity = new PVector(0, 0.1);
-// var f = new PVector(0, 0);
-var jumpForce = new PVector(0, -4);
-childObj.prototype.applyForce = function(force) {
-    this.acceleration.add(force);
-};
 childObj.prototype.update = function() {
-    if(this.rightForceApplied === 1) {
-        // f.set(0.1, 0);
-        this.position.x++;
+    if(keys[LEFT]) {
+        this.velocity.x -= this.speed;
     }
-    if(this.leftForceApplied === 1) {
-        // f.set(-0.1, 0);
-        this.position.x--;
+    if(keys[RIGHT]) {
+        this.velocity.x += this.speed;
     }
-    // this.applyForce(f);
-    if(this.jump === 2) {
-        this.applyForce(jumpForce);
-        this.jump = 1;
+    if(!keys[LEFT] && !keys[RIGHT]) {
+        if(this.velocity.x > 0) {
+            this.velocity.x -= this.speed;
+        }
+        if(this.velocity.x < 0) {
+            this.velocity.x += this.speed;
+        }
+        // Don't apply any force/speed when x-velocity is 0
     }
-    if(this.jump > 0) {
-        this.applyForce(gravity);
+
+    // Key for jumping
+    if(keys[UP] && !this.inFlight) {
+        this.velocity.y = -this.jumpVel;
     }
-    this.velocity.add(this.acceleration);
-    this.position.add(this.velocity);
-    this.acceleration.set(0, 0); // reset acceleration
+
+    // Add gravity to child
+    this.velocity.y += this.gravity;
+    // Check threshold velocities
+    if(this.velocity.y > this.terminalVelocity) {
+        this.velocity.y = this.terminalVelocity;
+    }
+    if(this.velocity.x > this.maxSpeed) {
+        this.velocity.x = this.maxSpeed;
+    }
+    if(this.velocity.x < -this.maxSpeed) {
+        this.velocity.x = -this.maxSpeed;
+    }
+
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+    // Always assume child is in flight until it hits the top of a rock (in checkCollision())
+    this.inFlight = true;
+
+    this.checkCollision();
 };
 childObj.prototype.checkCollision = function() {
     for(var i = 0; i < rockArr.length; i++) {
@@ -317,56 +341,30 @@ childObj.prototype.checkCollision = function() {
             var hx = h * dx;
             if(wy > hx) {
                 if(wy > -hx) {
-                    // Collision at top edge
+                    // Collision at top edge (of child)
                     this.velocity.y = 0;
-                    this.applyForce(gravity);
+                    this.inFlight = true;
+                    this.position.y = rockArr[i].y + 20 + this.size/2;
                 } else {
                     // Collision at right edge
-                    this.rightForceApplied = 0;
-                    this.jump = 1;
+                    this.velocity.x = 0;
+                    // this.position.x = rockArr[i].x - this.size;
                 }
             } else {
                 if(wy > -hx) {
                     // Collision on left edge
-                    this.leftForceApplied = 0;
-                    this.jump = 1;
+                    this.velocity.x = 0;
+                    // this.position.x = rockArr[i].x + 20;
                 } else {
                     // Collision on bottom edge
-                    if(this.position.y >= rockArr[i].y-1 - this.size/2) {
-                        this.position.y = rockArr[i].y-1 - this.size/2;
-                        this.jump = 0;
-                    }
                     this.velocity.y = 0;
+                    this.inFlight = false;
+                    this.position.y = rockArr[i].y - this.size/2;
                 }
             }
-        // TODO: fix the "floating down" bug
-        this.applyForce(gravity); // when no collision
         }
-
-        // var distance = dist(this.position.x, this.position.y,
-        //   rockArr[i].x+10, rockArr[i].y+10);
-        // if(distance < (this.size/2)+10) {
-        // //     this.velocity.set(0, 0);
-        // //     this.jump = 0;
-
-        //     // If bottom of character exceeds top of rocks
-        //     if(this.position.y+(this.size/2) > rockArr[i].y) {
-        //         this.position.y = rockArr[i].y-(this.size/2);
-        //         this.velocity.y = 0;
-        //         this.jump = 0;
-        //     }
-        //     // TODO check for collision at top of head
-        //     if(this.position.x-(this.size/2) < rockArr[i].x+20) {
-        //         // this.position.x++;
-        //         leftForceApplied = 0;
-        //     }
-        //     if(this.position.x+(this.size/2) > rockArr[i].x) {
-        //         // this.position.x--;
-        //         rightForceApplied = 0;
-        //     }
-
-        // }
     }
+
 };
 
 var batWingObj = function(x, y, size, side) {
@@ -441,33 +439,7 @@ batEnemyObj.prototype.draw = function() {
 };
 var batArr = [];
 batArr.push(new batEnemyObj(150, 100));
-////////////////////////////////////////
-var keys = [];
-var keyPressed = function() {
-    if(keyCode === RIGHT) {
-        boy.facing = 1;
-        shadow.facing = 1;
-        boy.rightForceApplied = 1;
-    } else if(keyCode === LEFT) {
-        boy.facing = -1;
-        shadow.facing = -1;
-        boy.leftForceApplied = 1;
-    }
-    if((keyCode === UP) && (boy.jump === 0)) {
-        boy.jump = 2;
-    }
-    if((keyCode === UP) && (shadow.jump === 0)) {
-        shadow.jump = 2;
-    }
-};
-var keyReleased = function() {
-    if(keyCode === RIGHT) {
-        boy.rightForceApplied = 0;
-    } else if (keyCode === LEFT) {
-        boy.leftForceApplied = 0;
-    }
-};
-////////////////////////////////////////
+
 /*
  *  Draws a starry sky
  */
@@ -764,13 +736,10 @@ play.prototype.execute = function(obj) {
 	stroke(0, 0, 0);
 	line(0, 220, width*4, 220);
 
-	shadow.checkCollision();
     shadow.draw();
     shadow.update();
     // Synchronize the shadow with the original
     shadow.snapshot = boy.snapshot;
-    shadow.leftForceApplied = boy.leftForceApplied;
-    shadow.rightForceApplied = boy.rightForceApplied;
 
     // Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
@@ -790,7 +759,6 @@ play.prototype.execute = function(obj) {
 	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
 	strokeWeight(1); // reset stroke weight back to normal
 
-	boy.checkCollision();
 	boy.update();
 	boy.draw();
 };
@@ -818,7 +786,6 @@ mouseClicked = function() {
 	        if(mouseY > 180 && mouseY < 210) {
 	            shadow.position.set(width/2, height/2+30);
 	            shadow.velocity.set(0, 0);
-	            shadow.acceleration.set(0, 0);
 	            game.changeStateTo(2); // "Controls" screen
 	        }
 	        if(mouseY > 210 && mouseY < 240) {

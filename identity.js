@@ -12,6 +12,33 @@ var keyReleased = function(){
 };
 
 /*
+ *  Shadow powers
+ */
+var laserObj = function(x, y, dir) {
+    this.x = x;
+    this.y = y;
+    this.dir = dir; // direction to shoot laser
+    this.speed = 1.5;
+    this.maxDist = 400; // max distance the laser can travel
+    this.maxReached = false;
+    this.distCounter = 0;
+};
+laserObj.prototype.draw = function() {
+    stroke(0, 0, 0);
+    strokeWeight(3);
+    line(this.x, this.y, this.x - 20, this.y);
+};
+laserObj.prototype.move = function() {
+    this.x += this.speed * this.dir;
+    this.distCounter += this.speed;
+    if(this.distCounter >= this.maxDist) {
+        this.distCounter = 0;
+        this.maxReached = true;
+    }
+};
+var laserArr = [];
+
+/*
  *  Characters
  */
 var rockArr = []; // Rock object created later in code; needed here to check collision with it
@@ -828,6 +855,19 @@ play.prototype.execute = function(obj) {
         shadow.velocity.y = 0;
         shadow.inFlight = false;
         shadow.position.y = 220 - shadow.size/2;
+    }
+    // Add laser-shooting from shadow's eyes
+    if(keys[90]) { // Z key
+        if(frameCount%10 === 0) { // delay generation
+        laserArr.push(new laserObj(shadow.position.x, shadow.position.y - shadow.size/3, shadow.facing));
+        }
+    }
+    for(var i = 0; i < laserArr.length; i++) {
+        laserArr[i].draw();
+        laserArr[i].move();
+        if(laserArr[i].maxReached) {
+            laserArr.splice(i, 1);
+        }
     }
 
     for(var i = 0; i < rockArr.length; i++) {

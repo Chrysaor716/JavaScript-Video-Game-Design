@@ -285,9 +285,11 @@ shadow.size = 60; // init
 childObj.prototype.update = function() {
     if(keys[LEFT]) {
         this.velocity.x -= this.speed;
+        this.facing = -1;
     }
     if(keys[RIGHT]) {
         this.velocity.x += this.speed;
+        this.facing = 1;
     }
     if(!keys[LEFT] && !keys[RIGHT]) {
         if(this.velocity.x > 0) {
@@ -321,8 +323,6 @@ childObj.prototype.update = function() {
     this.position.y += this.velocity.y;
     // Always assume child is in flight until it hits the top of a rock (in checkCollision())
     this.inFlight = true;
-
-    this.checkCollision();
 };
 childObj.prototype.checkCollision = function() {
     for(var i = 0; i < rockArr.length; i++) {
@@ -348,13 +348,13 @@ childObj.prototype.checkCollision = function() {
                 } else {
                     // Collision at right edge
                     this.velocity.x = 0;
-                    // this.position.x = rockArr[i].x - this.size;
+                    this.position.x = rockArr[i].x - this.size/2;
                 }
             } else {
                 if(wy > -hx) {
                     // Collision on left edge
                     this.velocity.x = 0;
-                    // this.position.x = rockArr[i].x + 20;
+                    this.position.x = rockArr[i].x + 20 + this.size/2;
                 } else {
                     // Collision on bottom edge
                     this.velocity.y = 0;
@@ -513,7 +513,7 @@ rockObj.prototype.draw = function() {
 };
 // 600x400 pixel canvas size, each tile 20x20 pixels
 // 40x20 tile array --> 800x400 pixel
-var rockTilemap = ["r------------------rr------rrrrrrrrrrrrrr------------rr----rr------------------r",
+var rockTilemap = ["r------------------rr-------rrrrrrrrrrrrr------------rr----rr------------------r",
                    "r------------------rr------------------rr------------rr----rr------------------r",
                    "r------------------rr------------------rr------------rr----rr------------------r",
                    "r------------------rrrrrr----------------------------rr----rr------------------r",
@@ -686,25 +686,21 @@ controls.prototype.execute = function(obj) {
 	textSize(12);
 	text("(Give it a try!)", 250, 150);
 
-	shadow.size = 40;
-    shadow.draw();
-    shadow.update();
-    shadow.leftForceApplied = boy.leftForceApplied;
-    shadow.rightForceApplied = boy.rightForceApplied;
+	boy.size = 40;
+    boy.draw();
+    boy.update();
+    boy.inFlight = true;
     // Adds a ground in the controls menu
-    if(shadow.position.y >= height/2+30) {
-        shadow.position.y = height/2+30;
-        shadow.velocity.y = 0;
-        shadow.jump = 0;
+    if(boy.position.y >= height/2+30) {
+        boy.position.y = height/2+30;
+        boy.inFlight = false;
     }
     // X bounds
-    if(shadow.position.x > width-50) {
-        shadow.position.x = width-50;
-        shadow.velocity.x = 0;
+    if(boy.position.x > width-50) {
+        boy.position.x = width-50;
     }
-    if(shadow.position.x < 50) {
-        shadow.position.x = 50;
-        shadow.velocity.x = 0;
+    if(boy.position.x < 50) {
+        boy.position.x = 50;
     }
 
 	textSize(10);
@@ -740,6 +736,7 @@ play.prototype.execute = function(obj) {
     shadow.update();
     // Synchronize the shadow with the original
     shadow.snapshot = boy.snapshot;
+    shadow.checkCollision();
 
     // Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
@@ -761,6 +758,7 @@ play.prototype.execute = function(obj) {
 
 	boy.update();
 	boy.draw();
+	boy.checkCollision();
 };
 //--------------------------------------------------------
 var gameObj = function() {
@@ -784,8 +782,8 @@ mouseClicked = function() {
 	            game.changeStateTo(1); // "About" screen
 	        }
 	        if(mouseY > 180 && mouseY < 210) {
-	            shadow.position.set(width/2, height/2+30);
-	            shadow.velocity.set(0, 0);
+	            boy.position.set(width/2, height/2+30);
+	            boy.velocity.set(0, 0);
 	            game.changeStateTo(2); // "Controls" screen
 	        }
 	        if(mouseY > 210 && mouseY < 240) {
@@ -806,9 +804,9 @@ mouseClicked = function() {
 };
 
 draw = function() {
-// 	game.state[game.currState].execute(game);
+	game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
-game.state[3].execute(game);
+// game.state[3].execute(game);
 ///////////////////////////////////////////////////////
 };
 

@@ -406,9 +406,27 @@ batWingObj.prototype.draw = function() {
     if(this.side === "left") {
         line(-this.size/2, 0,
              -(this.size/2)-this.size/1.5, 0);
+        line(((-this.size/2)+(-(this.size/2)-this.size/1.5))/1.5, 0,
+             ((-this.size/2)+(-(this.size/2)-this.size/1.5))/1.5,
+             this.size/3);
+        line(((-this.size/2)+(-(this.size/2)-this.size/1.5))/2, 0,
+             ((-this.size/2)+(-(this.size/2)-this.size/1.5))/2,
+             this.size/2);
+        line(((-this.size/2)+(-(this.size/2)-this.size/1.5))/3, 0,
+             ((-this.size/2)+(-(this.size/2)-this.size/1.5))/3,
+             this.size/1.5);
     } else {
         line(this.size/2, 0,
              (this.size/2)+this.size/1.5, 0);
+        line((this.size/2+this.size/2+this.size/1.5)/1.5, 0,
+             (this.size/2+this.size/2+this.size/1.5)/1.5,
+             this.size/3);
+        line((this.size/2+this.size/2+this.size/1.5)/2, 0,
+             (this.size/2+this.size/2+this.size/1.5)/2,
+             this.size/2);
+        line((this.size/2+this.size/2+this.size/1.5)/3, 0,
+             (this.size/2+this.size/2+this.size/1.5)/3,
+             this.size/1.5);
     }
 
     if(this.currFrame < (frameCount - 20)) {
@@ -424,7 +442,7 @@ batWingObj.prototype.draw = function() {
 var batEnemyObj = function(x, y) {
     this.x = x;
     this.y = y;
-    this.size = 30;
+    this.size = random(20, 30);
 
     this.leftWing = new batWingObj(this.x, this.y, this.size, "left");
     this.rightWing = new batWingObj(this.x, this.y, this.size, "right");
@@ -436,9 +454,20 @@ batEnemyObj.prototype.draw = function() {
     stroke(0, 0, 0);
     this.leftWing.draw();
     this.rightWing.draw();
+    // Draw eyes
+    noStroke();
+    fill(255, 255, 255, 150);
+    ellipse(this.x-this.size/4, this.y, this.size/3, this.size/3);
+    ellipse(this.x+this.size/4, this.y, this.size/3, this.size/3);
+    fill(245, 255, 133);
+    ellipse(this.x-this.size/4, this.y, this.size/5, this.size/5);
+    ellipse(this.x+this.size/4, this.y, this.size/5, this.size/5);
 };
 var batArr = [];
-batArr.push(new batEnemyObj(150, 100));
+// Spawn 4-8 number of bats
+for(var i = 0; i < Math.floor(Math.random()*8) + 4; i++) {
+    batArr.push(new batEnemyObj(random(180, 2*width), random(60, 180)));
+}
 
 /*
  *  Draws a starry sky
@@ -520,19 +549,19 @@ var rockTilemap = ["r------------------rr-------rrrrrrrrrrrrr------------rr----r
                    "r------------------rrrrrr----------------------------rr----rr------------------r",
                    "r------------------rrrrrrrr--------------------------rr----rr------------------r",
                    "r------------------rrrrrrrrrr------------------------rr----rr------------------r",
+                   "r------------------rrrrrrrrrr------------------------rr----rr------------------r",
                    "r-------------------------------rrrr-----------------rr----rr------------------r",
-                   "r-------------------------------rr-------------------rr----rr------------------r",
-                   "r-------------------------------rr-------------------rr----rr------------------r",
-                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr----rr------------rr----r",
-                   "r----------------------------------------------------rr----rr------------rr----r", // start of original's relm
-                   "r----------------------------------------------------rr----rr------------rr----r",
-                   "r----------------------------------------------------rr----rr------------rr----r",
-                   "r----------------------rrrrrrrrrrr-----rr------------rr----rr------------rr-----",
-                   "r----------------------rr--------------rr------------rr----rr------------rr-----",
-                   "r----------rrrrrrrrr-------------------rr------------rr----rr------------rr-----",
-                   "r---------rrrrrrrrrr----------------rrrrr------------rr----rr------------rr-----",
-                   "r--------rrrrrrrrrrr---------------rrrrrr------------rr----rr------------rr----r",
-                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr------------rr----rr------------rrrrrrr"]; // @ ~400 pixels down
+                   "r-------------------------------rrrr-----------------rr----rr------------------r",
+                   "r-------------------------------rrrr--------------------------------------------", // "divider"
+                   "r------------------------------------------------------------------------rr----r", // start of original's relm
+                   "r------------------------------------------------------------------------rr----r",
+                   "r------------------------------------------------------------------------rr----r",
+                   "r----------------------rrrrrrrrrrr-----rr------------------rr------------rr-----",
+                   "r----------------------rr--------------rr------------------rr------------rr-----",
+                   "r----------rrrrrrrrr-------------------rr------------------rr------------rr-----",
+                   "r---------rrrrrrrrrr----------------rrrrr------------------rr------------rr-----",
+                   "r--------rrrrrrrrrrr----------------rrrrr------------------rr------------rr----r",
+                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr----rr------------rrrrrrr"]; // @ ~400 pixels down
 var initRockTilemap = function() {
     for(var i = 0; i < rockTilemap.length; i++) {
         for(var j = 0; j < rockTilemap[i].length; j++) {
@@ -711,10 +740,10 @@ controls.prototype.execute = function(obj) {
 // from the main menu
 // for now, with debugging and keeping it in play state, the boy's
 // position is initialized here
-boy.position.set(60, 350);
-boy.size = 40;
-shadow.position.set(40, 170);
-shadow.size = 50;
+// boy.position.set(60, 350);
+// boy.size = 40;
+// shadow.position.set(40, 170);
+// shadow.size = 50;
 ///////////////////////////////////////////////////////////
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
@@ -722,7 +751,7 @@ play.prototype.execute = function(obj) {
     // NOTE: translating x=-50 shifts screen to the RIGHT
     //                   x=50  shifts screen to the LEFT
     // WHY IS IT INVERTED
-    translate(-((boy.position.x+shadow.position.x)/2)+100, 0);
+    translate(-((boy.position.x+shadow.position.x)/2)+200, 0);
 	background(245, 245, 245);
 	noStroke();
 	fill(72, 72, 122);
@@ -737,15 +766,21 @@ play.prototype.execute = function(obj) {
     // Synchronize the shadow with the original
     shadow.snapshot = boy.snapshot;
     shadow.checkCollision();
-
-    // Draws bat enemy
-    for(var i = 0; i < batArr.length; i++) {
-        batArr[i].draw();
+    // Limit shadow to divider (acts as a "ground" for shadow)
+    if(shadow.position.y + shadow.size/2 >= 220) {
+        shadow.velocity.y = 0;
+        shadow.inFlight = false;
+        shadow.position.y = 220 - shadow.size/2;
     }
 
     for(var i = 0; i < rockArr.length; i++) {
 		rockArr[i].draw();
 	}
+
+	// Draws bat enemy
+    for(var i = 0; i < batArr.length; i++) {
+        batArr[i].draw();
+    }
 
     // Connects the shadow to the boy
 	stroke(0, 0, 0);

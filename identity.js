@@ -15,6 +15,7 @@ var keyReleased = function(){
  *  Characters
  */
 var rockArr = []; // Rock object created later in code; needed here to check collision with it
+var batArr = []; // same with bat objects
 var childObj = function(x, y, charType) {
     this.position = new PVector(x, y);
     // Indicates whether the character is the original (1), its shadow (0), or its reflection (2)
@@ -367,9 +368,58 @@ childObj.prototype.checkCollision = function() {
 
 };
 
+/*
+ *  NPC states
+ */
+var chaseState = function() {};
+chaseState.prototype.checkObstacle = function(pos) {};
+chaseState.prototype.execute = function(me) {};
+//-----------------------------------------------------
+var wanderState = function() {
+    this.wanderAngle = 0;
+    this.wanderDist = random(70, 100);
+    this.velocity = new PVector(0, 0);
+};
+wanderState.prototype.checkObstacle = function(pos) {};
+wanderState.prototype.execute = function(me) {
+    // this.checkObstacle(me.position);
+    // Walk a direction at arbitray small angles
+    this.velocity.set(cos(this.wanderAngle), sin(this.wanderAngle));
+    me.position.add(this.velocity); // add vectors for wandering movement
+    if(frameCount%30 === 0) {
+        // small turns taken within "wandering distance"
+        this.wanderAngle += random(-15*Math.PI/180, 15*Math.PI/180);
+    }
+    this.wanderDist--; // distance before making significant turn
+
+    if(this.wanderDist < 0 ||
+      me.position.x >= width*2 || me.position.x <= 0 || // Checks the borders of canvas
+      me.position.y >= height || me.position.y <= 0) {
+        this.wanderDist = random(70, 200);
+        // Turn significantly when colliding with border
+        this.wanderAngle += random(-Math.PI, Math.PI);
+    }
+    // Ensure position of the enemies do not surpass the borders
+    if(me.position.x >= width*2) {
+        me.position.x--;
+    } else if(me.position.x <= 20) {
+        me.position.x++;
+    }
+    if(me.position.y >= 200) {
+        me.position.y--;
+    } else if(me.position.y <= 20) {
+        me.position.y++;
+    }
+
+    // // Change to chasing state if player is within certain distance from enemy
+    // if(dist(me.position.x, me.position.y, player.position.x, player.position.y) < 80) {
+    //     me.changeState(1);
+    // }
+};
+//-----------------------------------------------------
+
 var batWingObj = function(x, y, size, side) {
-    this.x = x;
-    this.y = y;
+    this.position = new PVector(x, y);
     this.size = size;
     this.side = side;
     // animation variables
@@ -382,7 +432,7 @@ var batWingObj = function(x, y, size, side) {
 };
 batWingObj.prototype.draw = function() {
     pushMatrix();
-    translate(this.x, this.y);
+    translate(this.position.x, this.position.y);
 
     // Animate wings
     switch(this.snapshot) {
@@ -440,31 +490,38 @@ batWingObj.prototype.draw = function() {
     popMatrix();
 };
 var batEnemyObj = function(x, y) {
-    this.x = x;
-    this.y = y;
+    this.position = new PVector(x, y);
     this.size = random(20, 30);
 
-    this.leftWing = new batWingObj(this.x, this.y, this.size, "left");
-    this.rightWing = new batWingObj(this.x, this.y, this.size, "right");
+    this.leftWing = new batWingObj(this.position.x, this.position.y, this.size, "left");
+    this.rightWing = new batWingObj(this.position.x, this.position.y, this.size, "right");
+
+    // Variables for AI
+    this.state = [new wanderState(), new chaseState()];
+    this.currState = 0;
+};
+batEnemyObj.prototype.changeState = function(s) {
+    this.currState = s;
 };
 batEnemyObj.prototype.draw = function() {
     noStroke();
     fill(0, 0, 0);
-    ellipse(this.x, this.y, this.size+10, this.size); //body
+    ellipse(this.position.x, this.position.y, this.size+10, this.size); //body
     stroke(0, 0, 0);
     this.leftWing.draw();
+    this.leftWing.position = this.position;
     this.rightWing.draw();
+    this.rightWing.position = this.position;
     // Draw eyes
     noStroke();
     fill(255, 255, 255, 150);
-    ellipse(this.x-this.size/4, this.y, this.size/3, this.size/3);
-    ellipse(this.x+this.size/4, this.y, this.size/3, this.size/3);
+    ellipse(this.position.x-this.size/4, this.position.y, this.size/3, this.size/3);
+    ellipse(this.position.x+this.size/4, this.position.y, this.size/3, this.size/3);
     fill(245, 255, 133);
-    ellipse(this.x-this.size/4, this.y, this.size/5, this.size/5);
-    ellipse(this.x+this.size/4, this.y, this.size/5, this.size/5);
+    ellipse(this.position.x-this.size/4, this.position.y, this.size/5, this.size/5);
+    ellipse(this.position.x+this.size/4, this.position.y, this.size/5, this.size/5);
 };
-var batArr = [];
-// Spawn 4-8 number of bats
+// Spawn 4-8 bats
 for(var i = 0; i < Math.floor(Math.random()*8) + 4; i++) {
     batArr.push(new batEnemyObj(random(180, 2*width), random(60, 180)));
 }
@@ -780,6 +837,7 @@ play.prototype.execute = function(obj) {
 	// Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
         batArr[i].draw();
+        batArr[i].state[batArr[i].currState].execute(batArr[i]);
     }
 
     // Connects the shadow to the boy
@@ -826,6 +884,9 @@ mouseClicked = function() {
                 boy.size = 40;
                 shadow.position.set(40, 170);
                 shadow.size = 50;
+                // for(var i = 0; i < batArr.length; i++) {
+                //     batArr[i].state = 0; // init states
+                // }
 	            game.changeStateTo(3); // "Play" state
 	        }
 	    }

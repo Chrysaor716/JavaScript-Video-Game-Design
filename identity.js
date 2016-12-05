@@ -56,8 +56,9 @@ particleBundles.prototype.draw = function() {
 };
 var bundleArr = [];
 
-// Bat object created later in code; needed here to check collision with it
-var batArr = []; // same with bat objects
+// Bat/Bee objects created later in code; needed here to check collision with it
+var batArr = [];
+var beeArr = [];
 /*
  *  Shadow powers
  */
@@ -92,7 +93,12 @@ laserObj.prototype.checkCollision = function() {
            this.y >= bat.position.y - bat.size/2) {
               if(this.x >= bat.position.x - (bat.size/2 + 10) &&
                  this.x-20 <= bat.position.x + (bat.size/2 + 10)) {
-                     bundleArr.push(new particleBundles(bat.position.x, bat.position.y));
+                    bundleArr.push(new particleBundles(bat.position.x, bat.position.y));
+                    bat.hp--;
+                    // Draw bat HP bar upon impact
+                    noStroke();
+                    fill(255, 0, 0, 200);
+                    rect(bat.position.x-bat.size/2, bat.position.y-bat.size/2-10, bat.hp/4, 6);
                 }
         }
     }
@@ -510,11 +516,6 @@ wanderState.prototype.execute = function(me) {
         me.position.y++;
     }
 
-    // // Change to chasing state if player is within certain distance from enemy
-    // if(dist(me.position.x, me.position.y, player.position.x, player.position.y) < 80) {
-    //     me.changeState(1);
-    // }
-
     for(var i = 0; i < laserArr.length; i++) {
         if(dist(laserArr[i].x, laserArr[i].y, me.position.x, me.position.y) < 90) {
             me.position.sub(this.velocity);
@@ -597,6 +598,7 @@ batWingObj.prototype.draw = function() {
 var batEnemyObj = function(x, y) {
     this.position = new PVector(x, y);
     this.size = random(20, 30);
+    this.hp = 150;
 
     this.leftWing = new batWingObj(this.position.x, this.position.y, this.size, "left");
     this.rightWing = new batWingObj(this.position.x, this.position.y, this.size, "right");
@@ -626,9 +628,36 @@ batEnemyObj.prototype.draw = function() {
     ellipse(this.position.x-this.size/4, this.position.y, this.size/5, this.size/5);
     ellipse(this.position.x+this.size/4, this.position.y, this.size/5, this.size/5);
 };
-// Spawn 4-8 bats
+// Spawn 4-8 bats in random location at shadow's half of screen
 for(var i = 0; i < Math.floor(Math.random()*8) + 4; i++) {
-    batArr.push(new batEnemyObj(random(180, 2*width), random(60, 180)));
+    batArr.push(new batEnemyObj(random(180, 2.5*width), random(60, 180)));
+}
+//--------------------------------------------------
+var beeEnemyObj = function(x, y) {
+    this.position = new PVector(x, y);
+    this.h = random(10, 20);
+    this.w = this.h + random(1, 5);
+    this.hp = 150;
+    this.speed = 5;
+};
+beeEnemyObj.prototype.draw = function() {
+    noStroke();
+    fill(222, 215, 24);
+    ellipse(this.position.x, this.position.y, this.w, this.h);
+    fill(0, 0, 0);
+    ellipse(this.position.x-7, this.position.y, 5, 5);
+    fill(70, 205, 217, 220);
+    ellipse(this.position.x, this.position.y-10, 6, 12);
+};
+beeEnemyObj.prototype.move = function() {
+    this.position.x -= this.speed;
+    if(this.position.x <= -50) {
+        this.position.x = random(3*width+10, 3*width+850);
+    }
+};
+// Spawn 3-6 bees at random location at child's (bottom) half
+for(var i = 0; i < Math.floor(Math.random()*6) + 3; i++) {
+    beeArr.push(new beeEnemyObj(random(3*width+10, 3*width+850), random(230, 380)));
 }
 
 /*
@@ -914,7 +943,6 @@ play.prototype.execute = function(obj) {
 	stroke(0, 0, 0);
 	line(0, 220, width*3, 220);
 
-    shadow.draw();
     shadow.update();
     // Synchronize the shadow with the original
     shadow.snapshot = boy.snapshot;
@@ -951,16 +979,22 @@ play.prototype.execute = function(obj) {
         shadow.collided = false; // reset
     }
     // Draw HP bar
-    fill(11, 184, 60, 200);
+    noStroke();
+    fill(11, 184, 60, 230);
     rect((boy.position.x+shadow.position.x)/2-200, 210, HP, 20);
     if(HP <= 0) {
         obj.changeStateTo(4); // gameOver state
     }
+    shadow.draw();
 
 	// Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
         batArr[i].draw();
         batArr[i].state[batArr[i].currState].execute(batArr[i]);
+        // Bat dies when HP reaches zero
+        if(batArr[i].hp <= 0) {
+            batArr.splice(i, 1);
+        }
     }
     // Draws particles when laser collides with bats
     for(var i = 0 ; i < bundleArr.length; i++) {
@@ -982,6 +1016,12 @@ play.prototype.execute = function(obj) {
 	boy.update();
 	boy.draw();
 	boy.checkCollision();
+
+	// Draw bees
+	for(var i = 0; i < beeArr.length; i++) {
+	    beeArr[i].draw();
+	    beeArr[i].move();
+	}
 };
 var gameOver = function() {};
 gameOver.prototype.execute = function(obj) {

@@ -964,7 +964,7 @@ controls.prototype.execute = function(obj) {
 	textSize(20);
 	text("Left/Right arrow keys: move", 150, 70);
 	text("Up key: jump", 230, 100);
-	text("C: shield", 230, 130);
+	text("C: shield (blocks bees)", 175, 130);
 
 	textSize(12);
 	text("(Give it a try!)", 250, 155);

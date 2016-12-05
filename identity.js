@@ -107,6 +107,10 @@ var laserArr = [];
 /*
  *  Child's powers
  */
+var shieldTime = 60;
+var shieldUp = false;
+var shieldCooldown = 180; // 60 * 3 (frame rate = 60)
+var startCooldown = false;
 var shieldObj = function(x, y, size, dir) {
     this.x = x;
     this.y = y;
@@ -462,7 +466,7 @@ childObj.prototype.checkCollision = function() {
                     // Collision at top edge (of child)
                     this.velocity.y = 0;
                     this.inFlight = true;
-                    this.position.y = rockArr[i].y + 20 + this.size/2;
+                    this.position.y = rockArr[i].y + 20 + this.size/2 + 1;
                 } else {
                     // Collision at right edge
                     this.velocity.x = 0;
@@ -677,15 +681,32 @@ beeEnemyObj.prototype.draw = function() {
     fill(222, 215, 24);
     ellipse(this.position.x, this.position.y, this.w, this.h);
     fill(0, 0, 0);
-    ellipse(this.position.x-7, this.position.y, 5, 5);
+    if(this.speed > 0) {
+        ellipse(this.position.x-7, this.position.y, 5, 5); // eye
+    } else {
+        ellipse(this.position.x+7, this.position.y, 5, 5);
+    }
     fill(70, 205, 217, 220);
-    ellipse(this.position.x, this.position.y-10, 6, 12);
+    ellipse(this.position.x, this.position.y-10, 6, 12); // wing
 };
 beeEnemyObj.prototype.move = function() {
     this.position.x -= this.speed;
-    if(this.position.x <= -50) {
+    if(this.position.x <= -50 && this.speed >= 0) {
         this.position.x = random(3*width+10, 3*width+2000);
     }
+    if(this.position.x >= width*3+50 && this.speed < 0) {
+        this.position.x = random(-2000, -10);
+    }
+    this.checkCollision();
+};
+beeEnemyObj.prototype.checkCollision = function() {
+    if(this.position.x+this.w >= shield.x-shield.size-5 &&
+       this.position.x-this.w <= shield.x+shield.size+5 &&
+       this.position.y+this.h >= shield.y-shield.size-5 &&
+       this.position.y-this.h <= shield.y+shield.size+5 &&
+       shieldUp) {
+           this.speed = -this.speed;
+       }
 };
 // Spawn 3-6 bees at random location at child's (bottom) half
 for(var i = 0; i < Math.floor(Math.random()*6) + 3; i++) {
@@ -938,14 +959,15 @@ controls.prototype.execute = function(obj) {
 	fill(0, 0, 0);
 	textSize(30);
 	textFont(createFont("monospace"));
-	text("Controls", width/2-60, 60);
+	text("Controls", width/2-60, 40);
 
 	textSize(20);
-	text("Left/Right arrow keys: move", 150, 100);
-	text("Up key: jump", 230, 130);
+	text("Left/Right arrow keys: move", 150, 70);
+	text("Up key: jump", 230, 100);
+	text("C: shield", 230, 130);
 
 	textSize(12);
-	text("(Give it a try!)", 250, 150);
+	text("(Give it a try!)", 250, 155);
 
 	boy.size = 40;
     boy.draw();
@@ -963,6 +985,42 @@ controls.prototype.execute = function(obj) {
     if(boy.position.x < 50) {
         boy.position.x = 50;
     }
+    // Draw shield for boy
+	shield.size = boy.size;
+	shield.direction = boy.facing;
+    shield.x = boy.position.x;
+    shield.y = boy.position.y;
+	if(keys[67] && !startCooldown) { // C key
+        shieldUp = true;
+	}
+	if(shieldUp) {
+	    shield.draw();
+	    shieldTime--;
+	    if(shieldTime <= 0) {
+	        shieldUp = false;
+	        shieldTime = 60;
+	        startCooldown = true;
+	    }
+	}
+	if(startCooldown) {
+	    shieldCooldown--;
+	    if(shieldCooldown <= 0) {
+	        startCooldown = false;
+	        shieldCooldown = 180;
+	    }
+	}
+	// Show shield cooldown time in UI
+	fill(42, 49, 250);
+	textSize(12);
+	if(shieldCooldown >= 0 && shieldCooldown <= 60) {
+	    text("Shield cooldown: 1", 20, 390);
+	} else if(shieldCooldown >= 61 && shieldCooldown <= 120) {
+	    text("Shield cooldown: 2", 20, 390);
+	} else if(shieldCooldown >= 121 && shieldCooldown <= 180) {
+	    text("Shield cooldown: 3", 20, 390);
+	} else {
+	    text("Shield cooldown: 0", 20, 390);
+	}
 
 	textSize(10);
 	text("Click anywhere on the screen to return to main menu", 150, 260);
@@ -991,10 +1049,6 @@ controls.prototype.execute = function(obj) {
     }
 };
 var HP = 600; // init health
-var shieldTime = 60;
-var shieldUp = false;
-var shieldCooldown = 180; // 60 * 3 (frame rate = 60)
-var startCooldown = false;
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
     // Scrolling
@@ -1111,6 +1165,18 @@ play.prototype.execute = function(obj) {
 	        startCooldown = false;
 	        shieldCooldown = 180;
 	    }
+	}
+	// Show shield cooldown time in UI
+	fill(42, 49, 250);
+	textSize(12);
+	if(shieldCooldown >= 0 && shieldCooldown <= 60) {
+	    text("Shield cooldown: 1", (boy.position.x+shadow.position.x)/2-190, 390);
+	} else if(shieldCooldown >= 61 && shieldCooldown <= 120) {
+	    text("Shield cooldown: 2", (boy.position.x+shadow.position.x)/2-190, 390);
+	} else if(shieldCooldown >= 121 && shieldCooldown <= 180) {
+	    text("Shield cooldown: 3", (boy.position.x+shadow.position.x)/2-190, 390);
+	} else {
+	    text("Shield cooldown: 0", (boy.position.x+shadow.position.x)/2-190, 390);
 	}
 
 	// Draw bees

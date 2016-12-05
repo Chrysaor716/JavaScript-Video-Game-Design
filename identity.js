@@ -3,6 +3,9 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 size(600, 400); // canvas size
 frameRate(60);
 
+angleMode = "radians";
+frameRate(60);
+
 var keys = [];
 var keyPressed = function() {
     keys[keyCode] = true;
@@ -11,6 +14,53 @@ var keyReleased = function(){
     keys[keyCode] = false;
 };
 
+/*
+ *  Uses particle system to animate hitting an enemy
+ */
+// Single particle
+var batBurstObj = function() {
+    this.position = new PVector(0, 0);
+    this.direction = new PVector(0, 0);
+    this.size = random(1, 5);
+    this.timer = random(50, 80);
+};
+batBurstObj.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0);
+    ellipse(this.position.x, this.position.y, this.size, this.size);
+    this.position.x += this.direction.y*cos(this.direction.x);
+    this.position.y += this.direction.y*sin(this.direction.x);
+    this.position.y += (90/(this.timer + 100)); // adds gravity
+    this.timer--;
+};
+// Creates an array of paricle bundles; origin of particles
+var particleBundles = function(x, y) {
+    this.burstArr = [];
+    // Randomize number of particles
+    for(var i = 0; i < Math.floor(random(5, 10)); i++) {
+        this.burstArr.push(new batBurstObj()); // pushes individual particles into array
+    }
+    // Set particle starting position
+    for(var i = 0; i < this.burstArr.length; i++) {
+        this.burstArr[i].position.set(x, y);
+    }
+};
+particleBundles.prototype.draw = function() {
+    for(var i = 0; i < this.burstArr.length; i++) {
+        // burst in random upwards directions (x)
+        //      in N range of magnitudes (y)
+        this.burstArr[i].direction.set(random(-Math.PI/6, -5*Math.PI/6), random(0, 3));
+        this.burstArr[i].draw();
+        // After arbitrary times for each particle/bubble, pop
+        if(this.burstArr[i].timer <= 0) {
+            this.burstArr.splice(i, 1);
+        }
+    }
+};
+var bundleArr = [];
+
+// Bat object created later in code; needed here to check collision with it
+var batArr = []; // same with bat objects
 /*
  *  Shadow powers
  */
@@ -35,6 +85,21 @@ laserObj.prototype.move = function() {
         this.distCounter = 0;
         this.maxReached = true;
     }
+    this.checkCollision();
+};
+laserObj.prototype.checkCollision = function() {
+    var bat;
+    for(var i = 0; i < batArr.length; i++) {
+        bat = batArr[i];
+        if(this.y <= bat.position.y + bat.size/2 &&
+           this.y >= bat.position.y - bat.size/2) {
+              if(this.x >= bat.position.x - (bat.size/2 + 10) &&
+                 this.x-20 <= bat.position.x + (bat.size/2 + 10)) {
+                     this.collided = true;
+                     bundleArr.push(new particleBundles(bat.position.x, bat.position.y));
+                }
+        }
+    }
 };
 var laserArr = [];
 
@@ -42,7 +107,6 @@ var laserArr = [];
  *  Characters
  */
 var rockArr = []; // Rock object created later in code; needed here to check collision with it
-var batArr = []; // same with bat objects
 var childObj = function(x, y, charType) {
     this.position = new PVector(x, y);
     // Indicates whether the character is the original (1), its shadow (0), or its reflection (2)
@@ -856,12 +920,18 @@ play.prototype.execute = function(obj) {
         shadow.inFlight = false;
         shadow.position.y = 220 - shadow.size/2;
     }
+
+    for(var i = 0; i < rockArr.length; i++) {
+		rockArr[i].draw();
+	}
+
     // Add laser-shooting from shadow's eyes
     if(keys[90]) { // Z key
         if(frameCount%10 === 0) { // delay generation
         laserArr.push(new laserObj(shadow.position.x, shadow.position.y - shadow.size/3, shadow.facing));
         }
     }
+    // Draw lasers
     for(var i = 0; i < laserArr.length; i++) {
         laserArr[i].draw();
         laserArr[i].move();
@@ -870,14 +940,17 @@ play.prototype.execute = function(obj) {
         }
     }
 
-    for(var i = 0; i < rockArr.length; i++) {
-		rockArr[i].draw();
-	}
-
 	// Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
         batArr[i].draw();
         batArr[i].state[batArr[i].currState].execute(batArr[i]);
+    }
+    // Draws particles when laser collides with bats
+    for(var i = 0 ; i < bundleArr.length; i++) {
+        bundleArr[i].draw();
+        if(bundleArr[i].burstArr.length <= 0) {
+            bundleArr.splice(i, 1);
+        }
     }
 
     // Connects the shadow to the boy

@@ -395,12 +395,12 @@ childObj.prototype.update = function() {
         }
         // Don't apply any force/speed when x-velocity is 0
     }
-
+    
     // Key for jumping
     if(keys[UP] && !this.inFlight) {
         this.velocity.y = -this.jumpVel;
     }
-
+    
     // Add gravity to child
     this.velocity.y += this.gravity;
     // Check threshold velocities
@@ -413,7 +413,7 @@ childObj.prototype.update = function() {
     if(this.velocity.x < -this.maxSpeed) {
         this.velocity.x = -this.maxSpeed;
     }
-
+    
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
     // Always assume child is in flight until it hits the top of a rock (in checkCollision())
@@ -460,8 +460,8 @@ childObj.prototype.checkCollision = function() {
             }
         }
     }
-
-    // Checks collision with bat NPCs
+    
+    // Check collision with bat NPCs
     for(var i = 0; i < batArr.length; i++) {
         if(this.position.x+this.size/2 >= batArr[i].position.x-batArr[i].size/2-10 &&
            this.position.x-this.size/2 <= batArr[i].position.x+batArr[i].size/2+10 &&
@@ -469,6 +469,16 @@ childObj.prototype.checkCollision = function() {
            this.position.y-this.size/2 <= batArr[i].position.y+batArr[i].size/2) {
                this.collided = true;
         }
+    }
+    
+    // Check collision with bee NPCs
+    for(var i = 0; i < beeArr.length; i++) {
+        if(this.position.x+this.size/2 >= beeArr[i].position.x-beeArr[i].w/2 &&
+           this.position.x-this.size/2 <= beeArr[i].position.x+beeArr[i].w/2 &&
+           this.position.y+this.size/2 >= beeArr[i].position.y-beeArr[i].h/2 &&
+           this.position.y-this.size/2 <= beeArr[i].position.y+beeArr[i].h/2) {
+               this.collided = true;
+           }
     }
 };
 
@@ -496,7 +506,7 @@ wanderState.prototype.execute = function(me) {
         this.wanderAngle += random(-15*Math.PI/180, 15*Math.PI/180);
     }
     this.wanderDist--; // distance before making significant turn
-
+    
     if(this.wanderDist < 0 ||
       me.position.x >= width*2 || me.position.x <= 0 || // Checks the borders of canvas
       me.position.y >= height || me.position.y <= 0) {
@@ -515,7 +525,7 @@ wanderState.prototype.execute = function(me) {
     } else if(me.position.y <= 20) {
         me.position.y++;
     }
-
+    
     for(var i = 0; i < laserArr.length; i++) {
         if(dist(laserArr[i].x, laserArr[i].y, me.position.x, me.position.y) < 90) {
             me.position.sub(this.velocity);
@@ -539,26 +549,26 @@ var batWingObj = function(x, y, size, side) {
 batWingObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-
+    
     // Animate wings
     switch(this.snapshot) {
         case 0:
             rotate(Math.PI/4);
         break;
-
+        
         case 1:
             rotate(0);
         break;
-
+        
         case 2:
             rotate(7*Math.PI/4);
         break;
-
+        
         default:
             rotate(0);
         break;
     }
-
+    
     if(this.side === "left") {
         line(-this.size/2, 0,
              -(this.size/2)-this.size/1.5, 0);
@@ -584,7 +594,7 @@ batWingObj.prototype.draw = function() {
              (this.size/2+this.size/2+this.size/1.5)/3,
              this.size/1.5);
     }
-
+    
     if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
         this.snapshot++;
@@ -592,17 +602,17 @@ batWingObj.prototype.draw = function() {
     if(this.snapshot > 3) {
         this.snapshot = 0;
     }
-
+    
     popMatrix();
 };
 var batEnemyObj = function(x, y) {
     this.position = new PVector(x, y);
     this.size = random(20, 30);
     this.hp = 150;
-
+    
     this.leftWing = new batWingObj(this.position.x, this.position.y, this.size, "left");
     this.rightWing = new batWingObj(this.position.x, this.position.y, this.size, "right");
-
+    
     // Variables for AI
     this.state = [new wanderState(), new chaseState()];
     this.currState = 0;
@@ -638,7 +648,7 @@ var beeEnemyObj = function(x, y) {
     this.h = random(10, 20);
     this.w = this.h + random(1, 5);
     this.hp = 150;
-    this.speed = 5;
+    this.speed = 2;
 };
 beeEnemyObj.prototype.draw = function() {
     noStroke();
@@ -652,12 +662,12 @@ beeEnemyObj.prototype.draw = function() {
 beeEnemyObj.prototype.move = function() {
     this.position.x -= this.speed;
     if(this.position.x <= -50) {
-        this.position.x = random(3*width+10, 3*width+850);
+        this.position.x = random(3*width+10, 3*width+2000);
     }
 };
 // Spawn 3-6 bees at random location at child's (bottom) half
 for(var i = 0; i < Math.floor(Math.random()*6) + 3; i++) {
-    beeArr.push(new beeEnemyObj(random(3*width+10, 3*width+850), random(230, 380)));
+    beeArr.push(new beeEnemyObj(random(3*width+10, 3*width+2000), random(230, 380)));
 }
 
 /*
@@ -674,18 +684,18 @@ nightSkyObj.prototype.initialize = function() {
 };
 nightSkyObj.prototype.draw = function() {
     // Draws stars in sky
-	for(var i = 0; i < this.starArr.length; i++) {
-	    // Use sin to slow the "twinkling" increment
-	    // Scales the rate of transparency change over time
-	    stroke(255, 255, 255, 255*abs(sin(Math.PI*i*this.t/7200)));
+    for(var i = 0; i < this.starArr.length; i++) {
+        // Use sin to slow the "twinkling" increment
+        // Scales the rate of transparency change over time
+        stroke(255, 255, 255, 255*abs(sin(Math.PI*i*this.t/7200)));
         point(this.starArr[i].x, this.starArr[i].y);
         // Make "plus" sign ("star" shape)
         point(this.starArr[i].x-1, this.starArr[i].y);
         point(this.starArr[i].x+1, this.starArr[i].y);
         point(this.starArr[i].x, this.starArr[i].y-1);
         point(this.starArr[i].x, this.starArr[i].y+1);
-	}
-	this.t++;
+    }
+    this.t++;
 };
 var nightSky = new nightSkyObj();
 nightSky.initialize();
@@ -699,7 +709,7 @@ var mountainObj = function(colour) {
 mountainObj.prototype.draw = function() {
     var step = 0.01;
     fill(this.colour, this.colour, this.colour, 100);
-
+    
     stroke(this.colour, this.colour, this.colour, 170);
     for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
@@ -711,7 +721,7 @@ var mountainsBack = new mountainObj(150);
 var mountainsFront = new mountainObj(25);
 
 /*
- *	Tilemaps
+ *  Tilemaps
  */
 // Rocks
 var rockObj = function(xPos, yPos) {
@@ -737,7 +747,7 @@ var rockTilemap = ["rrrrrrrrrrrrrrrrrrrrr-------rrrrrrrrrrrrrrrrrr--------------
                    "r---------rrrrrrrrrrr--------------------rrrrr-------------------------------------------r",
                    "r-------------rrrrrrr--------------------rrrrr-------------------------------------------r",
                    "r-------------rrrrrrrrrrr----------------rrrrr-------------------------------------------r",
-                   "r------------------rrrrrr----------------rrrrrrrrr---------------rrrrrrrr----------------r",
+                   "r------------------rrrrrr----------------rrrrrrrrr---------------------------------------r",
                    "r------------------rrrrrrrr--------------------------------------rrrrrrrr--------rrr-----r",
                    "r------------------rrrrrrrrrr-------------------------rrrrrrr----rr--------------rrr-----r",
                    "r-------rr---------rrrrrrrrrr------------------------rrrrrrrr----rr-------------rrrrr----r",
@@ -771,7 +781,7 @@ var initRockTilemap = function() {
 initRockTilemap();
 
 /*
- *	Game States
+ *  Game States
  */
 var mainMenu = function() {
     this.rockArr = [];
@@ -780,23 +790,23 @@ var mainMenu = function() {
     }
 }; // constructor
 mainMenu.prototype.execute = function(obj) {
-	background(72, 72, 122);
-	nightSky.draw();
-	// Draws "floor" below the sky
-	fill(130, 98, 74);
-	rect(0, 250, width, 250);
+    background(72, 72, 122);
+    nightSky.draw();
+    // Draws "floor" below the sky
+    fill(130, 98, 74);
+    rect(0, 250, width, 250);
     mountainsBack.draw();
     mountainsFront.draw();
 
-	fill(30, 0, 222);
-	textSize(40);
+    fill(30, 0, 222);
+    textSize(40);
     textFont(createFont("monospace"));
-	text("Identity", width/2-100, 60);
+    text("Identity", width/2-100, 60);
 
-	fill(0, 0, 0);
-	textSize(15);
-	text("Child, where is your imagination going today? Who will\n" +
-	"  you be? What will you do? Where will you venture?", 60, 100);
+    fill(0, 0, 0);
+    textSize(15);
+    text("Child, where is your imagination going today? Who will\n" +
+    "  you be? What will you do? Where will you venture?", 60, 100);
 
     // Draw the boy's shadow first
     shadow.size = 60;
@@ -804,71 +814,71 @@ mainMenu.prototype.execute = function(obj) {
     shadow.snapshot = boy.snapshot;
     shadow.draw();
     // Connects the shadow to the boy
-	stroke(0, 0, 0);
-	strokeWeight(7);
-	line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
-	     shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
-	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
-	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
-	strokeWeight(1); // reset stroke weight back to normal
-	// Draws the boy on top of shadow
+    stroke(0, 0, 0);
+    strokeWeight(7);
+    line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
+         shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
+    line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
+         shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
+    strokeWeight(1); // reset stroke weight back to normal
+    // Draws the boy on top of shadow
     boy.position.set(350, 356);
-	boy.draw();
+    boy.draw();
+    
+    // Draws edge between floor and wall
+    stroke(0, 0, 0);
+    strokeWeight(3);
+    line(0, 250, width, 250);
+    
+    // Draws "outside" of house (bricks)
+    noStroke();
+    fill(173, 29, 29, 190);
+    rect(width-40, 0, 40, height);
+    rect(0, 0, 40, height);
+    stroke(255, 255, 255);
+    strokeWeight(2);
+    for(var i = 0; i < height/20; i++) {
+        // Draws horizontal lines of the brick wall on either side
+        line(width-40, i*20, width, i*20);
+        line(0, i*20, 38, i*20);
+        // Draws the vertical line patterns of brick wall on either side
+        if(i%2 === 0) {
+            line(width-20, i*20, width-20, i*20+19);
+            line(20, i*20, 20, i*20+19);
+        }
+    }
+    // Draws rock ground
+    for(var i = 0; i < this.rockArr.length; i++) {
+        this.rockArr[i].draw();
+    }
 
-	// Draws edge between floor and wall
-	stroke(0, 0, 0);
-	strokeWeight(3);
-	line(0, 250, width, 250);
-
-	// Draws "outside" of house (bricks)
-	noStroke();
-	fill(173, 29, 29, 190);
-	rect(width-40, 0, 40, height);
-	rect(0, 0, 40, height);
-	stroke(255, 255, 255);
-	strokeWeight(2);
-	for(var i = 0; i < height/20; i++) {
-	    // Draws horizontal lines of the brick wall on either side
-	    line(width-40, i*20, width, i*20);
-	    line(0, i*20, 38, i*20);
-	    // Draws the vertical line patterns of brick wall on either side
-	    if(i%2 === 0) {
-	        line(width-20, i*20, width-20, i*20+19);
-	        line(20, i*20, 20, i*20+19);
-	    }
-	}
-	// Draws rock ground
-	for(var i = 0; i < this.rockArr.length; i++) {
-	    this.rockArr[i].draw();
-	}
-
-	fill(89, 150, 247);
-	text("About", width-120, 170);
-	text("Controls", width-120, 200);
-	text("Play", width-120, 230);
-	strokeWeight(1);
-	stroke(110, 110, 110);
-	// Underline selection when mouse hovers above it
-	//      for visual feedback
-	if(mouseX >= width-130 && mouseX <= width-40) {
-	    if(mouseY > 150 && mouseY < 180) {
-	        line(width-120, 175, width-90, 175);
-	    }
-	    if(mouseY > 180 && mouseY < 210) {
-	        line(width-120, 205, width-90, 205);
-	    }
-	    if(mouseY > 210 && mouseY < 240) {
-	        line(width-120, 235, width-90, 235);
-	    }
-	}
+    fill(89, 150, 247);
+    text("About", width-120, 170);
+    text("Controls", width-120, 200);
+    text("Play", width-120, 230);
+    strokeWeight(1);
+    stroke(110, 110, 110);
+    // Underline selection when mouse hovers above it
+    //      for visual feedback
+    if(mouseX >= width-130 && mouseX <= width-40) {
+        if(mouseY > 150 && mouseY < 180) {
+            line(width-120, 175, width-90, 175);
+        }
+        if(mouseY > 180 && mouseY < 210) {
+            line(width-120, 205, width-90, 205);
+        }
+        if(mouseY > 210 && mouseY < 240) {
+            line(width-120, 235, width-90, 235);
+        }
+    }
 };
 var about = function() {};
 about.prototype.execute = function(obj) {
     background(0, 0, 0);
     fill(255, 255, 255);
-	textSize(30);
-	textFont(createFont("monospace"));
-	text("About", width/2-50, 60);
+    textSize(30);
+    textFont(createFont("monospace"));
+    text("About", width/2-50, 60);
 
     textSize(15);
     text("You are what you make yourself out to be, child. Your\n              alternate ego is with you...", 60, 90);
@@ -880,33 +890,33 @@ about.prototype.execute = function(obj) {
     "restricted to your physical bodies. Venture off and let\n" +
     "that imagination go wild!", 60, 150);
 
-	fill(0, 30, 255);
-	textSize(20);
-	text("Identity", width/2-50, 290);
-	fill(255, 255, 255);
-	textSize(12);
-	text("Christina Nguyen", width/2-60, 310);
+    fill(0, 30, 255);
+    textSize(20);
+    text("Identity", width/2-50, 290);
+    fill(255, 255, 255);
+    textSize(12);
+    text("Christina Nguyen", width/2-60, 310);
 
-	textSize(10);
-	text("Click anywhere on the screen to return to main menu", 150, 340);
+    textSize(10);
+    text("Click anywhere on the screen to return to main menu", 150, 340);
 };
 var controls = function() {}; // constructor
 controls.prototype.execute = function(obj) {
-	background(255, 255, 255);
+    background(255, 255, 255);
 
-	fill(0, 0, 0);
-	textSize(30);
-	textFont(createFont("monospace"));
-	text("Controls", width/2-60, 60);
+    fill(0, 0, 0);
+    textSize(30);
+    textFont(createFont("monospace"));
+    text("Controls", width/2-60, 60);
 
-	textSize(20);
-	text("Left/Right arrow keys: move", 150, 100);
-	text("Up key: jump", 230, 130);
+    textSize(20);
+    text("Left/Right arrow keys: move", 150, 100);
+    text("Up key: jump", 230, 130);
 
-	textSize(12);
-	text("(Give it a try!)", 250, 150);
+    textSize(12);
+    text("(Give it a try!)", 250, 150);
 
-	boy.size = 40;
+    boy.size = 40;
     boy.draw();
     boy.update();
     boy.inFlight = true;
@@ -923,8 +933,8 @@ controls.prototype.execute = function(obj) {
         boy.position.x = 50;
     }
 
-	textSize(10);
-	text("Click anywhere on the screen to return to main menu", 150, 260);
+    textSize(10);
+    text("Click anywhere on the screen to return to main menu", 150, 260);
 };
 var HP = 600; // init health
 var play = function() {}; // constructor
@@ -934,15 +944,15 @@ play.prototype.execute = function(obj) {
     //                   x=50  shifts screen to the LEFT
     // WHY IS IT INVERTED
     translate(-((boy.position.x+shadow.position.x)/2)+200, 0);
-	background(245, 245, 245);
-	noStroke();
-	fill(72, 72, 122);
-	rect(0, 0, width*3, 220);
-	// Draws "divider" between original char and the shadow
-	fill(0, 0, 0);
-	stroke(0, 0, 0);
-	line(0, 220, width*3, 220);
-
+    background(245, 245, 245);
+    noStroke();
+    fill(72, 72, 122);
+    rect(0, 0, width*3, 220);
+    // Draws "divider" between original char and the shadow
+    fill(0, 0, 0);
+    stroke(0, 0, 0);
+    line(0, 220, width*3, 220);
+    
     shadow.update();
     // Synchronize the shadow with the original
     shadow.snapshot = boy.snapshot;
@@ -953,11 +963,11 @@ play.prototype.execute = function(obj) {
         shadow.inFlight = false;
         shadow.position.y = 220 - shadow.size/2;
     }
-
+    
     for(var i = 0; i < rockArr.length; i++) {
-		rockArr[i].draw();
-	}
-
+        rockArr[i].draw();
+    }
+    
     // Add laser-shooting from shadow's eyes
     if(keys[90]) { // Z key
         if(frameCount%10 === 0) { // delay generation
@@ -972,7 +982,7 @@ play.prototype.execute = function(obj) {
             laserArr.splice(i, 1);
         }
     }
-
+    
     // Decrease HP if shadow collides with bats
     if(shadow.collided) {
         HP--;
@@ -986,8 +996,8 @@ play.prototype.execute = function(obj) {
         obj.changeStateTo(4); // gameOver state
     }
     shadow.draw();
-
-	// Draws bat enemy
+    
+    // Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
         batArr[i].draw();
         batArr[i].state[batArr[i].currState].execute(batArr[i]);
@@ -1003,25 +1013,30 @@ play.prototype.execute = function(obj) {
             bundleArr.splice(i, 1);
         }
     }
-
+    
     // Connects the shadow to the boy
-	stroke(0, 0, 0);
-	strokeWeight(7);
-	line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
-	     shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
-	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
-	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
-	strokeWeight(1); // reset stroke weight back to normal
-
-	boy.update();
-	boy.draw();
-	boy.checkCollision();
-
-	// Draw bees
-	for(var i = 0; i < beeArr.length; i++) {
-	    beeArr[i].draw();
-	    beeArr[i].move();
-	}
+    stroke(0, 0, 0);
+    strokeWeight(7);
+    line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
+         shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
+    line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
+         shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
+    strokeWeight(1); // reset stroke weight back to normal
+    
+    boy.update();
+    boy.draw();
+    boy.checkCollision();
+    
+    // Draw bees
+    for(var i = 0; i < beeArr.length; i++) {
+        beeArr[i].draw();
+        beeArr[i].move();
+    }
+    // Checks if boy/original collided with bees
+    if(boy.collided) {
+        HP -= 0.5; // Take half the damage for bees
+        boy.collided = false; // reset
+    }
 };
 var gameOver = function() {};
 gameOver.prototype.execute = function(obj) {
@@ -1031,52 +1046,52 @@ gameOver.prototype.execute = function(obj) {
 };
 //--------------------------------------------------------
 var gameObj = function() {
-	this.state = [new mainMenu(), new about(), new controls(),
-	              new play(), new gameOver()];
-	this.currState = 0; // Initialize to state in first index (main menu)
+    this.state = [new mainMenu(), new about(), new controls(),
+                  new play(), new gameOver()];
+    this.currState = 0; // Initialize to state in first index (main menu)
 };
 gameObj.prototype.changeStateTo = function(state) {
-	this.currState = state;
+    this.currState = state;
 };
 var game = new gameObj();
 
 /*
- *	Mouse interactions.
+ *  Mouse interactions.
  */
 mouseClicked = function() {
-	if(game.currState === 0) { // Main menu screen
-	    if(mouseX >= width-130 && mouseX <= width-40) {
-	        // Mouse hovered over the "About" option
-	        if(mouseY > 150 && mouseY < 180) {
-	            game.changeStateTo(1); // "About" screen
-	        }
-	        if(mouseY > 180 && mouseY < 210) {
-	            boy.position.set(width/2, height/2+30);
-	            boy.velocity.set(0, 0);
-	            game.changeStateTo(2); // "Controls" screen
-	        }
-	        if(mouseY > 210 && mouseY < 240) {
-	            boy.position.set(60, 350);
+    if(game.currState === 0) { // Main menu screen
+        if(mouseX >= width-130 && mouseX <= width-40) {
+            // Mouse hovered over the "About" option
+            if(mouseY > 150 && mouseY < 180) {
+                game.changeStateTo(1); // "About" screen
+            }
+            if(mouseY > 180 && mouseY < 210) {
+                boy.position.set(width/2, height/2+30);
+                boy.velocity.set(0, 0);
+                game.changeStateTo(2); // "Controls" screen
+            }
+            if(mouseY > 210 && mouseY < 240) {
+                boy.position.set(60, 350);
                 boy.size = 40;
                 shadow.position.set(40, 170);
                 shadow.size = 50;
                 // for(var i = 0; i < batArr.length; i++) {
                 //     batArr[i].state = 0; // init states
                 // }
-	            game.changeStateTo(3); // "Play" state
-	        }
-	    }
-	} else if(game.currState === 1) { // "About" screen
-	    game.changeStateTo(0); // main menu
-	} else if(game.currState === 2) { // "Controls" screen
-	    game.changeStateTo(0); // main menu
-	} else if(game.currState === 3) { // "Play" state; gameplay
-	    //
-	}
+                game.changeStateTo(3); // "Play" state
+            }
+        }
+    } else if(game.currState === 1) { // "About" screen
+        game.changeStateTo(0); // main menu
+    } else if(game.currState === 2) { // "Controls" screen
+        game.changeStateTo(0); // main menu
+    } else if(game.currState === 3) { // "Play" state; gameplay
+        //
+    }
 };
 
 draw = function() {
-	game.state[game.currState].execute(game);
+    game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
 // game.state[3].execute(game);
 ///////////////////////////////////////////////////////

@@ -104,6 +104,28 @@ laserObj.prototype.checkCollision = function() {
     }
 };
 var laserArr = [];
+/*
+ *  Child's powers
+ */
+var shieldObj = function(x, y, size, dir) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.direction = dir; // based on facing of character
+};
+shieldObj.prototype.draw = function() {
+    stroke(38, 208, 227);
+    fill(255, 255, 255, 0);
+    strokeWeight(5);
+    if(this.direction < 0) { // facing left
+        arc(this.x, this.y, this.size+5, this.size+5,
+            Math.PI/2, 3*Math.PI/2);
+    } else {
+        arc(this.x, this.y, this.size+5, this.size+5,
+            -Math.PI/2, Math.PI/2);
+    }
+};
+var shield = new shieldObj(0, 0, 0, 0);
 
 /*
  *  Characters
@@ -395,12 +417,12 @@ childObj.prototype.update = function() {
         }
         // Don't apply any force/speed when x-velocity is 0
     }
-    
+
     // Key for jumping
     if(keys[UP] && !this.inFlight) {
         this.velocity.y = -this.jumpVel;
     }
-    
+
     // Add gravity to child
     this.velocity.y += this.gravity;
     // Check threshold velocities
@@ -413,7 +435,7 @@ childObj.prototype.update = function() {
     if(this.velocity.x < -this.maxSpeed) {
         this.velocity.x = -this.maxSpeed;
     }
-    
+
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
     // Always assume child is in flight until it hits the top of a rock (in checkCollision())
@@ -460,7 +482,7 @@ childObj.prototype.checkCollision = function() {
             }
         }
     }
-    
+
     // Check collision with bat NPCs
     for(var i = 0; i < batArr.length; i++) {
         if(this.position.x+this.size/2 >= batArr[i].position.x-batArr[i].size/2-10 &&
@@ -470,7 +492,7 @@ childObj.prototype.checkCollision = function() {
                this.collided = true;
         }
     }
-    
+
     // Check collision with bee NPCs
     for(var i = 0; i < beeArr.length; i++) {
         if(this.position.x+this.size/2 >= beeArr[i].position.x-beeArr[i].w/2 &&
@@ -506,7 +528,7 @@ wanderState.prototype.execute = function(me) {
         this.wanderAngle += random(-15*Math.PI/180, 15*Math.PI/180);
     }
     this.wanderDist--; // distance before making significant turn
-    
+
     if(this.wanderDist < 0 ||
       me.position.x >= width*2 || me.position.x <= 0 || // Checks the borders of canvas
       me.position.y >= height || me.position.y <= 0) {
@@ -525,7 +547,7 @@ wanderState.prototype.execute = function(me) {
     } else if(me.position.y <= 20) {
         me.position.y++;
     }
-    
+
     for(var i = 0; i < laserArr.length; i++) {
         if(dist(laserArr[i].x, laserArr[i].y, me.position.x, me.position.y) < 90) {
             me.position.sub(this.velocity);
@@ -549,26 +571,26 @@ var batWingObj = function(x, y, size, side) {
 batWingObj.prototype.draw = function() {
     pushMatrix();
     translate(this.position.x, this.position.y);
-    
+
     // Animate wings
     switch(this.snapshot) {
         case 0:
             rotate(Math.PI/4);
         break;
-        
+
         case 1:
             rotate(0);
         break;
-        
+
         case 2:
             rotate(7*Math.PI/4);
         break;
-        
+
         default:
             rotate(0);
         break;
     }
-    
+
     if(this.side === "left") {
         line(-this.size/2, 0,
              -(this.size/2)-this.size/1.5, 0);
@@ -594,7 +616,7 @@ batWingObj.prototype.draw = function() {
              (this.size/2+this.size/2+this.size/1.5)/3,
              this.size/1.5);
     }
-    
+
     if(this.currFrame < (frameCount - 20)) {
         this.currFrame = frameCount;
         this.snapshot++;
@@ -602,17 +624,17 @@ batWingObj.prototype.draw = function() {
     if(this.snapshot > 3) {
         this.snapshot = 0;
     }
-    
+
     popMatrix();
 };
 var batEnemyObj = function(x, y) {
     this.position = new PVector(x, y);
     this.size = random(20, 30);
     this.hp = 150;
-    
+
     this.leftWing = new batWingObj(this.position.x, this.position.y, this.size, "left");
     this.rightWing = new batWingObj(this.position.x, this.position.y, this.size, "right");
-    
+
     // Variables for AI
     this.state = [new wanderState(), new chaseState()];
     this.currState = 0;
@@ -684,18 +706,18 @@ nightSkyObj.prototype.initialize = function() {
 };
 nightSkyObj.prototype.draw = function() {
     // Draws stars in sky
-    for(var i = 0; i < this.starArr.length; i++) {
-        // Use sin to slow the "twinkling" increment
-        // Scales the rate of transparency change over time
-        stroke(255, 255, 255, 255*abs(sin(Math.PI*i*this.t/7200)));
+	for(var i = 0; i < this.starArr.length; i++) {
+	    // Use sin to slow the "twinkling" increment
+	    // Scales the rate of transparency change over time
+	    stroke(255, 255, 255, 255*abs(sin(Math.PI*i*this.t/7200)));
         point(this.starArr[i].x, this.starArr[i].y);
         // Make "plus" sign ("star" shape)
         point(this.starArr[i].x-1, this.starArr[i].y);
         point(this.starArr[i].x+1, this.starArr[i].y);
         point(this.starArr[i].x, this.starArr[i].y-1);
         point(this.starArr[i].x, this.starArr[i].y+1);
-    }
-    this.t++;
+	}
+	this.t++;
 };
 var nightSky = new nightSkyObj();
 nightSky.initialize();
@@ -709,7 +731,7 @@ var mountainObj = function(colour) {
 mountainObj.prototype.draw = function() {
     var step = 0.01;
     fill(this.colour, this.colour, this.colour, 100);
-    
+
     stroke(this.colour, this.colour, this.colour, 170);
     for(var t = step; t < step * width/2.5; t += step) {
         var n = noise(t + this.colour * 20);
@@ -721,7 +743,7 @@ var mountainsBack = new mountainObj(150);
 var mountainsFront = new mountainObj(25);
 
 /*
- *  Tilemaps
+ *	Tilemaps
  */
 // Rocks
 var rockObj = function(xPos, yPos) {
@@ -748,12 +770,12 @@ var rockTilemap = ["rrrrrrrrrrrrrrrrrrrrr-------rrrrrrrrrrrrrrrrrr--------------
                    "r-------------rrrrrrr--------------------rrrrr-------------------------------------------r",
                    "r-------------rrrrrrrrrrr----------------rrrrr-------------------------------------------r",
                    "r------------------rrrrrr----------------rrrrrrrrr---------------------------------------r",
-                   "r------------------rrrrrrrr--------------------------------------rrrrrrrr--------rrr-----r",
-                   "r------------------rrrrrrrrrr-------------------------rrrrrrr----rr--------------rrr-----r",
-                   "r-------rr---------rrrrrrrrrr------------------------rrrrrrrr----rr-------------rrrrr----r",
-                   "r-------rr----------------------rrrr----------------rrrrrrrrr----rr-------------rrrrr----r",
-                   "r-----rrrrrr--------------------rrrr---------------rrrrrrrrrr--rrrrrrrrrrrr----rrrrrrr---r",
-                   "r-----rrrrrr--------------------rrrr--------------rrrrrrrrrrr--rrrrrrrrrrrr----rrrrrrr---r",
+                   "r------------------rrrrrrrr--------------------------------------rrrrrrrr------rrrrr-----r",
+                   "r------------------rrrrrrrrrr-------------------------rrrrrrr----rr------------rrrrr-----r",
+                   "r-------rr---------rrrrrrrrrr------------------------rrrrrrrr----rr-----------rrrrrrr----r",
+                   "r-------rr----------------------rrrr----------------rrrrrrrrr----rr-----------rrrrrrr----r",
+                   "r-----rrrrrr--------------------rrrr---------------rrrrrrrrrr--rrrrrrrrrrrr--rrrrrrrrr---r",
+                   "r-----rrrrrr--------------------rrrr--------------rrrrrrrrrrr--rrrrrrrrrrrrrrrrrrrrrrr---r",
                    "r-------------------------------------------------rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", // start of original's relm
                    "r---------------------------------------------------rrr-----r----rrr---------------------r",
                    "r---------------------------------------------------rrr-----r----rrr---------------------r",
@@ -781,7 +803,7 @@ var initRockTilemap = function() {
 initRockTilemap();
 
 /*
- *  Game States
+ *	Game States
  */
 var mainMenu = function() {
     this.rockArr = [];
@@ -790,23 +812,23 @@ var mainMenu = function() {
     }
 }; // constructor
 mainMenu.prototype.execute = function(obj) {
-    background(72, 72, 122);
-    nightSky.draw();
-    // Draws "floor" below the sky
-    fill(130, 98, 74);
-    rect(0, 250, width, 250);
+	background(72, 72, 122);
+	nightSky.draw();
+	// Draws "floor" below the sky
+	fill(130, 98, 74);
+	rect(0, 250, width, 250);
     mountainsBack.draw();
     mountainsFront.draw();
 
-    fill(30, 0, 222);
-    textSize(40);
+	fill(30, 0, 222);
+	textSize(40);
     textFont(createFont("monospace"));
-    text("Identity", width/2-100, 60);
+	text("Identity", width/2-100, 60);
 
-    fill(0, 0, 0);
-    textSize(15);
-    text("Child, where is your imagination going today? Who will\n" +
-    "  you be? What will you do? Where will you venture?", 60, 100);
+	fill(0, 0, 0);
+	textSize(15);
+	text("Child, where is your imagination going today? Who will\n" +
+	"  you be? What will you do? Where will you venture?", 60, 100);
 
     // Draw the boy's shadow first
     shadow.size = 60;
@@ -814,71 +836,80 @@ mainMenu.prototype.execute = function(obj) {
     shadow.snapshot = boy.snapshot;
     shadow.draw();
     // Connects the shadow to the boy
-    stroke(0, 0, 0);
-    strokeWeight(7);
-    line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
-         shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
-    line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
-         shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
-    strokeWeight(1); // reset stroke weight back to normal
-    // Draws the boy on top of shadow
+	stroke(0, 0, 0);
+	strokeWeight(7);
+	line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
+	     shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
+	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
+	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
+	strokeWeight(1); // reset stroke weight back to normal
+	// Draws the boy on top of shadow
     boy.position.set(350, 356);
-    boy.draw();
-    
-    // Draws edge between floor and wall
-    stroke(0, 0, 0);
-    strokeWeight(3);
-    line(0, 250, width, 250);
-    
-    // Draws "outside" of house (bricks)
-    noStroke();
-    fill(173, 29, 29, 190);
-    rect(width-40, 0, 40, height);
-    rect(0, 0, 40, height);
-    stroke(255, 255, 255);
-    strokeWeight(2);
-    for(var i = 0; i < height/20; i++) {
-        // Draws horizontal lines of the brick wall on either side
-        line(width-40, i*20, width, i*20);
-        line(0, i*20, 38, i*20);
-        // Draws the vertical line patterns of brick wall on either side
-        if(i%2 === 0) {
-            line(width-20, i*20, width-20, i*20+19);
-            line(20, i*20, 20, i*20+19);
-        }
-    }
-    // Draws rock ground
-    for(var i = 0; i < this.rockArr.length; i++) {
-        this.rockArr[i].draw();
-    }
+	boy.draw();
 
-    fill(89, 150, 247);
-    text("About", width-120, 170);
-    text("Controls", width-120, 200);
-    text("Play", width-120, 230);
-    strokeWeight(1);
-    stroke(110, 110, 110);
-    // Underline selection when mouse hovers above it
-    //      for visual feedback
-    if(mouseX >= width-130 && mouseX <= width-40) {
-        if(mouseY > 150 && mouseY < 180) {
-            line(width-120, 175, width-90, 175);
-        }
-        if(mouseY > 180 && mouseY < 210) {
-            line(width-120, 205, width-90, 205);
-        }
-        if(mouseY > 210 && mouseY < 240) {
-            line(width-120, 235, width-90, 235);
-        }
-    }
+	// Draws edge between floor and wall
+	stroke(0, 0, 0);
+	strokeWeight(3);
+	line(0, 250, width, 250);
+
+	// Draws "outside" of house (bricks)
+	noStroke();
+	fill(173, 29, 29, 190);
+	rect(width-40, 0, 40, height);
+	rect(0, 0, 40, height);
+	stroke(255, 255, 255);
+	strokeWeight(2);
+	for(var i = 0; i < height/20; i++) {
+	    // Draws horizontal lines of the brick wall on either side
+	    line(width-40, i*20, width, i*20);
+	    line(0, i*20, 38, i*20);
+	    // Draws the vertical line patterns of brick wall on either side
+	    if(i%2 === 0) {
+	        line(width-20, i*20, width-20, i*20+19);
+	        line(20, i*20, 20, i*20+19);
+	    }
+	}
+	// Draws rock ground
+	for(var i = 0; i < this.rockArr.length; i++) {
+	    this.rockArr[i].draw();
+	}
+
+	fill(89, 150, 247);
+	text("About", width-120, 170);
+	text("Controls", width-120, 200);
+	text("Play", width-120, 230);
+	strokeWeight(1);
+	stroke(110, 110, 110);
+	// Underline selection when mouse hovers above it
+	//      for visual feedback
+	if(mouseX >= width-130 && mouseX <= width-40) {
+	    if(mouseY > 150 && mouseY < 180) {
+	        line(width-120, 175, width-90, 175);
+	    }
+	    if(mouseY > 180 && mouseY < 210) {
+	        line(width-120, 205, width-90, 205);
+	    }
+	    if(mouseY > 210 && mouseY < 240) {
+	        line(width-120, 235, width-90, 235);
+	    }
+	}
+
+	fill(0, 0, 0);
+	textSize(15);
+	text("The child and his\n" +
+	     "shadow act as one.\n" +
+	     "They share the same\n" +
+	     "HP. Destroy all the\n" +
+	     "shadow bats while\n" +
+	     "dodging the bees.", 385, 280);
 };
 var about = function() {};
 about.prototype.execute = function(obj) {
     background(0, 0, 0);
     fill(255, 255, 255);
-    textSize(30);
-    textFont(createFont("monospace"));
-    text("About", width/2-50, 60);
+	textSize(30);
+	textFont(createFont("monospace"));
+	text("About", width/2-50, 60);
 
     textSize(15);
     text("You are what you make yourself out to be, child. Your\n              alternate ego is with you...", 60, 90);
@@ -890,33 +921,33 @@ about.prototype.execute = function(obj) {
     "restricted to your physical bodies. Venture off and let\n" +
     "that imagination go wild!", 60, 150);
 
-    fill(0, 30, 255);
-    textSize(20);
-    text("Identity", width/2-50, 290);
-    fill(255, 255, 255);
-    textSize(12);
-    text("Christina Nguyen", width/2-60, 310);
+	fill(0, 30, 255);
+	textSize(20);
+	text("Identity", width/2-50, 290);
+	fill(255, 255, 255);
+	textSize(12);
+	text("Christina Nguyen", width/2-60, 310);
 
-    textSize(10);
-    text("Click anywhere on the screen to return to main menu", 150, 340);
+	textSize(10);
+	text("Click anywhere on the screen to return to main menu", 150, 340);
 };
 var controls = function() {}; // constructor
 controls.prototype.execute = function(obj) {
-    background(255, 255, 255);
+	background(255, 255, 255);
 
-    fill(0, 0, 0);
-    textSize(30);
-    textFont(createFont("monospace"));
-    text("Controls", width/2-60, 60);
+	fill(0, 0, 0);
+	textSize(30);
+	textFont(createFont("monospace"));
+	text("Controls", width/2-60, 60);
 
-    textSize(20);
-    text("Left/Right arrow keys: move", 150, 100);
-    text("Up key: jump", 230, 130);
+	textSize(20);
+	text("Left/Right arrow keys: move", 150, 100);
+	text("Up key: jump", 230, 130);
 
-    textSize(12);
-    text("(Give it a try!)", 250, 150);
+	textSize(12);
+	text("(Give it a try!)", 250, 150);
 
-    boy.size = 40;
+	boy.size = 40;
     boy.draw();
     boy.update();
     boy.inFlight = true;
@@ -933,10 +964,35 @@ controls.prototype.execute = function(obj) {
         boy.position.x = 50;
     }
 
-    textSize(10);
-    text("Click anywhere on the screen to return to main menu", 150, 260);
+	textSize(10);
+	text("Click anywhere on the screen to return to main menu", 150, 260);
+
+	textSize(20);
+	fill(0, 0, 0);
+	text("Z: shoot lasers (from shadow)", 140, 300);
+
+	shadow.size = 40;
+	shadow.position.set(300, 350);
+	shadow.draw();
+	shadow.update();
+	// Add laser-shooting from shadow's eyes
+    if(keys[90]) { // Z key
+        if(frameCount%10 === 0) { // delay generation
+        laserArr.push(new laserObj(shadow.position.x, shadow.position.y - shadow.size/2, shadow.facing));
+        }
+    }
+	// Draw lasers
+    for(var i = 0; i < laserArr.length; i++) {
+        laserArr[i].draw();
+        laserArr[i].move();
+        if(laserArr[i].maxReached) {
+            laserArr.splice(i, 1);
+        }
+    }
 };
 var HP = 600; // init health
+var shieldTime = 60;
+var shieldUp = false;
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
     // Scrolling
@@ -944,15 +1000,15 @@ play.prototype.execute = function(obj) {
     //                   x=50  shifts screen to the LEFT
     // WHY IS IT INVERTED
     translate(-((boy.position.x+shadow.position.x)/2)+200, 0);
-    background(245, 245, 245);
-    noStroke();
-    fill(72, 72, 122);
-    rect(0, 0, width*3, 220);
-    // Draws "divider" between original char and the shadow
-    fill(0, 0, 0);
-    stroke(0, 0, 0);
-    line(0, 220, width*3, 220);
-    
+	background(245, 245, 245);
+	noStroke();
+	fill(72, 72, 122);
+	rect(0, 0, width*3, 220);
+	// Draws "divider" between original char and the shadow
+	fill(0, 0, 0);
+	stroke(0, 0, 0);
+	line(0, 220, width*3, 220);
+
     shadow.update();
     // Synchronize the shadow with the original
     shadow.snapshot = boy.snapshot;
@@ -963,11 +1019,11 @@ play.prototype.execute = function(obj) {
         shadow.inFlight = false;
         shadow.position.y = 220 - shadow.size/2;
     }
-    
+
     for(var i = 0; i < rockArr.length; i++) {
-        rockArr[i].draw();
-    }
-    
+		rockArr[i].draw();
+	}
+
     // Add laser-shooting from shadow's eyes
     if(keys[90]) { // Z key
         if(frameCount%10 === 0) { // delay generation
@@ -982,7 +1038,7 @@ play.prototype.execute = function(obj) {
             laserArr.splice(i, 1);
         }
     }
-    
+
     // Decrease HP if shadow collides with bats
     if(shadow.collided) {
         HP--;
@@ -996,8 +1052,8 @@ play.prototype.execute = function(obj) {
         obj.changeStateTo(4); // gameOver state
     }
     shadow.draw();
-    
-    // Draws bat enemy
+
+	// Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
         batArr[i].draw();
         batArr[i].state[batArr[i].currState].execute(batArr[i]);
@@ -1013,27 +1069,47 @@ play.prototype.execute = function(obj) {
             bundleArr.splice(i, 1);
         }
     }
-    
-    // Connects the shadow to the boy
-    stroke(0, 0, 0);
-    strokeWeight(7);
-    line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
-         shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
-    line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
-         shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
-    strokeWeight(1); // reset stroke weight back to normal
-    
-    boy.update();
-    boy.draw();
-    boy.checkCollision();
-    
-    // Draw bees
-    for(var i = 0; i < beeArr.length; i++) {
-        beeArr[i].draw();
-        beeArr[i].move();
+
+    if(batArr.length === 0) {
+        obj.changeStateTo(5); // win state
     }
-    // Checks if boy/original collided with bees
-    if(boy.collided) {
+
+    // Connects the shadow to the boy
+	stroke(0, 0, 0);
+	strokeWeight(7);
+	line(boy.backFoot.x + boy.position.x, boy.backFoot.y + boy.position.y,
+	     shadow.backFoot.x + shadow.position.x, shadow.backFoot.y + shadow.position.y);
+	line(boy.frontFoot.x + boy.position.x, boy.frontFoot.y + boy.position.y,
+	     shadow.frontFoot.x + shadow.position.x, shadow.frontFoot.y + shadow.position.y);
+	strokeWeight(1); // reset stroke weight back to normal
+
+	boy.update();
+	boy.draw();
+	boy.checkCollision();
+	// Draw shield for boy
+	shield.size = boy.size;
+	shield.direction = boy.facing;
+    shield.x = boy.position.x;
+    shield.y = boy.position.y;
+	if(keys[67]) { // C key
+        shieldUp = true;
+	}
+	if(shieldUp === true) {
+	    shield.draw();
+	    shieldTime--;
+	    if(shieldTime <= 0) {
+	        shieldUp = false;
+	        shieldTime = 60;
+	    }
+	}
+
+	// Draw bees
+	for(var i = 0; i < beeArr.length; i++) {
+	    beeArr[i].draw();
+	    beeArr[i].move();
+	}
+	// Checks if boy/original collided with bees
+	if(boy.collided) {
         HP -= 0.5; // Take half the damage for bees
         boy.collided = false; // reset
     }
@@ -1044,56 +1120,72 @@ gameOver.prototype.execute = function(obj) {
     textSize(30);
     text("Game over!", 250, 200);
 };
+var win = function() {};
+win.prototype.execute = function(obj) {
+    fill(13, 0, 255);
+    textSize(35);
+    text("Good job, champ!", 160, 200);
+};
 //--------------------------------------------------------
 var gameObj = function() {
-    this.state = [new mainMenu(), new about(), new controls(),
-                  new play(), new gameOver()];
-    this.currState = 0; // Initialize to state in first index (main menu)
+	this.state = [new mainMenu(), new about(), new controls(),
+	              new play(), new gameOver(), new win()];
+	this.currState = 0; // Initialize to state in first index (main menu)
 };
 gameObj.prototype.changeStateTo = function(state) {
-    this.currState = state;
+	this.currState = state;
 };
 var game = new gameObj();
 
 /*
- *  Mouse interactions.
+ *	Mouse interactions.
  */
 mouseClicked = function() {
-    if(game.currState === 0) { // Main menu screen
-        if(mouseX >= width-130 && mouseX <= width-40) {
-            // Mouse hovered over the "About" option
-            if(mouseY > 150 && mouseY < 180) {
-                game.changeStateTo(1); // "About" screen
-            }
-            if(mouseY > 180 && mouseY < 210) {
-                boy.position.set(width/2, height/2+30);
-                boy.velocity.set(0, 0);
-                game.changeStateTo(2); // "Controls" screen
-            }
-            if(mouseY > 210 && mouseY < 240) {
-                boy.position.set(60, 350);
+	if(game.currState === 0) { // Main menu screen
+	    if(mouseX >= width-130 && mouseX <= width-40) {
+	        // Mouse hovered over the "About" option
+	        if(mouseY > 150 && mouseY < 180) {
+	            game.changeStateTo(1); // "About" screen
+	        }
+	        if(mouseY > 180 && mouseY < 210) {
+	            boy.position.set(width/2, height/2+30);
+	            boy.velocity.set(0, 0);
+	            game.changeStateTo(2); // "Controls" screen
+	        }
+	        if(mouseY > 210 && mouseY < 240) {
+	            boy.position.set(60, 350);
                 boy.size = 40;
                 shadow.position.set(40, 170);
                 shadow.size = 50;
                 // for(var i = 0; i < batArr.length; i++) {
                 //     batArr[i].state = 0; // init states
                 // }
-                game.changeStateTo(3); // "Play" state
-            }
+                HP = 600; // re-initialize health
+	            game.changeStateTo(3); // "Play" state
+	        }
+	    }
+	} else if(game.currState === 1) { // "About" screen
+	    game.changeStateTo(0); // main menu
+	} else if(game.currState === 2) { // "Controls" screen
+	    game.changeStateTo(0); // main menu
+	} else if(game.currState === 3) { // "Play" state; gameplay
+	    //
+	} else if(game.currState === 4) { // "Game over" state
+	    HP = 600; // re-initialize health
+	    // Re-spawn the bats
+        for(var i = 0; i < Math.floor(Math.random()*8) + 4; i++) {
+            batArr.push(new batEnemyObj(random(180, 2.5*width), random(60, 180)));
         }
-    } else if(game.currState === 1) { // "About" screen
-        game.changeStateTo(0); // main menu
-    } else if(game.currState === 2) { // "Controls" screen
-        game.changeStateTo(0); // main menu
-    } else if(game.currState === 3) { // "Play" state; gameplay
-        //
-    }
+	    game.changeStateTo(0); // main menu
+	} else if(game.currState === 5) { // "Win" state
+	    game.changeStateTo(0); // main menu
+	}
 };
 
 draw = function() {
-    game.state[game.currState].execute(game);
+	game.state[game.currState].execute(game);
 ////////////////////// DEBUGGING //////////////////////
-// game.state[3].execute(game);
+// game.state[5].execute(game);
 ///////////////////////////////////////////////////////
 };
 

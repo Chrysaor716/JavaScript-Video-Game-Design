@@ -993,6 +993,8 @@ controls.prototype.execute = function(obj) {
 var HP = 600; // init health
 var shieldTime = 60;
 var shieldUp = false;
+var shieldCooldown = 180; // 60 * 3 (frame rate = 60)
+var startCooldown = false;
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
     // Scrolling
@@ -1091,15 +1093,23 @@ play.prototype.execute = function(obj) {
 	shield.direction = boy.facing;
     shield.x = boy.position.x;
     shield.y = boy.position.y;
-	if(keys[67]) { // C key
+	if(keys[67] && !startCooldown) { // C key
         shieldUp = true;
 	}
-	if(shieldUp === true) {
+	if(shieldUp) {
 	    shield.draw();
 	    shieldTime--;
 	    if(shieldTime <= 0) {
 	        shieldUp = false;
 	        shieldTime = 60;
+	        startCooldown = true;
+	    }
+	}
+	if(startCooldown) {
+	    shieldCooldown--;
+	    if(shieldCooldown <= 0) {
+	        startCooldown = false;
+	        shieldCooldown = 180;
 	    }
 	}
 

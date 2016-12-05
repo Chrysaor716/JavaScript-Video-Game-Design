@@ -92,7 +92,6 @@ laserObj.prototype.checkCollision = function() {
            this.y >= bat.position.y - bat.size/2) {
               if(this.x >= bat.position.x - (bat.size/2 + 10) &&
                  this.x-20 <= bat.position.x + (bat.size/2 + 10)) {
-                     this.collided = true;
                      bundleArr.push(new particleBundles(bat.position.x, bat.position.y));
                 }
         }
@@ -110,6 +109,7 @@ var childObj = function(x, y, charType) {
     this.charType = charType;
     this.size = 40; // default
     this.facing = 1; // default: character is facing right
+    this.collided = false; // collision with bat NPCs
 
     // animation variables
     this.snapshot = 0;
@@ -414,6 +414,7 @@ childObj.prototype.update = function() {
     this.inFlight = true;
 };
 childObj.prototype.checkCollision = function() {
+    // Checks collision with rocks
     for(var i = 0; i < rockArr.length; i++) {
         // Reference:
         //    http://gamedev.stackexchange.com/questions/29786/a-simple-2d-rectangle-collision-algorithm-that-also-determines-which-sides-that
@@ -454,6 +455,15 @@ childObj.prototype.checkCollision = function() {
         }
     }
 
+    // Checks collision with bat NPCs
+    for(var i = 0; i < batArr.length; i++) {
+        if(this.position.x+this.size/2 >= batArr[i].position.x-batArr[i].size/2-10 &&
+           this.position.x-this.size/2 <= batArr[i].position.x+batArr[i].size/2+10 &&
+           this.position.y+this.size/2 >= batArr[i].position.y-batArr[i].size/2 &&
+           this.position.y-this.size/2 <= batArr[i].position.y+batArr[i].size/2) {
+               this.collided = true;
+        }
+    }
 };
 
 /*
@@ -489,7 +499,7 @@ wanderState.prototype.execute = function(me) {
         this.wanderAngle += random(-Math.PI, Math.PI);
     }
     // Ensure position of the enemies do not surpass the borders
-    if(me.position.x >= width*2) {
+    if(me.position.x >= width*3-20) {
         me.position.x--;
     } else if(me.position.x <= 20) {
         me.position.x++;
@@ -506,7 +516,7 @@ wanderState.prototype.execute = function(me) {
     // }
 
     for(var i = 0; i < laserArr.length; i++) {
-        if(dist(laserArr[i].x, laserArr[i].y, me.position.x, me.position.y) < 70) {
+        if(dist(laserArr[i].x, laserArr[i].y, me.position.x, me.position.y) < 90) {
             me.position.sub(this.velocity);
         }
     }
@@ -694,26 +704,26 @@ rockObj.prototype.draw = function() {
 };
 // 600x400 pixel canvas size, each tile 20x20 pixels
 // 40x20 tile array --> 800x400 pixel
-var rockTilemap = ["r------------------rr-------rrrrrrrrrrrrr------------rr----rr------------------r",
-                   "r------------------rr------------------rr------------rr----rr------------------r",
-                   "r------------------rr------------------rr------------rr----rr------------------r",
-                   "r------------------rrrrrr----------------------------rr----rr------------------r",
-                   "r------------------rrrrrr----------------------------rr----rr------------------r",
-                   "r------------------rrrrrrrr--------------------------rr----rr------------------r",
-                   "r------------------rrrrrrrrrr------------------------rr----rr------------------r",
-                   "r------------------rrrrrrrrrr------------------------rr----rr------------------r",
-                   "r-------------------------------rrrr-----------------rr----rr------------------r",
-                   "r-------------------------------rrrr-----------------rr----rr------------------r",
-                   "r-------------------------------rrrr--------------------------------------------", // "divider"
-                   "r------------------------------------------------------------------------rr----r", // start of original's relm
-                   "r------------------------------------------------------------------------rr----r",
-                   "r------------------------------------------------------------------------rr----r",
-                   "r----------------------rrrrrrrrrrr-----rr------------------rr------------rr-----",
-                   "r----------------------rr--------------rr------------------rr------------rr-----",
-                   "r----------rrrrrrrrr-------------------rr------------------rr------------rr-----",
-                   "r---------rrrrrrrrrr----------------rrrrr------------------rr------------rr-----",
-                   "r--------rrrrrrrrrrr----------------rrrrr------------------rr------------rr----r",
-                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr----rr------------rrrrrrr"]; // @ ~400 pixels down
+var rockTilemap = ["rrrrrrrrrrrrrrrrrrrrr-------rrrrrrrrrrrrrrrrrr-------------------------------------------r",
+                   "r---------rrrrrrrrrrr--------------------rrrrr-------------------------------------------r",
+                   "r-------------rrrrrrr--------------------rrrrr-------------------------------------------r",
+                   "r-------------rrrrrrrrrrr----------------rrrrr-------------------------------------------r",
+                   "r------------------rrrrrr----------------rrrrrrrrr---------------rrrrrrrr----------------r",
+                   "r------------------rrrrrrrr--------------------------------------rrrrrrrr--------rrr-----r",
+                   "r------------------rrrrrrrrrr-------------------------rrrrrrr----rr--------------rrr-----r",
+                   "r-------rr---------rrrrrrrrrr------------------------rrrrrrrr----rr-------------rrrrr----r",
+                   "r-------rr----------------------rrrr----------------rrrrrrrrr----rr-------------rrrrr----r",
+                   "r-----rrrrrr--------------------rrrr---------------rrrrrrrrrr--rrrrrrrrrrrr----rrrrrrr---r",
+                   "r-----rrrrrr--------------------rrrr--------------rrrrrrrrrrr--rrrrrrrrrrrr----rrrrrrr---r",
+                   "r-------------------------------------------------rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", // start of original's relm
+                   "r---------------------------------------------------rrr-----r----rrr---------------------r",
+                   "r---------------------------------------------------rrr-----r----rrr---------------------r",
+                   "r----------------------rrrrrrrrrrr-------------------------------rrr---------------------r",
+                   "r----------------------rr----------------------------------------rrrrrrrrrrr---------rrrrr",
+                   "r----------rrrrrrrrr-------------------------rrrr--------------------------------rrrrrrrrr",
+                   "r---------rrrrrrrrrr----------------rrrrr----rrrr-----------r-------------------rrrrrrrrrr",
+                   "r--------rrrrrrrrrrr----------------rrrrr----rrrr-----------r------------------rrrrrrrrrrr",
+                   "rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"]; // @ ~400 pixels down
 var initRockTilemap = function() {
     for(var i = 0; i < rockTilemap.length; i++) {
         for(var j = 0; j < rockTilemap[i].length; j++) {
@@ -887,16 +897,7 @@ controls.prototype.execute = function(obj) {
 	textSize(10);
 	text("Click anywhere on the screen to return to main menu", 150, 260);
 };
-/////////////////////TODO REMOVE THIS LATER////////////////////
-// this position is set when user clicks "Play" with their mouse
-// from the main menu
-// for now, with debugging and keeping it in play state, the boy's
-// position is initialized here
-// boy.position.set(60, 350);
-// boy.size = 40;
-// shadow.position.set(40, 170);
-// shadow.size = 50;
-///////////////////////////////////////////////////////////
+var HP = 600; // init health
 var play = function() {}; // constructor
 play.prototype.execute = function(obj) {
     // Scrolling
@@ -907,11 +908,11 @@ play.prototype.execute = function(obj) {
 	background(245, 245, 245);
 	noStroke();
 	fill(72, 72, 122);
-	rect(0, 0, 600*6, 220);
+	rect(0, 0, width*3, 220);
 	// Draws "divider" between original char and the shadow
 	fill(0, 0, 0);
 	stroke(0, 0, 0);
-	line(0, 220, width*4, 220);
+	line(0, 220, width*3, 220);
 
     shadow.draw();
     shadow.update();
@@ -944,6 +945,18 @@ play.prototype.execute = function(obj) {
         }
     }
 
+    // Decrease HP if shadow collides with bats
+    if(shadow.collided) {
+        HP--;
+        shadow.collided = false; // reset
+    }
+    // Draw HP bar
+    fill(11, 184, 60, 200);
+    rect((boy.position.x+shadow.position.x)/2-200, 210, HP, 20);
+    if(HP <= 0) {
+        obj.changeStateTo(4); // gameOver state
+    }
+
 	// Draws bat enemy
     for(var i = 0; i < batArr.length; i++) {
         batArr[i].draw();
@@ -970,10 +983,16 @@ play.prototype.execute = function(obj) {
 	boy.draw();
 	boy.checkCollision();
 };
+var gameOver = function() {};
+gameOver.prototype.execute = function(obj) {
+    fill(255, 0, 0);
+    textSize(30);
+    text("Game over!", 250, 200);
+};
 //--------------------------------------------------------
 var gameObj = function() {
 	this.state = [new mainMenu(), new about(), new controls(),
-	              new play()];
+	              new play(), new gameOver()];
 	this.currState = 0; // Initialize to state in first index (main menu)
 };
 gameObj.prototype.changeStateTo = function(state) {

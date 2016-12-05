@@ -3,9 +3,6 @@ var sketchProc=function(processingInstance){ with (processingInstance){
 size(600, 400); // canvas size
 frameRate(60);
 
-angleMode = "radians";
-frameRate(60);
-
 var keys = [];
 var keyPressed = function() {
     keys[keyCode] = true;
@@ -69,14 +66,14 @@ var laserObj = function(x, y, dir) {
     this.y = y;
     this.dir = dir; // direction to shoot laser
     this.speed = 1.5;
-    this.maxDist = 400; // max distance the laser can travel
+    this.maxDist = 500; // max distance the laser can travel
     this.maxReached = false;
     this.distCounter = 0;
 };
 laserObj.prototype.draw = function() {
     stroke(0, 0, 0);
     strokeWeight(3);
-    line(this.x, this.y, this.x - 20, this.y);
+    line(this.x, this.y, this.x - 40, this.y);
 };
 laserObj.prototype.move = function() {
     this.x += this.speed * this.dir;
@@ -471,6 +468,7 @@ var wanderState = function() {
     this.wanderDist = random(70, 100);
     this.velocity = new PVector(0, 0);
 };
+// Optional: In case you want the NPCs to avoid the rocks
 wanderState.prototype.checkObstacle = function(pos) {};
 wanderState.prototype.execute = function(me) {
     // this.checkObstacle(me.position);
@@ -506,6 +504,12 @@ wanderState.prototype.execute = function(me) {
     // if(dist(me.position.x, me.position.y, player.position.x, player.position.y) < 80) {
     //     me.changeState(1);
     // }
+
+    for(var i = 0; i < laserArr.length; i++) {
+        if(dist(laserArr[i].x, laserArr[i].y, me.position.x, me.position.y) < 70) {
+            me.position.sub(this.velocity);
+        }
+    }
 };
 //-----------------------------------------------------
 

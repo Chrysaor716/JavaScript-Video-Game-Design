@@ -466,7 +466,7 @@ childObj.prototype.checkCollision = function() {
                     // Collision at top edge (of child)
                     this.velocity.y = 0;
                     this.inFlight = true;
-                    this.position.y = rockArr[i].y + 20 + this.size/2 + 1;
+                    this.position.y = rockArr[i].y + 20 + this.size/2 + 5;
                 } else {
                     // Collision at right edge
                     this.velocity.x = 0;
@@ -566,7 +566,7 @@ var batWingObj = function(x, y, size, side) {
     this.side = side;
     // animation variables
     if(this.side === "left") {
-        this.snapshot = 2;
+        this.snapshot = 5;
     } else {
         this.snapshot = 0;
     }
@@ -1013,13 +1013,13 @@ controls.prototype.execute = function(obj) {
 	fill(42, 49, 250);
 	textSize(12);
 	if(shieldCooldown >= 0 && shieldCooldown <= 60) {
-	    text("Shield cooldown: 1", 20, 390);
+	    text("Shield cooldown: 1", 20, 370);
 	} else if(shieldCooldown >= 61 && shieldCooldown <= 120) {
-	    text("Shield cooldown: 2", 20, 390);
+	    text("Shield cooldown: 2", 20, 370);
 	} else if(shieldCooldown >= 121 && shieldCooldown <= 180) {
-	    text("Shield cooldown: 3", 20, 390);
+	    text("Shield cooldown: 3", 20, 370);
 	} else {
-	    text("Shield cooldown: 0", 20, 390);
+	    text("Shield cooldown: 0", 20, 370);
 	}
 
 	textSize(10);
